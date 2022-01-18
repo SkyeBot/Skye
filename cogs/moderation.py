@@ -65,23 +65,25 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.has_permissions(ban_members=True)
     async def ban(self,ctx, member:discord.Member=None, *, reason: commands.clean_content = ""):    
-        if member == None:
-            await ctx.send("``Who Are You Banning?``")
-        else:
-            if member == self.bot.user:
-                await ctx.send("``You Cannot Ban Me!``")
+            if member == None:
+                await ctx.send("``Who Are You Banning?``")
             else:
-                if member == ctx.author:
-                    await ctx.send('``You Cannot Ban Yourself!``')
-                else:    
-                    if reason == None:
-                        reason="No Reason Specified" 
+                if member == self.bot.user:
+                    await ctx.send("``You Cannot Ban Me!``")
+                else:
+                    if member == ctx.author:
+                        await ctx.send('``You Cannot Ban Yourself!``')
+                    else:    
+                        if reason == None:
+                            reason="No Reason Specified" 
 
-                    embed = discord.Embed(title=f"succesfully banned {member.name} from this server", description=f"Reason: {reason}\nBy: {ctx.author.mention}")    
+                        embed = discord.Embed(title=f"succesfully banned {member.name} from this server", description=f"Reason: {reason}\nBy: {ctx.author.mention}")    
 
-                    await member.ban(reason=reason)
-                    await ctx.send(embed=embed) 
-                    await member.send(f'``You Have Been Banned From {ctx.guild.name} for`` \n``{reason}``')
+                        await member.ban(reason=reason)
+                        await ctx.send(embed=embed) 
+                        await member.send(f'``You Have Been Banned From {ctx.guild.name} for`` \n``{reason}``')
+
+                   
                      
 
     @ban.error
@@ -153,6 +155,7 @@ class Moderation(commands.Cog):
 
             embed = discord.Embed(title=f"Timedout {member}\nReason: {reason}", description=f"Duration: {duration}")
             await ctx.send(embed=embed)
+
 
 
 
