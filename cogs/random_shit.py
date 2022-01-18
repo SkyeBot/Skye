@@ -1,3 +1,4 @@
+from unicodedata import name
 import discord
 
 import random
@@ -19,13 +20,6 @@ class stupidshit(commands.Cog):
         await ctx.send("https://cdn.discordapp.com/attachments/921957596259291166/932458342058704896/ECC6AF8F-F42E-4945-A0F2-F79E7BAB6DBF.jpg")  
 
     
-    @commands.command()
-    async def help(self,ctx):
-        embed=discord.Embed(title="💡List Of Commands")
-        embed.add_field(name="**__stupid shit__**", value="``work``")
-
-   
-        await ctx.send(embed=embed)
 
     
     @commands.command()
@@ -33,6 +27,8 @@ class stupidshit(commands.Cog):
         embed=discord.Embed(title="💡List Of Commands")
         embed.add_field(name="**<:malding:929627018474176542> __Skye__**", value="``work``, ``mood``", inline=False)
         embed.add_field(name="**:tools: __Moderation__**", value="``Ban``, ``Unban``, ``Purge``, ``Mute``, ``Unmute``, ``kick``", inline=False)
+        embed.add_field(name="**🎵__Music__**", value="``join``, ``playfile``,``play``, ``yt``, ``stop``")
+        embed.add_field(name="**📦 __Misc__**", value="``covid``, ``uptime``, ``ping``", inline=False)
    
         await ctx.send(embed=embed) 
 
