@@ -43,7 +43,7 @@ class Logging(commands.Cog):
                     await ctx.send("Please provide a channel for me for logging!")
                 else:
                     if (exists==None):
-                        predb.insert_one({"_id":ctx.guild.id, "channel_id":channel.id})
+                        predb.insert_one({"_id":ctx.guild.id, "channel_id": channel.id})
                         em = discord.Embed(title="", color= discord.Color(0x32ff00))
                         em.add_field(name="Logging currently enabled! ", value="   Logs are in: {}".format(channel.mention))
                         await ctx.send(embed=em)
@@ -60,10 +60,10 @@ class Logging(commands.Cog):
     @logging.command(name="disable")
     @commands.has_permissions(administrator=True)
     async def _disable(self, ctx, channel: discord.TextChannel):
-        exists = {"_id":ctx.guild.id, "channel_id":channel.id}
+        exists = ({"_id":ctx.guild.id}, {"$set": {"channel_id": "null"}})
 
         if(exists!=None):
-            predb.delete_one(exists)
+            predb.update_one(exists)
             await ctx.send("Logging Now disabled!")
 
     
@@ -82,23 +82,24 @@ class Logging(commands.Cog):
         exists = predb.find_one({"_id":message.guild.id})
         channel = await self.bot.fetch_channel(exists["channel_id"])
         
-
-        try:
+        if exists is not None:
             deleted = discord.Embed(
-            description=f"Message deleted in {message.channel.mention}", color=0x4040EC)
-        
+            description = f"Message deleted in {message.channel.mention}"
+                )
             deleted.set_author(name=message.author, icon_url=message.author.avatar)
-            deleted.add_field(name="Message:\n", value=message.content,inline=False)
-            deleted.add_field(name="ID:", value=f"```User = {message.author.id} \nMessage = {message.id}```") 
             deleted.timestamp = message.created_at
-            deleted.set_footer(text=f"Author ID: {message.author.id} • Message ID: {message.id}")
-            
+            if message.content:
+                deleted.add_field(name="Message:\n", value=message.content, inline=False)
+                deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```")
+            if message.attachments:
+                deleted.add_field(name="Deleted Image:", value=f"||Ignore this||",inline=False)
+                deleted.set_image(url=message.attachments[0].url)
+                deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
 
-
-            
             await channel.send(embed=deleted)
-        except discord.HTTPException:
-            await channel.send(f"Message deleted in {message.channel.mention} \n{message.author} \nMessage: ``None``")
+
+        
+            
 
 
 
@@ -106,21 +107,31 @@ class Logging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self,before, after):
-        embed = discord.Embed(
-            timestamp=after.created_at,
-            description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",
-            colour = discord.Colour(0x00FF00)
-            ) 
-        
-
-        embed.set_author(name=f'{before.author.name}#{before.author.discriminator}', icon_url=before.author.avatar)
-        embed.set_footer(text=f"Author ID:{before.author.id} • Message ID: {before.id}")
-        embed.add_field(name='Before:', value=before.content, inline=False)
-        embed.add_field(name="After:", value=after.content, inline=False)
-        embed.add_field(name="ID:", value=f"```User = {before.author.id} \nMessage = {before.id}```", inline=False)
         exists = predb.find_one({"_id":before.guild.id})
         channel = await self.bot.fetch_channel(exists["channel_id"])
-        await channel.send(embed=embed)
+        
+        try:
+            embed = discord.Embed(
+                timestamp=after.created_at,
+                description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",
+                colour = discord.Colour(0x00FF00)
+                ) 
+        
+
+            embed.set_author(name=f'{before.author.name}#{before.author.discriminator}', icon_url=before.author.avatar)
+            embed.set_footer(text=f"Author ID:{before.author.id} • Message ID: {before.id}")
+            embed.add_field(name='Before:', value=before.content, inline=False)
+            embed.add_field(name="After:", value=after.content, inline=False)
+            embed.add_field(name="ID:", value=f"```User = {before.author.id} \nMessage = {before.id}```", inline=False)
+            
+
+            
+            
+            
+            await channel.send(embed=embed)
+
+        except discord.HTTPException:
+            await channel.send(f"Message edited in {before.channel.mention} \n Before: {before.attachments[0].url} \n After: {after.attachments[0].url}")
 
 
 def setup(bot):
