@@ -1,0 +1,3 @@
+2022-03-21 06:07:33.180  INFO 2609682 --- [Thread-1] o.s.s.concurrent.ThreadPoolTaskExecutor  : Shutting down ExecutorService 'applicationTaskExecutor'
+2022-03-21 06:07:33.199  INFO 2609682 --- [Thread-1] c.s.d.l.tools.GarbageCollectionMonitor   : GC monitoring disabled.
+2022-03-21 06:07:33.215  INFO 2609682 --- [Thread-1] io.undertow.servlet                      : Destroying Spring FrameworkServlet 'dispatcherServlet'

@@ -1,0 +1,11 @@
+{
+    "apps": [
+      {
+        "name":"skye",
+        "script":"main.py",
+        "interpreter" : "python3",
+        "interpreter_args": "-u"
+      }
+    ]
+  }
+  
