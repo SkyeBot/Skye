@@ -230,3 +230,9 @@ java.util.concurrent.RejectedExecutionException: XNIO007007: Thread is terminati
 2022-04-24 14:12:06.154  INFO 811878 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : {"op": "stop", "guildId": "911427598750453792"}
 2022-04-24 14:12:06.158  INFO 811878 --- [XNIO-1 task-4] l.server.player.AudioLoaderRestHandler   : GET /decodetrack
 2022-04-24 14:12:07.845  INFO 811878 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : {"op": "destroy", "guildId": "911427598750453792"}
+2022-04-24 14:14:32.846  INFO 811878 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:48900 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key 2484467b6793be58
+2022-04-24 14:14:32.847  INFO 811878 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:48938 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key f2b4c87f12033c2e
+2022-04-24 14:14:32.853  INFO 811878 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:48878 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key 2ac028fea0396ab5
+2022-04-24 14:15:32.846  INFO 811878 --- [pool-4-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-24 14:15:32.848  INFO 811878 --- [pool-5-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-24 14:15:32.854  INFO 811878 --- [pool-3-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
