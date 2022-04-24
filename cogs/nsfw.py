@@ -11,7 +11,10 @@ from praw.reddit import Submission
 
 import aiohttp
 
-
+reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',
+                     client_secret='T5loHbaVD7m-RNMpFf0z24iOJsInwg',
+                     user_agent='Oxygen',
+                     check_for_async= False)
 
 
 class hmmmm(commands.Cog):

@@ -383,6 +383,20 @@ class stupidshit(commands.Cog):
         message = await ctx.channel.send(embed=embed)
         await message.add_reaction("✅")
         await message.add_reaction("❌")
+        
+    @commands.command()
+    async def help(self,ctx):
+        embed=discord.Embed(title="💡List Of Commands")
+        embed.add_field(name="Website:", value="\nTip: you can find more info at our [Command List](https://skyebot.dev/commands)")
+        embed.add_field(name=":malding: Skye", value="``work``, ``mood``, ``invite``, ``website``, ``stats``", inline=False)
+        embed.add_field(name=":admin: Administrator", value="``setprefix``, ``autorole``, ``logging``")
+        embed.add_field(name="🛠️ Moderation", value="``Ban``, ``Unban``, ``Purge``, ``Mute``, ``Unmute``, ``kick``, ``warn``, ``timeout``, ``rt``", inline=False)
+        embed.add_field(name="🎮 Fun", value="``nick``, ``howgay``, ``howsus``, ``facts``, ``memes``, ``osugame``, ``8ball``, ``banf``, ``snipe``, ``kys``, ``urban``, ``beer``🍻, joke, horny, triggered, simp, jail",inline=False)
+        embed.add_field(name=":anime: anime/anime_fun", value="``neko``, ``bite``", inline=False)
+        embed.add_field(name="🐶Animals", value="``duck``, ``birb``", inline=False)
+        embed.add_field(name="📦 Misc", value="``covid``, ``uptime``, ``ping``, ``av``, ``banner``, ``serverinfo``, ``userinfo``, ``rtfm``", inline=False)
+
+        await ctx.send(embed=embed)
 
         
 

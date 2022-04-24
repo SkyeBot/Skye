@@ -14,7 +14,7 @@ from utils import http
 
 import asyncio
 
-mongo_url = "" #mongodb URL
+mongo_url = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
 cluster = MongoClient(mongo_url)
 predb = cluster["skye"]["logging"]
 

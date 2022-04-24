@@ -166,20 +166,7 @@ class Information(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def help(self,ctx):
-        embed=discord.Embed(title="💡List Of Commands")
-        embed.add_field(name="**Website**:", value="\n*Tip: you can find more info at our [Command List](https://skyebot.dev/commands)*")
-        embed.add_field(name="**<:malding:929627018474176542> __Skye__**", value="``work``, ``mood``, ``invite``, ``website``, ``stats``", inline=False)
-        embed.add_field(name="**<:admin:933871693687062588> __Administrator__**", value="``setprefix``, ``autorole``, ``logging``")
-        embed.add_field(name="**:tools: __Moderation__**", value="``Ban``, ``Unban``, ``Purge``, ``Mute``, ``Unmute``, ``kick``, ``warn``, ``timeout``, ``rt``", inline=False)
-        embed.add_field(name="**🎵__Music__**", value="``join``, ``resume``,``pause``,``play``, ``queue``, ``stop``,``volume``", inline=False)
-        embed.add_field(name="**:video_game: __Fun__**", value="``nick``, ``howgay``, ``howsus``, ``facts``, ``memes``, ``osugame``, ``8ball``, ``banf``, ``snipe``,``kys``, ``urban``, ``beer``🍻, ``joke``, ``horny``, ``triggered``, ``simp``, ``jail``",inline=False)
-        embed.add_field(name="**<:anime:939807968151613460> __anime/anime_fun__**", value="``neko``, ``bite``", inline=False)
-        embed.add_field(name="**🐶__Animals__**", value="``duck``, ``birb``", inline=False)
-        embed.add_field(name="**📦 __Misc__**", value="``covid``, ``uptime``, ``ping``, ``av``, ``banner``, ``serverinfo``, ``userinfo``, ``rtfm``", inline=False)
    
-        await ctx.send(embed=embed) 
 
 
     @commands.command()

@@ -6,11 +6,11 @@ from discord.ext import commands
 import pymongo
 from pymongo import MongoClient
 
-mongo_url = "" #put your Mongodb url here
+mongo_url = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
 cluster = MongoClient(mongo_url)
 predb = cluster["skye"]["welcome"]
 
-mongo_url2 = ""
+mongo_url2 = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
 cluster2 = MongoClient(mongo_url)
 predb2 = cluster["skye"]["logging"]
 

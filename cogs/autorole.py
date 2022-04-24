@@ -6,9 +6,9 @@ import pymongo
 
 from pymongo import MongoClient
 
-mongo_url = ""
+mongo_url = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
 cluster = MongoClient(mongo_url)
-predb = cluster[""][""]
+predb = cluster["skye"]["autorole"]
 
 class Autorole(commands.Cog):
     def __init__(self, bot):
@@ -16,12 +16,11 @@ class Autorole(commands.Cog):
     
     @commands.group()
     @commands.has_permissions(administrator=True)
-    async def autorole(self, ctx):
+    async def autorole(self, ctx: commands.Context):
         exists = predb.find_one({"_id": ctx.guild.id})
 
         if ctx.invoked_subcommand is None:
-            em = None
-            if exists == None:
+            if exists is None:
                 em = discord.Embed(title="Autorole is disabled for this guild.", color=discord.Color(0xff0000))
                 await ctx.send(embed=em)
             else:
@@ -31,13 +30,13 @@ class Autorole(commands.Cog):
                     await ctx.send(embed=em)
 
     @commands.Cog.listener()
-    async def on_member_join(self,member):
-      exists = predb.find_one({"_id": member.guild.id})
+    async def on_member_join(self,member: discord.Member):
+        exists = predb.find_one({"_id": member.guild.id})
+    
 
-
-      rol = discord.utils.get(member.guild.roles, id=exists["role"])
+        rol = discord.utils.get(member.guild.roles, id=exists["role"])
           
-      await member.add_roles(rol)
+        await member.add_roles(rol)
 
 
 
@@ -68,16 +67,16 @@ class Autorole(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def _disable(self, ctx, role: discord.Role=None):
         exists = {"_id":ctx.guild.id,"role":role.id}
-
+        
         if(exists!=None):
             predb.delete_one(exists)
-            await ctx.send("Autorole disabled!")
+            await ctx.send("Autorole is now disabled!")
 
     
     
     
 
 
-def setup(bot):
-    bot.add_cog(Autorole(bot))
+async def setup(bot):
+    await bot.add_cog(Autorole(bot))
         

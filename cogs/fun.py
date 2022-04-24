@@ -7,6 +7,7 @@ import random
 
 import praw
 
+
 from utils import http
 
 import randfacts
@@ -18,6 +19,10 @@ from lxml import etree
 
 import asyncio
 
+reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',
+                     client_secret='T5loHbaVD7m-RNMpFf0z24iOJsInwg',
+                     user_agent='Oxygen',
+                     check_for_async= False)
 
 
 

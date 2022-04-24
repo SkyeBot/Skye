@@ -3,62 +3,67 @@ import random
 import time
 import discord
 from config import token
-from discord.ext import commands, ipc
+from discord.ext import commands, ipc, tasks
 from discord import app_commands
 import os
 import pymongo
 from pymongo import MongoClient
 import asyncpg
 
-
+from discord import ui
+from discord.ext import menus
+import wavelink
 
 token = token
 
 
-
 async def get_prefix(client, message):
     try:
-      defualt_prefix = "skye "
-      if not message.guild:
-        return commands.when_mentioned_or(defualt_prefix)(client, message)
+        defualt_prefix = "skye "
+        if not message.guild:
+            return commands.when_mentioned_or(defualt_prefix)(client, message)
 
-      prefix = await bot.db.fetch('SELECT prefix FROM guilds WHERE guild_id = $1', message.guild.id)
-      if len(prefix) == 0:
-        await bot.db.execute('INSERT INTO guilds(guild_id, prefix) VALUES ($1, $2)', message.guild.id, defualt_prefix)
-      else: 
-          prefix = prefix[0].get("prefix")
+        prefix = await bot.db.fetch('SELECT prefix FROM guilds WHERE guild_id = $1', message.guild.id)
+        if len(prefix) == 0:
+            await bot.db.execute('INSERT INTO guilds(guild_id, prefix) VALUES ($1, $2)', message.guild.id, defualt_prefix)
+        else:
+            prefix = prefix[0].get("prefix")
 
-    
-      return commands.when_mentioned_or(prefix, defualt_prefix)(client,message)
+        return commands.when_mentioned_or(prefix, defualt_prefix)(client, message)
     except TypeError:
-      pass
+        pass
+
 
 async def create_db_pool():
-        bot.db = await asyncpg.create_pool(dsn="postgres://skye:GRwe2h2ATA5qrmpa@localhost:5432/skye")
-        print('Connection to POSTGRESQL')
-    
+    bot.db = await asyncpg.create_pool(dsn="postgres://skye:GRwe2h2ATA5qrmpa@localhost:5432/skye")
+    print('Connected To Database: postgresql \n Port: 5432')
+
 
 class MyBot(commands.Bot):
 
-	def __init__(self,*args,**kwargs):
-		super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-		self.ipc = ipc.Server(self,secret_key = "Sawsha")
+        self.ipc = ipc.Server(self, secret_key="Sawsha")
 
-	async def on_ready(self):
-		"""Called upon the READY event"""
-		print("Bot is ready.")
+    async def on_ready(self):
+        """Called upon the READY event"""
+        print("Bot is ready.")
 
-	async def on_ipc_error(self, endpoint, error):
-		"""Called upon an error being raised within an IPC route"""
-		print(endpoint, "raised", error)
+    async def on_ipc_error(self, endpoint, error):
+        """Called upon an error being raised within an IPC route"""
+        print(endpoint, "raised", error)
+    
+
+    async def setup_hook(self):
+        self.loop.create_task(ch_pr())
+
 
 
 
 
 bot = MyBot(command_prefix=get_prefix, intents=discord.Intents.all())
 bot.remove_command('help')
-
 
 
 
@@ -70,69 +75,67 @@ async def on_ready():
     print("-------------------------------------------------")
 
 
-
+@tasks.loop(seconds=30)
 async def ch_pr():
-  await bot.wait_until_ready()
+    await bot.wait_until_ready()
 
+    statuses = ['Work is da poop! NO MORE!☁️', f'on {len(bot.guilds)} servers!', 'skye help', 'made by Sawsha#0598']
 
-  statuses = ['Work is da poop! NO MORE!☁️', f'on {len(bot.guilds)} servers!', 'skye help', 'made by Sawsha#0598']
+    while not bot.is_closed():
 
-  while not bot.is_closed():
+        status = random.choice(statuses)
+        await bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(type=discord.ActivityType.playing, name=status))
 
-    status = random.choice(statuses)
-    await bot.change_presence(status=discord.Status.dnd , activity=discord.Activity(type=discord.ActivityType.playing, name=status))
-
-    await asyncio.sleep(30)
-
-
-
+        await asyncio.sleep(30)
 
 
 @bot.ipc.route()
 async def get_guild_count(data):
-	return len(bot.guilds) # returns the len of the guilds to the client
+    return len(bot.guilds)  # returns the len of the guilds to the client
+
 
 @bot.ipc.route()
 async def get_guild_ids(data):
-	final = []
-	for guild in bot.guilds:
-		final.append(guild.id)
-	return final # returns the guild ids to the client
+    final = []
+    for guild in bot.guilds:
+        final.append(guild.id)
+    return final  # returns the guild ids to the client
+
 
 @bot.ipc.route()
 async def get_guild(data):
-	guild = bot.get_guild(data.guild_id)
-	if guild is None: return None
+    guild = bot.get_guild(data.guild_id)
+    if guild is None:
+        return None
+    prefix = await bot.db.fetchrow("SELECT prefix FROM GUILDS WHERE guild_id = $1", guild.id)
 
-	guild_data = {
-		"name": guild.name,
-		"id": guild.id,
-		"prefix" : "?"
-	}
+    a = prefix.get("prefix")
 
-	return guild_data
 
+    guild_data = {
+        "name": guild.name,
+        "id": guild.id,
+        "prefix":a
+    }
+
+    return guild_data
 
 
 
 
 async def main():
-  async with bot:
-                  
-    for filename in os.listdir('./cogs'):
-        if filename.endswith('.py'):
-          await bot.load_extension(f'cogs.{filename[:-3]}')
-    
-        else:
-            print(f'Unable to load {filename[:-3]}')
-    
-    
-    await bot.load_extension('jishaku') 
-    await create_db_pool()
-    await bot.start(token)  
+    async with bot:
+        bot.wait_until_ready
+        for filename in os.listdir('./cogs'):
+            if filename.endswith('.py'):
+                await bot.load_extension(f'cogs.{filename[:-3]}')
+
+            else:
+                print(f'Unable to load {filename[:-3]}')
+        
+        await bot.load_extension('jishaku')
+        await create_db_pool()
+        await bot.start(token)
 
 
 asyncio.run(main())
-
-
-
