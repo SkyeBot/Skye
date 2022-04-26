@@ -1,7 +1,7 @@
 import datetime
 import io
 import discord
-
+from discord import app_commands
 import random
 
 from io import BytesIO
@@ -79,25 +79,25 @@ class stupidshit(commands.Cog):
             bio.seek(0)
             await ctx.send(content=content, file=discord.File(bio, filename=filename))
 
-    @commands.command()
-    @commands.cooldown(rate=1, per=1.5, type=commands.BucketType.user)
-    async def duck(self, ctx):
+    
+    @app_commands.command()
+    async def duck(self, interaction: discord.Interaction):
         """ Posts a random duck """
         async with aiohttp.ClientSession() as session:
             async with session.get("https://random-d.uk/api/v1/random") as request:
                 if request.status != 200:
-                    return await ctx.send(f"Oh no! The api returned an error of {request.status}!")
+                    return await interaction.response.send_message(f"Oh no! The api returned an error of {request.status}!")
 
                 data = await request.json()
                 duck_img = data["url"]
 
                 embed = discord.Embed(title="quack quack (translation: here's duck)")
-                embed.set_author(name=ctx.author, icon_url=ctx.author.avatar)
+                embed.set_author(name=interaction.user, icon_url=interaction.user.avatar)
                 embed.set_image(url=duck_img)
                 embed.timestamp = datetime.datetime.utcnow()
                 embed.set_footer(text=f"Powered by random-d.uk!", icon_url="https://cdn.discordapp.com/attachments/945457044922728452/947288533582880848/favicon.png")
 
-                await ctx.send(embed=embed)
+                await interaction.response.send_message(embed=embed)
 
 
     @commands.command()

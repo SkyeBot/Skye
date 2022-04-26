@@ -7,6 +7,7 @@ import logging
 import aiohttp
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 
 class SphinxObjectFileReader:
@@ -153,7 +154,6 @@ class Docs(commands.Cog, name="Documentation"):
 
 
         if not hasattr(self, "_rtfm_cache"):
-            await ctx.trigger_typing()
             await self.build_rtfm_lookup_table(page_types)
 
         cache = list(self._rtfm_cache[key].items())
@@ -175,13 +175,14 @@ class Docs(commands.Cog, name="Documentation"):
     @commands.Cog.listener()
     async def on_ready(self):
         self.logger.info("I'm ready!")
-
-    @commands.group(
+    MY_GUILD = discord.Object(id=875423509768204288)
+    @commands.hybrid_group(
         name="rtfm",
         description="Gives you a documentation link for a d.py entity.",
         aliases=["rtfd"],
     )
-    async def rtfm(self, ctx, key: str = None, *, query: str = None):
+    @app_commands.guilds(MY_GUILD)
+    async def rtfm(self, ctx: commands.Context, key: str = None, *, query: str = None):
         if not key or key.lower() not in self.page_types.keys():
             query = query or ""
             key = key or ""
@@ -192,29 +193,23 @@ class Docs(commands.Cog, name="Documentation"):
         if query is not None:
             if query.lower() == "rtfm":
                 await ctx.send(
-                    embed=discord.Embed.from_dict(
-                        {
-                            "title": "Read The Fucking Manual",
-                            "description": "Don't ask me! i don't know this shit!",
-                            "footer": {"text": "btw: you're gay :)", "icon_url":f"{ctx.author.avatar.url}"},
-                        }
-                    )
+                   n
                 )
             else:
                 await self.do_rtfm(ctx, key, query)
 
 
     @rtfm.command(name='master', aliases=['2.0'])
-    async def rtfm_master(self, ctx, *, obj: str = None):
+    async def rtfm_master(self, ctx: commands.Context, *, doc: str = None):
         """Gives you a documentation link for a discord.py entity (master branch)"""
-        await self.do_rtfm(ctx, 'master', obj)
+        await self.do_rtfm(ctx, 'master', doc)
 
     
     @rtfm.command(name='python', aliases=['py'])
-    async def rtfm_py(self, ctx, *, obj: str = None):
+    async def rtfm_py(self, ctx, *, doc: str = None):
         """Gives you a documentation link for a discord.py entity (master branch)"""
         key = self.transform_rtfm_language_key(ctx, 'python')
-        await self.do_rtfm(ctx, key, obj)
+        await self.do_rtfm(ctx, key, doc)
 
 
 async def setup(bot):

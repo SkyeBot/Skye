@@ -1,13 +1,3 @@
-
-"""
-This example cog demonstrates basic usage of Lavalink.py, using the DefaultPlayer.
-As this example primarily showcases usage in conjunction with discord.py, you will need to make
-modifications as necessary for use with another Discord library.
-Usage of this cog requires Python 3.6 or higher due to the use of f-strings.
-Compatibility with Python 3.5 should be possible if f-strings are removed.
-"""
-import re
-
 import discord
 import wavelink
 from discord.ext import commands
@@ -34,9 +24,17 @@ class Music(commands.Cog):
         """Event fired when a node has finished connecting."""
         print(f'Node: <{node.identifier}> is ready!')
 
+    @commands.Cog.listener()
+    async def on_wavelink_track_end(self, player: wavelink.Player, track, reason):
+        if not player.queue.is_empty:
+
+            new = player.queue.get()
+            await player.play(new)
+
     @commands.command()
     async def play(self, ctx: commands.Context, *, search: wavelink.YouTubeTrack):
         """Play a song with the given search query.
+
         If not connected, connect to our voice channel.
         """
         if not ctx.voice_client:
@@ -44,7 +42,12 @@ class Music(commands.Cog):
         else:
             vc: wavelink.Player = ctx.voice_client
 
-        await vc.play(search)
+        if vc.queue.is_empty and not vc.is_playing():
+            await vc.play(search)
+            await ctx.send(f"Now playing: {search.title} By {search.author}")
+        else:
+            await vc.queue.put_wait(search)
+            await ctx.send(f'Added `{search.title}` to the queue...', delete_after=10)
 
     @commands.command()
     async def stop(self, ctx: commands.Context):
@@ -63,7 +66,49 @@ class Music(commands.Cog):
         await ctx.voice_client.disconnect(force=True)
 
         await ctx.send("Disconected from current vc!")
+    
+    @commands.group()
+    async def queue(self, ctx: commands.Context):
         
+        
+        vc: wavelink.Player = ctx.voice_client
+
+        if not vc:
+            return await ctx.send('No queue as we are not connected', delete_after=5)
+        if ctx.invoked_subcommand is None:
+            if not vc.queue:
+                return await ctx.send(f"There is no songs in the queue!\nAdd one using the command ``skye queue add 'song title'`` or by playing one!")
+            else:
+                await ctx.send(vc.queue)
+    
+    @queue.command()
+    async def clear(self, ctx: commands.Context):
+        vc : wavelink.Player = ctx.voice_client
+
+        await ctx.send(f"Cleared {len(vc.queue)} songs from the queue.")
+        vc.queue.clear()
+
+    @queue.command()
+    async def add(self, ctx: commands.Context, *, search: wavelink.YouTubeTrack):
+        vc: wavelink.Player = ctx.voice_client
+
+        await vc.queue.put_wait(search)
+
+        await ctx.send(f"Added **{search.title}** To The Queue")
+        
+    @commands.command()
+    async def volume(self, ctx: commands.Context, volume: int):
+        vc: wavelink.Player = ctx.voice_client
+
+        if not vc:
+            return await ctx.send("I am not connected to a voice channel.")
+
+        elif volume > 100:
+            return await ctx.send("You cannot put the volume over 100!")
+        else:
+            await vc.set_volume(volume=volume)
+            await ctx.send(f"The volume is now {volume}%")
+
 
 async def setup(bot):
     await bot.add_cog(Music(bot))

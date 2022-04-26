@@ -50,13 +50,6 @@ class MyCog(commands.Cog):
     """ /parent sub-command """
     await interaction.response.send_message("Hello from the sub command!", ephemeral=True)
 
-  @commands.is_owner()
-  @commands.command()
-  async def sync(self, ctx):
-        """Sync all commands to this server"""
-        progress_msg = await ctx.send("Trying to sync...")
-        test = await self.bot.tree.sync()
-        await progress_msg.edit(f"Synced on this server: {test}")
 
 
 async def setup(bot):
