@@ -1,3 +1,4 @@
+import asyncio
 import discord
 import wavelink
 from discord.ext import commands
@@ -27,8 +28,10 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, player: wavelink.Player, track , reason):
         if not player.queue.is_empty:
+            asyncio.sleep(2)
             new = player.queue.get()
             await player.play(new)
+
 
     @commands.command()
     async def play(self, ctx: commands.Context, *, search: wavelink.YouTubeTrack):
@@ -51,6 +54,8 @@ class Music(commands.Cog):
             await vc.queue.put_wait(search)
             await ctx.send(f'Added `{search.title}` to the queue...')
 
+
+
     @commands.command()
     async def skip(self, ctx: commands.Context):
         if not ctx.voice_client:
@@ -58,8 +63,20 @@ class Music(commands.Cog):
         else:
             vc: wavelink.Player = ctx.voice_client
         
-        await vc.stop()
+        next = vc.queue.get()
+        asyncio.sleep(3)
+        await vc.play(next)
         await ctx.send("Skipped Song!")
+
+    @commands.command()
+    async def stop(self, ctx: commands.Context):
+        if not ctx.voice_client:
+            return await ctx.send("I am not currently in a voice channel!")
+        else:
+            vc: wavelink.Player = ctx.voice_client
+        
+        await vc.stop()
+        await ctx.send("Stopped!")
 
     
 
@@ -88,6 +105,18 @@ class Music(commands.Cog):
                 embed.description = "\n".join(str(song) for song in vc.queue)
                 await ctx.send(embed=embed)
     
+    @queue.command()
+    async def see(self, ctx:commands.Context):
+            vc: wavelink.Player = ctx.voice_client
+
+            
+            if not vc.queue:
+                return await ctx.send(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
+            else:
+                embed = discord.Embed(title="Current queue")
+                embed.description = "\n".join(str(song) for song in vc.queue)
+                await ctx.send(embed=embed)
+
     @queue.command()
     async def clear(self, ctx: commands.Context):
         vc : wavelink.Player = ctx.voice_client
