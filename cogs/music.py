@@ -89,7 +89,7 @@ class Music(commands.Cog):
 
         await ctx.send("Disconected from current vc!")
     
-    @commands.hybrid_group()
+    @commands.command
     async def queue(self, ctx: commands.Context):
         
         
@@ -105,17 +105,6 @@ class Music(commands.Cog):
                 embed.description = "\n".join(str(song) for song in vc.queue)
                 await ctx.send(embed=embed)
     
-    @queue.command()
-    async def see(self, ctx:commands.Context):
-            vc: wavelink.Player = ctx.voice_client
-
-            
-            if not vc.queue:
-                return await ctx.send(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
-            else:
-                embed = discord.Embed(title="Current queue")
-                embed.description = "\n".join(str(song) for song in vc.queue)
-                await ctx.send(embed=embed)
 
     @queue.command()
     async def clear(self, ctx: commands.Context):
