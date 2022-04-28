@@ -1,14 +1,8 @@
 import datetime
 import discord
-
 from discord.ext  import commands
-from discord.embeds import Embed
-
 import praw
 import random
-
-from praw.reddit import Submission
-
 import aiohttp
 
 reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',

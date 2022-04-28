@@ -140,14 +140,14 @@ class Logging(commands.Cog):
                 
 
     @commands.Cog.listener()
-    async def on_message_edit(self,before, after):
+    async def on_message_edit(self,before: discord.Message, after: discord.Message):
         try:
             try:
                 if before.content == after.content:
                     pass
                 else:
                     exists = predb.find_one({"id": before.guild.id})
-                    channel = await self.bot.fetch_channel(exists["channel_id"])
+                    channel = await self.bot.get_channel(exists["channel_id"])
                     embed = discord.Embed(
                     timestamp=after.created_at,
                     description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",

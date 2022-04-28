@@ -25,9 +25,8 @@ class Music(commands.Cog):
         print(f'Node: <{node.identifier}> is ready!')
 
     @commands.Cog.listener()
-    async def on_wavelink_track_end(self, player: wavelink.Player, track, reason):
+    async def on_wavelink_track_end(self, player: wavelink.Player, track , reason):
         if not player.queue.is_empty:
-
             new = player.queue.get()
             await player.play(new)
 
@@ -44,19 +43,25 @@ class Music(commands.Cog):
 
         if vc.queue.is_empty and not vc.is_playing():
             await vc.play(search)
-            await ctx.send(f"Now playing: {search.title} By {search.author}")
+            embed = discord.Embed(title=f"Now playing: **{search.title} By {search.author}**")
+            embed.set_author(name=ctx.author, url=ctx.author.display_avatar.url)
+            embed.set_image(url=search.thumbnail)
+            await ctx.send(embed=embed)
         else:
             await vc.queue.put_wait(search)
-            await ctx.send(f'Added `{search.title}` to the queue...', delete_after=10)
+            await ctx.send(f'Added `{search.title}` to the queue...')
 
     @commands.command()
-    async def stop(self, ctx: commands.Context):
+    async def skip(self, ctx: commands.Context):
         if not ctx.voice_client:
             return await ctx.send("I am not currently in a voice channel!")
         else:
             vc: wavelink.Player = ctx.voice_client
+        
         await vc.stop()
-        await ctx.send("Stopped!")
+        await ctx.send("Skipped Song!")
+
+    
 
     @commands.command(aliases=['dc'])
     async def disconnect(self, ctx:commands.Context):
@@ -67,7 +72,7 @@ class Music(commands.Cog):
 
         await ctx.send("Disconected from current vc!")
     
-    @commands.group()
+    @commands.hybrid_group()
     async def queue(self, ctx: commands.Context):
         
         
@@ -77,9 +82,11 @@ class Music(commands.Cog):
             return await ctx.send('No queue as we are not connected', delete_after=5)
         if ctx.invoked_subcommand is None:
             if not vc.queue:
-                return await ctx.send(f"There is no songs in the queue!\nAdd one using the command ``skye queue add 'song title'`` or by playing one!")
+                return await ctx.send(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
             else:
-                await ctx.send(vc.queue)
+                embed = discord.Embed(title="Current queue")
+                embed.description = "\n".join(str(song) for song in vc.queue)
+                await ctx.send(embed=embed)
     
     @queue.command()
     async def clear(self, ctx: commands.Context):
@@ -109,6 +116,35 @@ class Music(commands.Cog):
             await vc.set_volume(volume=volume)
             await ctx.send(f"The volume is now {volume}%")
 
+    @commands.command()
+    async def pause(self, ctx: commands.Context):
+        vc: wavelink.Player = ctx.voice_client
+
+        if not vc:
+            return await ctx.send("I am not connected to a voice channel.")
+
+        await vc.pause()
+        await ctx.send("Paused.")
+
+    @commands.command()
+    async def resume(self, ctx: commands.Context):
+        vc: wavelink.Player = ctx.voice_client
+        if not vc: 
+            return await ctx.send("I am not connected to a voice channel.")
+
+        await vc.resume()
+        await ctx.send("Resumed.")
+
+    @commands.command()
+    async def join(self, ctx:commands.Context):
+
+        if not ctx.voice_client:
+            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
+        else:
+            vc: wavelink.Player = ctx.voice_client
+        
+        await ctx.author.voice.channel.connect(cls=wavelink.Player)
+        
 
 async def setup(bot):
     await bot.add_cog(Music(bot))
