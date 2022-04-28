@@ -105,6 +105,18 @@ class Music(commands.Cog):
                 embed.description = "\n".join(str(song) for song in vc.queue)
                 await ctx.send(embed=embed)
     
+    
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        voice_state = member.guild.voice_client
+    
+            
+        if voice_state is None:
+                # Exiting if the bot it's not connected to a voice channel
+            return 
+
+        if len(voice_state.channel.members) == 1:
+            await voice_state.disconnect()
 
     @queue.command()
     async def clear(self, ctx: commands.Context):
