@@ -66,7 +66,7 @@ class Music(commands.Cog):
         next = vc.queue.get()
         asyncio.sleep(3)
         await vc.play(next)
-        await ctx.send("Skipped Song!")
+        await ctx.send(f"Skipped Song!\nNow Playing **{next}**")
 
     @commands.command()
     async def stop(self, ctx: commands.Context):
