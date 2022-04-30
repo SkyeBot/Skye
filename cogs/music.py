@@ -27,9 +27,11 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, player: wavelink.Player, track , reason):
+        ctx = player.channel
         if not player.queue.is_empty:
-            asyncio.sleep(2)
+            await asyncio.sleep(2)
             new = player.queue.get()
+            await ctx.send(f"Now playing: **{new}**")
             await player.play(new)
 
 
@@ -64,7 +66,7 @@ class Music(commands.Cog):
             vc: wavelink.Player = ctx.voice_client
         
         next = vc.queue.get()
-        asyncio.sleep(3)
+        await asyncio.sleep(3)
         await vc.play(next)
         await ctx.send(f"Skipped Song!\nNow Playing **{next}**")
 
@@ -78,7 +80,19 @@ class Music(commands.Cog):
         await vc.stop()
         await ctx.send("Stopped!")
 
+    @commands.command()
+    async def loop(self, ctx:commands.Context ):
+        if not ctx.voice_client:
+            return await ctx.send("I am not currently in a voice channel!")
+        else:
+            vc: wavelink.Player = ctx.voice_client
+
+        current = vc.source()
+
+        
     
+
+        
 
     @commands.command(aliases=['dc'])
     async def disconnect(self, ctx:commands.Context):
