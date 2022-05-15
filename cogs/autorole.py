@@ -2,77 +2,84 @@ import discord
 
 from discord.ext import commands
 
+from discord import app_commands
+
 import pymongo
 
 from pymongo import MongoClient
 
-mongo_url = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
-cluster = MongoClient(mongo_url)
-predb = cluster["skye"]["autorole"]
-
 class Autorole(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    @commands.group()
-    @commands.has_permissions(administrator=True)
-    async def autorole(self, ctx: commands.Context):
-        exists = predb.find_one({"_id": ctx.guild.id})
-
-        if ctx.invoked_subcommand is None:
-            if exists is None:
-                em = discord.Embed(title="Autorole is disabled for this guild.", color=discord.Color(0xff0000))
-                await ctx.send(embed=em)
-            else:
-                    em = discord.Embed(title="Autorole is enabled for this guild.", color = discord.Color(0x32ff00))
-                    rol = discord.utils.get(ctx.guild.roles, id=exists["role"])
-                    em.add_field(name="Current role:", value=rol.mention)
-                    await ctx.send(embed=em)
+    group = app_commands.Group(name="autorole", description="Autorole settings")
+    
+    @group.command(name="check")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def check(self, interaction: discord.Interaction):
+        exists =  await self.bot.db.fetchrow("SELECT role FROM AUTOROLE WHERE guild = $1", interaction.guild.id)
+        print(exists)
+        if exists is None:
+            em = discord.Embed(title="Autorole is disabled for this guild.", color=discord.Color(0xff0000))
+            await interaction.response.send_message(embed=em)
+        else:
+            em = discord.Embed(title="Autorole is enabled for this guild.", color = discord.Color(0x32ff00))
+            rol = discord.utils.get(interaction.guild.roles, id= exists.get("role"))
+            print(exists.get("role"))
+            em.add_field(name="Current role:", value=rol.mention)
+            await interaction.response.send_message(embed=em)
 
     @commands.Cog.listener()
     async def on_member_join(self,member: discord.Member):
-        exists = predb.find_one({"_id": member.guild.id})
-    
+        try:
+            exists =  await self.bot.db.fetchrow("SELECT role FROM AUTOROLE WHERE guild = $1", member.guild.id)
 
-        rol = discord.utils.get(member.guild.roles, id=exists["role"])
+            print(exists.get("role"))
+
+            rol = discord.utils.get(member.guild.roles, id=exists.get("role"))
           
-        await member.add_roles(rol)
+            await member.add_roles(rol)
+        except:
+            pass
 
 
 
-    @autorole.command(name="enable")
-    @commands.has_permissions(administrator=True)
-    async def _enable(self, ctx, role: discord.Role=None):
-        exists = {"_id":ctx.guild.id, "role":role.id}
-        role2 = exists["role"]
+    @group.command(name="enable")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def _enable(self, interaction: discord.Interaction, role: discord.Role=None):
+        exists =  await self.bot.db.fetchrow("SELECT role FROM AUTOROLE WHERE guild = $1", interaction.guild.id)
 
         try: 
                 if role == None:
-                    await ctx.send("No role provided")
+                    await interaction.response.send_message("No role provided")
                 else:
                  if (exists==None):
-                    predb.insert_one({"_id":ctx.guild.id, "role":role2})
+                    await self.bot.db.execute('INSERT INTO autorole(role, guild) VALUES ($1, $2)',role.id, interaction.guild.id)
                     em = discord.Embed(title="", color= discord.Color(0x32ff00))
                     em.add_field(name="Autorole enabled", value="Current role: {}".format(role.mention))
-                    await ctx.send(embed=em)
+                    await interaction.response.send_message(embed=em)
                  else:
-                    predb.update_one({"_id":ctx.guild.id}, {"$set": {"role": role.id}})
+                    await self.bot.db.execute('UPDATE autorole SET role = $1 WHERE guild = $2',  role.id, interaction.guild.id)
                     em = discord.Embed(title="", color= discord.Color(0x32ff00))
                     em.add_field(name="Autorole Updated", value="new role: {}".format(role.mention))
-                    await ctx.send(embed=em)
+                    await interaction.response.send_message(embed=em)
         except (Exception) as e:
-            await ctx.send(e)    
+            await interaction.response.send_message(e)    
 
-    @autorole.command(name="disable")
-    @commands.has_permissions(administrator=True)
-    async def _disable(self, ctx, role: discord.Role=None):
-        exists = {"_id":ctx.guild.id,"role":role.id}
+    @group.command(name="disable")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def _disable(self, interaction: discord.Interaction, role: discord.Role):
+        exists =  await self.bot.db.fetchrow("SELECT role FROM AUTOROLE WHERE guild = $1", interaction.guild.id)
         
         if(exists!=None):
-            predb.delete_one(exists)
-            await ctx.send("Autorole is now disabled!")
+            await self.bot.db.execute("UPDATE autorole SET role = NULL, guild = NULL where guild = $1", interaction.guild.id)
+            await interaction.response.send_message("Autorole is now disabled!")
 
-    
+    @commands.command()
+    async def give(self, ctx:commands.Context):
+        rol = discord.utils.get(ctx.guild.roles, id= 913161078370893885)
+
+        await ctx.author.add_roles(rol)
     
     
 

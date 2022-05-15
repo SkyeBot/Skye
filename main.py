@@ -1,18 +1,12 @@
 import asyncio
-import random
-import time
+import random   
 import discord
 from config import token
-from discord.ext import commands, ipc, tasks
+from discord.ext import commands , tasks
 from discord import app_commands
 import os
-import pymongo
-from pymongo import MongoClient
 import asyncpg
 
-from discord import ui
-from discord.ext import menus
-import wavelink
 
 token = token
 
@@ -23,14 +17,14 @@ async def get_prefix(client, message):
         if not message.guild:
             return commands.when_mentioned_or(defualt_prefix)(client, message)
 
-        prefix = await bot.db.fetch('SELECT prefix FROM guilds WHERE guild_id = $1', message.guild.id)
+        prefix = await bot.db.fetch('SELECT prefix FROM prefix WHERE guild_id = $1', message.guild.id)
         if len(prefix) == 0:
-            await bot.db.execute('INSERT INTO guilds(guild_id, prefix) VALUES ($1, $2)', message.guild.id, defualt_prefix)
+            await bot.db.execute('INSERT INTO prefix(guild_id, prefix) VALUES ($1, $2)', message.guild.id, defualt_prefix)
         else:
             prefix = prefix[0].get("prefix")
 
         return commands.when_mentioned_or(prefix, defualt_prefix)(client, message)
-    except TypeError:
+    except:
         pass
 
 
@@ -44,28 +38,17 @@ class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.ipc = ipc.Server(self, secret_key="Sawsha")
-
     async def on_ready(self):
         """Called upon the READY event"""
         print("Bot is ready.")
 
-    async def on_ipc_error(self, endpoint, error):
-        """Called upon an error being raised within an IPC route"""
-        print(endpoint, "raised", error)
-    
 
     async def setup_hook(self):
         self.loop.create_task(ch_pr())
 
 
-
-
-
 bot = MyBot(command_prefix=get_prefix, intents=discord.Intents.all())
 bot.remove_command('help')
-
-
 
 
 @bot.event
@@ -88,37 +71,6 @@ async def ch_pr():
 
         await asyncio.sleep(30)
 
-
-@bot.ipc.route()
-async def get_guild_count(data):
-    return len(bot.guilds)  # returns the len of the guilds to the client
-
-
-@bot.ipc.route()
-async def get_guild_ids(data):
-    final = []
-    for guild in bot.guilds:
-        final.append(guild.id)
-    return final  # returns the guild ids to the client
-
-
-@bot.ipc.route()
-async def get_guild(data):
-    guild = bot.get_guild(data.guild_id)
-    if guild is None:
-        return None
-    prefix = await bot.db.fetchrow("SELECT prefix FROM GUILDS WHERE guild_id = $1", guild.id)
-
-    a = prefix.get("prefix")
-
-
-    guild_data = {
-        "name": guild.name,
-        "id": guild.id,
-        "prefix":a
-    }
-
-    return guild_data
 
 
 

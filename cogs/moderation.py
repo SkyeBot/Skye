@@ -11,19 +11,19 @@ import datetime
 from pymongo import MongoClient
 
 class Moderation(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
 
 
-    @app_commands.command()
-    @app_commands.checks.has_permissions(manage_messages=True)
-    async def mute(self, interaction:discord.Interaction, member: discord.Member, *, reason: str):
-        guild = interaction.guild
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    async def mute(self, ctx: commands.Context, member: discord.Member, *, reason: str):
+        guild = ctx.guild
         mutedRole = discord.utils.get(guild.roles, name="Muted")
 
         if member == None:
-            await interaction.response.send_message("`Who are you muting?`")
+            await ctx.send("`Who are you muting?`")
         else:
             if reason == None:
                 reason = "No Reason Specified"
@@ -34,36 +34,36 @@ class Moderation(commands.Cog):
                 for channel in guild.channels:
                     await channel.set_permissions(mutedRole, speak=False, send_messages=False, read_message_history=True, read_messages=True)
         
-            embed =  discord.Embed(title="❌ Muted", description=f"{interaction.user.mention} Muted {member.mention}", colour=discord.Colour.light_gray())
+            embed =  discord.Embed(title="❌ Muted", description=f"{ctx.author.mention} Muted {member.mention}", colour=discord.Colour.light_gray())
             embed.add_field(name="reason:", value=reason, inline=False)
     
-            if member == interaction.user:
-                await interaction.response.send_message('you cannot mute yourself!')
+            if member == ctx.author:
+                await ctx.send('you cannot mute yourself!')
             else:
-                await interaction.response.send_message(embed=embed)
+                await ctx.send(embed=embed)
                 await member.add_roles(mutedRole, reason=reason)
                 await member.send(f'You have been muted from {guild.name}! \n Reason: {reason}')    
 
-    @app_commands.command()
-    @app_commands.checks.has_permissions(manage_messages=True)
-    async def unmute(self, interaction:discord.Interaction, member: discord.Member):
-        guild = interaction.guild
-        mutedRole = discord.utils.get(interaction.guild.roles, name="Muted")
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    async def unmute(self, ctx: commands.Context, member: discord.Member):
+        guild = ctx.guild
+        mutedRole = discord.utils.get(ctx.guild.roles, name="Muted")
         if not mutedRole:
             mutedRole = await guild.create_role(name="Muted")
         else:    
             await member.remove_roles(mutedRole)
             embed = discord.Embed(title="✅ Unmuted!", description=f"Unmuted {member.mention}",colour=discord.Colour.light_gray())
-            await interaction.response.send_message(embed=embed)
-            await member.send(f"you have unmuted from: {interaction.guild.name}")        
+            await ctx.send(embed=embed)
+            await member.send(f"you have unmuted from: {ctx.guild.name}")        
 
-    @app_commands.command()
-    @app_commands.checks.has_permissions(manage_messages=True)
-    async def purge(self,interaction:discord.Interaction, limit: int):
-        await interaction.channel.purge(limit=limit)
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    async def purge(self,ctx: commands.Context, limit: int):
+        await ctx.channel.purge(limit=limit)
         embed=discord.Embed(title="Cleared", description=f"**``{limit} Messages``**")
-        embed.set_footer(text=f'Requested By {interaction.user}', icon_url=interaction.user.avatar)
-        await interaction.response.send_message(embed=embed)
+        embed.set_footer(text=f'Requested By {ctx.author}', icon_url=ctx.author.avatar)
+        await ctx.send(embed=embed)
 
     @purge.error
     async def purge_error(self,ctx, error):
@@ -72,56 +72,37 @@ class Moderation(commands.Cog):
             print(f"Command ``sotd`` was attempted \n User Who Used It == {ctx.author}! \n ID == {ctx.author.id} \n -------------------------------------------------------")
 
     
-    @app_commands.command()
-    @app_commands.checks.has_permissions(manage_messages=True)
+    @commands.command()
+    @commands.has_permissions(ban_members=True)
     @commands.guild_only()
-    async def ban(self,interaction:discord.Interaction, member:discord.Member=None, *, reason: str=None):    
-                if member == None:
-                    await interaction.response.send_message("``Who Are You Banning?``")
+    async def ban(self, ctx: commands.Context, member: discord.Member = None, *, reason: str = None):
+        if member == None:
+            await ctx.send("``Who Are You Banning?``")
+        else:
+            if member == self.bot.user:
+                await ctx.send("``You Cannot Ban Me!``")
+            else:
+                if member == ctx.author:
+                    await ctx.send("``You Cannot Ban Yourself!``")
                 else:
-                    if member == self.bot.user:
-                        await interaction.response.send_message("``You Cannot Ban Me!``")
-                    else:
-                        if member == interaction.user:
-                            await interaction.response.send_message('``You Cannot Ban Yourself!``')
-                        else:    
-                            if interaction.user.top_role >= member.top_role:
-                                return
-                            else:
-                                try:
-                                    user = await commands.converter.UserConverter().convert(interaction, user)
-                                except:
-                                    await interaction.response.send_message("Error: user could not be found!")
-                                    return  
-                                
-                                
-                                if reason == None:
-                                    reason="No Reason Specified" 
 
-                                 
-                                date = datetime.datetime.utcnow()
-                                utc_time = calendar.timegm(date.utctimetuple()) 
+                    if reason == None:
+                        reason = "No Reason Specified"
 
-                                embed = discord.Embed(title=f"*{member} was banned!*", description=f"Reason: {reason} \n Member banned at <t:{utc_time}:F>")
+                    date = datetime.datetime.utcnow()
+                    utc_time = calendar.timegm(date.utctimetuple())
 
-                                await member.send(f'``You Have Been Banned From {interaction.guild.name} for \n {reason}``')
-                                await member.ban(reason=reason)
-                                await interaction.response.send_message(embed=embed) 
-                               
-        
+                    embed = discord.Embed(
+                        title=f"*{member} was banned!*", description=f"Reason: {reason} \n Member banned at <t:{utc_time}:F>"
+                    )
 
-                   
-                     
-
-    @ban.error
-    async def ban_error(self,ctx, error):   
-        if isinstance(error, commands.MissingPermissions):
-            await ctx.send(f"<a:siren:922358771735461939> You can't use this command! Command requires ``Ban Members`` Permissions! <a:siren:922358771735461939>")
-            print(f"Command ``sotd`` was attempted \n User Who Used It == {ctx.author}! \n ID == {ctx.author.id} \n -------------------------------------------------------") 
+                    await member.send(f"``You Have Been Banned From {ctx.guild.name} for \n {reason}``")
+                    await member.ban(reason=reason)
+                    await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
-    async def unban(self,ctx, *, user=None):
+    async def unban(self, ctx: commands.Context, *, user: str=None):
         if user == None:
             await ctx.send("``Who Are You Banning?``")
         else:
@@ -131,12 +112,16 @@ class Moderation(commands.Cog):
                 await ctx.send("Error: user could not be found!")
                 return
 
+            print(user)
+
             try:
-                bans = tuple(ban_entry.user for ban_entry in await ctx.guild.bans())
-                if user in bans:
-                    await ctx.guild.unban(user, reason="Responsible moderator: "+ str(ctx.author))
-                else:
-                    await ctx.send("User not banned!")
+                try:
+                    await ctx.guild.unban(user, reason="Responsible moderator: " + str(ctx.author))
+
+                    embed = discord.Embed(title="Successfully unbanned", description=f"{user.mention}")
+                    await ctx.send(embed=embed)
+                    return
+                except discord.errors.NotFound:
                     return
 
             except discord.Forbidden:
@@ -144,30 +129,49 @@ class Moderation(commands.Cog):
                 return
 
             except:
-                await ctx.send("Unbanning failed!")
-                return
-
-            embed=discord.Embed(title="Successfully unbanned", description=f"{user.mention}")
-            await ctx.send(embed=embed)
+                return await ctx.send("Unbanning failed!")
 
     @commands.command()
     @commands.has_permissions(kick_members=True)
-    async def kick(self,ctx, member:discord.Member=None, *, reason=None):
+    async def kick(self, ctx: commands.Context, member: discord.Member = None, *, reason: str=None):
         if member == None:
             await ctx.send("Who are you kicking?")
         else:
             if member == ctx.author:
-                await ctx.send('``You Cannot kick Yourself!``')
+                await ctx.send("``You Cannot kick Yourself!``")
             if reason == None:
-                reason="No Reason Specified"
-            
-            if ctx.author.top_role <= member.top_role:
-                await ctx.send("You cannot kick someone with the same or higher role!")
-            else:
-                embed = discord.Embed(title=f"Successfully kicked {member}", description=f"Reason: {reason}")   
-                await member.kick(reason=reason)
-                await member.send(f'``You Have Been Kicked From {ctx.guild.name} for`` \n ``{reason}``')
-                await ctx.send(embed=embed)        
+                reason = "No Reason Specified"
+
+            embed = discord.Embed(
+                title=f"Successfully kicked {member}",
+                description=f"Reason: {reason}",
+                timestamp=datetime.datetime.utcnow(),
+                color=0xFF0000,
+            )
+            embed.set_footer(text=member, icon_url=member.display_avatar.url)
+            await member.send(f"``You Have Been Kicked From {ctx.guild.name} for\n``{reason}``")
+            await member.kick(reason=reason)
+            await ctx.send(embed=embed)
+
+
+    @commands.command()
+    @commands.has_permissions(ban_members=True)
+    async def hackban(self, ctx: commands.Context, user: str=None, *, reason: str=None):
+        guild = ctx.guild
+        if user == None:
+            return await ctx.send("You need to specify a user!")
+        if reason == None:
+            reason = "No Reason Specified"
+
+        date = datetime.datetime.utcnow()
+        utc_time = calendar.timegm(date.utctimetuple())
+        user = await commands.converter.UserConverter().convert(ctx, user)
+        embed = discord.Embed(
+            title=f"*{user} was hack-banned!*", description=f"Reason: {reason} \n Member banned at <t:{utc_time}:F>"
+        )
+
+        await guild.ban(discord.Object(id=user.id))
+        await ctx.send(embed=embed)
 
 
     @commands.command()
@@ -255,7 +259,6 @@ class Moderation(commands.Cog):
     async def warn_error(self,ctx, error):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send(f"<a:siren:922358771735461939> You can't use this command! Command requires ``Manage Messages`` Permissions! <a:siren:922358771735461939>")
-
 
 
 

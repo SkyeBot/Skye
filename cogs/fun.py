@@ -8,6 +8,9 @@ import random
 import praw
 
 
+
+
+
 from utils import http
 
 import randfacts
@@ -23,7 +26,6 @@ reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',
                      client_secret='T5loHbaVD7m-RNMpFf0z24iOJsInwg',
                      user_agent='Oxygen',
                      check_for_async= False)
-
 
 
 class Fun(commands.Cog):
@@ -62,7 +64,7 @@ class Fun(commands.Cog):
 
     @commands.command(aliases=['nickname', 'changenick', 'changenickname'])
     async def nick(self,ctx, member:discord.Member=None):
-        nick_file = open("nick.json", "r") # opens the nick file in "read" mode
+        nick_file = open("/root/skye/bot/nick.json", "r") # opens the nick file in "read" mode
         nicks = json.loads(nick_file.read()) # loads the json
         nick_file.close() # closes the nick file
     

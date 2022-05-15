@@ -192,7 +192,7 @@ class Docs(commands.Cog, name="Documentation"):
         if query is not None:
             if query.lower() == "rtfm":
                 await ctx.send(
-                   n
+                   
                 )
             else:
                 await self.do_rtfm(ctx, key, query)
