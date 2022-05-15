@@ -39,8 +39,11 @@ class MyBot(commands.Bot):
         super().__init__(*args, **kwargs)
 
     async def on_ready(self):
-        """Called upon the READY event"""
-        print("Bot is ready.")
+        print("Logged in as \n{0.user}".format(self))
+        for extension in self.cogs:
+            print(f"Loaded cogs.{extension.lower()}")
+        print(f"Discord version: {discord.__version__}")
+        print("-------------------------------------------------")
 
 
     async def setup_hook(self):
@@ -50,12 +53,6 @@ class MyBot(commands.Bot):
 bot = MyBot(command_prefix=get_prefix, intents=discord.Intents.all())
 bot.remove_command('help')
 
-
-@bot.event
-async def on_ready():
-    print("Logged in as \n{0.user}".format(bot))
-    print(f"Discord version: {discord.__version__}")
-    print("-------------------------------------------------")
 
 
 @tasks.loop(seconds=30)

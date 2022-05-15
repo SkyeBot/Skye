@@ -39,7 +39,10 @@ class TestingCog(commands.Cog):
         joined_at = member.joined_at.strftime("%a %b\n%B %Y")
 
 
-        money, level = "324542", "100"
+        bank = await self.bot.db.fetchrow("SELECT money FROM ECONOMY WHERE userid = $1", ctx.author.id)
+  
+  
+        money, level = f"0 dollars" if bank is None else f"{bank.get('money')} dollars", "100"
 
         base = Image.open("base.png").convert("RGBA")
         bg = Image.open("bg.png").convert("RGBA")
