@@ -3,13 +3,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.app_commands import Choice
-import praw
 
 
-reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',
-                     client_secret='T5loHbaVD7m-RNMpFf0z24iOJsInwg',
-                     user_agent='Oxygen',
-                     check_for_async= False)
+
+
 
 class MyCog(commands.Cog):
   def __init__(self, bot: commands.Bot):
