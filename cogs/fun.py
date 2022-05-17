@@ -29,6 +29,7 @@ reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',
 
 
 class Fun(commands.Cog):
+    """Fun Commands"""
     def __init__(self, bot):
         self.bot = bot
 

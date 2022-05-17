@@ -3,12 +3,22 @@ import random
 from discord.ext import commands 
 
 
+
 class Economy(commands.Cog):
+    """Economy commands"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    async def withdraw_money(self, member: discord.Member, money):
+        try:
+            pass
+        except Exception as e:
+            print(e)
 
-    @commands.command()
+    async def deposit_money(self, member: discord.Member, money):
+        ...
+
+    @commands.command(aliases=["bal"])
     async def balance(self, ctx: commands.Context):
         try:
             bank = await self.bot.db.fetchrow("SELECT money FROM ECONOMY WHERE userid = $1", ctx.author.id)
@@ -39,12 +49,14 @@ class Economy(commands.Cog):
             bank = await self.bot.db.fetchrow("SELECT money FROM ECONOMY WHERE userid = $1", ctx.author.id)
 
             if (bank == None):
+                await self.bot.db.execute('INSERT INTO economy(money, userid) VALUES ($1, $2)',1, ctx.author.id)
+                new_bank = await self.bot.db.fetchrow("SELECT money FROM ECONOMY WHERE userid = $1", ctx.author.id)
                 earnings = random.randrange(101)
                 print(bank)
-                money = bank.get("money")
+                money = new_bank.get("money")
                 new_bal = money + earnings
                 await self.bot.db.execute('UPDATE ECONOMY SET money = $1 WHERE userid = $2', new_bal, ctx.author.id)
-                em = discord.Embed(title=f"Someone gave your {earnings} coins", description=f"You now have {new_bal} on your bank!",color=discord.Color(0x32ff00))
+                em = discord.Embed(title=f"Someone gave you {earnings} coins", description=f"You now have {new_bal} on your bank!",color=discord.Color(0x32ff00))
                 em.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
                 await ctx.send(embed=em)
             else:
@@ -54,12 +66,14 @@ class Economy(commands.Cog):
                 new_bal = money + earnings
                 await self.bot.db.execute('UPDATE ECONOMY SET money = $1 WHERE userid = $2', new_bal, ctx.author.id)
 
-                em = discord.Embed(title=f"Someone gave your {earnings} coins",description=f"You now have {new_bal} on your bank!",color=discord.Color(0x32ff00))
+                em = discord.Embed(title=f"Someone gave you {earnings} coins",description=f"You now have {new_bal} on your bank!",color=discord.Color(0x32ff00))
                 em.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
                 await ctx.send(embed=em)
         except (Exception) as e:
             await ctx.send(e)
 
+
+                
 
 
 async def setup(bot: commands.Bot):

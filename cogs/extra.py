@@ -8,7 +8,8 @@ from pymongo import MongoClient
 
 
 class extra(commands.Cog):
-    def __init__(self, bot):
+    """Extra Commands which do not fit into any catagory."""
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command()

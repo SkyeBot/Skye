@@ -11,6 +11,7 @@ import datetime
 from pymongo import MongoClient
 
 class Moderation(commands.Cog):
+    """All Moderation Commands"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 

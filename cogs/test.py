@@ -21,6 +21,7 @@ def circle(pfp,size = (215,215)):
     return pfp
 
 class TestingCog(commands.Cog):
+    """Testing commands"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 

@@ -48,6 +48,7 @@ class DropdownView(discord.ui.View):
         self.add_item(Dropdown())
 
 class Information(commands.Cog):
+    """Information Type Commands"""
     def __init__(self, bot):
         self.bot = bot
         self.config = default.config()

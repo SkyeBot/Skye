@@ -44,6 +44,7 @@ class SphinxObjectFileReader:
 
 
 class Docs(commands.Cog, name="Documentation"):
+    """RTFM commands"""
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger(__name__)

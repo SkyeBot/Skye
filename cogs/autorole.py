@@ -9,6 +9,7 @@ import pymongo
 from pymongo import MongoClient
 
 class Autorole(commands.Cog):
+    """Cog to hold autorole commands + autorole events"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     

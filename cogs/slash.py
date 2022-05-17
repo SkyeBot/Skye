@@ -9,6 +9,7 @@ from discord.app_commands import Choice
 
 
 class MyCog(commands.Cog):
+  """Slash Testing Cog"""
   def __init__(self, bot: commands.Bot):
     self.bot = bot
     

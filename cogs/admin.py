@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 
 class admin(commands.Cog):
+    """Adminstrator commands such as setprefix, etc."""
     def __init__(self, bot):
         self.bot = bot
 

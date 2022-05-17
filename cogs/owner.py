@@ -15,6 +15,7 @@ from utils import permissions, default, http
 
 
 class Admin(commands.Cog):
+    """Commands for only the owner"""
     def __init__(self, bot):
         self.bot = bot
         self.config = default.config()

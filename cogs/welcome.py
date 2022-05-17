@@ -6,18 +6,13 @@ from discord.ext import commands
 import pymongo
 from pymongo import MongoClient
 
-mongo_url = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
-cluster = MongoClient(mongo_url)
-predb = cluster["skye"]["welcome"]
 
-mongo_url2 = "mongodb+srv://calli:Stewie12@cluster0.pmanp.mongodb.net/Skye?retryWrites=true&w=majority"
-cluster2 = MongoClient(mongo_url)
-predb2 = cluster["skye"]["logging"]
 
 from utils import default
 
 
 class Welcoming(commands.Cog):
+    """Cog to hold all welcome commands + events"""
     def __init__(self, bot: commands.Cog):
         self.bot = bot
 

@@ -17,6 +17,7 @@ import asyncio
 
 
 class Logging(commands.Cog):
+    """The logging cog that holds all logging commands + events."""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -57,7 +58,6 @@ class Logging(commands.Cog):
                     await ctx.send(embed=em)
         except (Exception) as e:
             await ctx.send(e)
-
 
 
     @logging.command(name="disable")
