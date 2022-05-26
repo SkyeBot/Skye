@@ -15,8 +15,48 @@ class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    @commands.group(aliases=['lockdown'])
+    @commands.has_permissions(manage_channels=True)
+    async def lock(self, ctx):
+        if ctx.subcommand_passed is None:
+            await ctx.send_help(ctx.command)
 
+    @lock.command(name='channel')
+    @commands.has_permissions(manage_channels=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def lock_channel(self, ctx, role:discord.Role=None, channel:discord.TextChannel=None):
+        role = role or ctx.guild.default_role
+        channel = channel or ctx.channel
+        overwrite = channel.overwrites_for(role)
+        overwrite.send_messages = False
 
+        await channel.set_permissions(role, overwrite=overwrite)
+        await ctx.message.add_reaction('🔒')
+        em = discord.Embed(color=self.bot.color)
+        em.add_field(name='🔒 Locked', value=f"{channel.mention} has been locked for {role.mention}",inline=False)
+        await ctx.send(f"🔒 Locked {channel.mention}!",embed=em)
+
+    @commands.group(aliases=['unlock'])
+    @commands.has_permissions(manage_channels=True)
+    async def aunlock(self, ctx):
+        if ctx.subcommand_passed is None:
+            await ctx.send_help(ctx.command)
+    
+    @aunlock.command(name="channel")
+    @commands.has_permissions(manage_channels=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def unlock_channel(self, ctx: commands.Context, role: discord.Role=None, channel: discord.TextChannel=None):
+        role = role or ctx.guild.default_role
+        channel = channel or ctx.channel
+        overwrite = channel.overwrites_for(role)
+        overwrite.send_messages = True
+        await ctx.message.add_reaction('🔓')
+        await channel.set_permissions(role, overwrite=overwrite)
+        em = discord.Embed(color=self.bot.color)
+        em.add_field(name="🔓 Unlocked!", value=f"{channel.mention} was unlocked for the role {role.mention}", inline=False)
+
+        await ctx.send(f"🔓 Unlocked {channel.mention}!",embed=em)
+    
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     async def mute(self, ctx: commands.Context, member: discord.Member, *, reason: str):

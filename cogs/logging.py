@@ -66,7 +66,7 @@ class Logging(commands.Cog):
         exists = await self.bot.db.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", ctx.guild.id)
 
         if(exists!=None):
-            await self.bot.db.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild = $1", ctx.guild.id)
+            await self.bot.db.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_id= $1", ctx.guild.id)
             await ctx.send("Logging Now disabled!")
 
 
@@ -104,12 +104,13 @@ class Logging(commands.Cog):
 
                             if len(file_type) != 1 and file_type[-1] in ["png", "jpeg","gif", "webp", "jpg"]:
                                 req = await http.get(file.proxy_url, res_method="read",no_cache=True)
+                                print(file.proxy_url)
                                 bio = BytesIO(req)
                                 bio.seek(0)
                                 deleted.set_image(url=f"attachment://{file.filename}")
                                 send_file = discord.File(bio, filename=file.filename)
 
-                                deleted.add_field(name="Deleted Image:", value=None,inline=False)
+                                deleted.add_field(name="Deleted Image:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
                                 deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
 
                                 await channel.send(embed=deleted, file=send_file)
@@ -121,8 +122,9 @@ class Logging(commands.Cog):
                                 send_file = discord.File(bio, filename=file.filename)
 
                                 deleted.add_field(name="Deleted Video:", value=None,inline=False)
-                                await channel.send(embed=deleted, file=send_file)
                                 deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
+                                await channel.send(embed=deleted, file=send_file)
+            
 
 
         except:
@@ -206,7 +208,7 @@ class Logging(commands.Cog):
         except:
             pass
 
-
+        
     
 
     @commands.Cog.listener()

@@ -50,9 +50,9 @@ class Docs(commands.Cog, name="Documentation"):
         self.logger = logging.getLogger(__name__)
 
         self.page_types = {
-            "discord.py": "https://discordpy.readthedocs.io/en/latest",
+            "discord.py": "https://discordpy.readthedocs.io/en/stable",
             "levelling": "https://discord-ext-levelling.readthedocs.io/en/latest/",
-            'master': 'https://discordpy.readthedocs.io/en/master',
+            'master': 'https://discordpy.readthedocs.io/en/latest',
             'python': 'https://docs.python.org/3',
         }
 
@@ -134,8 +134,7 @@ class Docs(commands.Cog, name="Documentation"):
     async def build_rtfm_lookup_table(self, page_types):
         cache = {}
         for key, page in page_types.items():
-            async with aiohttp.ClientSession() as session:
-                async with session.get(page + "/objects.inv") as resp:
+                async with self.bot.session.get(page + "/objects.inv") as resp:
                     if resp.status != 200:
                         raise RuntimeError(
                             "Cannot build rtfm lookup table, try again later."

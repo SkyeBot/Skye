@@ -369,12 +369,6 @@ class Random_Stuff(commands.Cog):
     
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def vanityurl(self, ctx):
-        if ctx.guild.vanity_invite == None:
-            await ctx.send("This server does not have an vanity url!")
-        else:
-            await ctx.send(ctx.guild.vanity_invite)
 
     @commands.command()
     async def poll(self,ctx, *, content:str):

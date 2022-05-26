@@ -1,7 +1,8 @@
 import asyncio
 import contextlib
 import datetime
-import random   
+import random
+import aiohttp   
 import discord
 from config import token
 from discord.ext import commands , tasks
@@ -34,11 +35,13 @@ async def create_db_pool():
     bot.db = await asyncpg.create_pool(dsn="postgres://skye:GRwe2h2ATA5qrmpa@localhost:5432/skye")
     print('Connected To Database: postgresql \n Port: 5432')
 
+os.environ["JISHAKU_FORCE_PAGINATOR"] = "True"
 
 class MyBot(commands.Bot):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs, case_insensitive = True,)
+        self.color = 0x456dd4
 
     async def on_ready(self):
         print("Logged in as \n{0.user}".format(self))
@@ -167,18 +170,20 @@ async def ch_pr():
 
 
 async def main():
-    async with bot:
-        bot.wait_until_ready
-        for filename in os.listdir('./cogs'):
-            if filename.endswith('.py'):
-                await bot.load_extension(f'cogs.{filename[:-3]}')
+    async with aiohttp.ClientSession() as session:
+        async with bot:
+            bot.wait_until_ready
+            for filename in os.listdir('./cogs'):
+                if filename.endswith('.py'):
+                    await bot.load_extension(f'cogs.{filename[:-3]}')
 
-            else:
-                print(f'Unable to load {filename[:-3]}')
-        
-        await bot.load_extension('jishaku')
-        await create_db_pool()
-        await bot.start(token)
+                else:
+                    print(f'Unable to load {filename[:-3]}')
+
+            await bot.load_extension('jishaku')
+            await create_db_pool()
+            bot.session = session
+            await bot.start(token, reconnect=True)
 
 
 asyncio.run(main())

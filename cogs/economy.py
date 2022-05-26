@@ -9,14 +9,6 @@ class Economy(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def withdraw_money(self, member: discord.Member, money):
-        try:
-            pass
-        except Exception as e:
-            print(e)
-
-    async def deposit_money(self, member: discord.Member, money):
-        ...
 
     @commands.command(aliases=["bal"])
     async def balance(self, ctx: commands.Context):

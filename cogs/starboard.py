@@ -44,7 +44,6 @@ class Starboard(commands.Cog):
         if(exists!=None):
             await self.bot.db.execute("UPDATE starboard SET channel_id = NULL, guild = NULL where guild = $1", interaction.guild.id)
             await interaction.response.send_message("starboard is now disabled!")
-
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         try:
@@ -81,6 +80,8 @@ class Starboard(commands.Cog):
                     embed.add_field(name="Replied to:", value=f"[{replied.author}]({message.reference.jump_url})", inline=False)
 
                 await channel.send(content=f"⭐ {len(message.reactions)} {payload_channel.mention} ID: {message.id}",embed=embed)
+        
+
 
         except Exception as e:
             print(e)

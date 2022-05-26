@@ -40,6 +40,9 @@ class CommandErrorHandler(commands.Cog):
         if isinstance(error, ignored):
             return
 
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send(f"You do not have the permissions to use **{ctx.command}**!")
+
         if isinstance(error, commands.DisabledCommand):
             await ctx.send(f'{ctx.command} has been disabled.')
 

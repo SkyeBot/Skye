@@ -9,7 +9,7 @@ import praw
 
 
 
-
+import yarl
 
 from utils import http
 
@@ -27,10 +27,64 @@ reddit = praw.Reddit(client_id='pua14mlzkyv5_ZfQ2WmqpQ',
                      user_agent='Oxygen',
                      check_for_async= False)
 
+from typing_extensions import Self
+
+class RedditMediaURL:
+    def __init__(self, url: yarl.URL):
+        self.url: yarl.URL = url
+        self.filename: str = url.parts[1] + '.mp4'
+
+    @classmethod
+    async def convert(cls, ctx: commands.Context, argument: str) -> Self:
+        try:
+            url = yarl.URL(argument)
+        except Exception as e:
+            raise commands.BadArgument('Not a valid URL.')
+
+        headers = {
+            'User-Agent': 'Discord:RoboDanny:v4.0 (by /u/Rapptz)',
+        }
+        await ctx.trigger_typing()
+        if url.host == 'v.redd.it':
+            # have to do a request to fetch the 'main' URL.
+            async with ctx.session.get(url, headers=headers) as resp:
+                url = resp.url
+
+        is_valid_path = url.host and url.host.endswith('.reddit.com')
+        if not is_valid_path:
+            raise commands.BadArgument('Not a reddit URL.')
+
+        # Now we go the long way
+        async with ctx.session.get(url / '.json', headers=headers) as resp:
+            if resp.status != 200:
+                raise commands.BadArgument(f'Reddit API failed with {resp.status}.')
+
+            data = await resp.json()
+            try:
+                submission = data[0]['data']['children'][0]['data']
+            except (KeyError, TypeError, IndexError):
+                raise commands.BadArgument('Could not fetch submission.')
+
+            try:
+                media = submission['media']['reddit_video']
+            except (KeyError, TypeError):
+                try:
+                    # maybe it's a cross post
+                    crosspost = submission['crosspost_parent_list'][0]
+                    media = crosspost['media']['reddit_video']
+                except (KeyError, TypeError, IndexError):
+                    raise commands.BadArgument('Could not fetch media information.')
+
+            try:
+                fallback_url = yarl.URL(media['fallback_url'])
+            except KeyError:
+                raise commands.BadArgument('Could not fetch fall back URL.')
+
+            return cls(fallback_url)
 
 class Fun(commands.Cog):
     """Fun Commands"""
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command()
@@ -95,8 +149,6 @@ class Fun(commands.Cog):
                         return await ctx.send("skye does not have the sufficent perms to do this!")
 
                 
-
-
     @commands.command(aliases=['fact', 'randomfact'])
     async def facts(self,ctx):
         facts = randfacts.get_fact()
@@ -204,7 +256,7 @@ class Fun(commands.Cog):
 
     @commands.command()
     @commands.cooldown(rate=1, per=2.0, type=commands.BucketType.user)
-    async def urban(self, ctx, *, search: commands.clean_content):
+    async def urban(self, ctx: commands.Context, *, search: commands.clean_content):
         """ Find the 'best' definition to your words """
         async with ctx.channel.typing():
             try:
@@ -227,7 +279,6 @@ class Fun(commands.Cog):
                 definition += "..."
 
             embed = discord.Embed(title=f"Definitions for **{result['word']}**", description=f"```fix\n{definition}```")
-            
             await ctx.send(embed=embed)
 
     @urban.error
@@ -391,6 +442,27 @@ class Fun(commands.Cog):
             
                     await ctx.send(embed=e)
 
+    @commands.command(usage='<url>')
+    @commands.cooldown(1, 5.0, commands.BucketType.member)
+    async def vreddit(self, ctx: commands.Context, *, reddit: RedditMediaURL):
+        """Downloads a v.redd.it submission.
+        Regular reddit URLs or v.redd.it URLs are supported.
+        """
 
+        filesize = ctx.guild.filesize_limit if ctx.guild else 8388608
+        async with self.bot.session.get(reddit.url) as resp:
+            if resp.status != 200:
+                return await ctx.send('Could not download video.')
+
+            if int(resp.headers['Content-Length']) >= filesize:
+                return await ctx.send('Video is too big to be uploaded.')
+
+            data = await resp.read()
+            await ctx.send(file=discord.File(io.BytesIO(data), filename=reddit.filename))
+
+    @vreddit.error
+    async def on_vreddit_error(self, ctx:commands.Context, error: commands.CommandError):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(str(error))
 async def setup(bot):
     await bot.add_cog(Fun(bot))     

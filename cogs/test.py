@@ -78,6 +78,26 @@ class TestingCog(commands.Cog):
             a.seek(0)
             await ctx.send(file=discord.File(a,"profile.png"))
     
+    @commands.command()
+    async def testing5(self, ctx: commands.Context):
+        async with self.bot.session.get("https://thino.pics/api/v1/tomboy") as resp:
+            json = await resp.json()
+            return await ctx.send(json["url"])
+
+
+    @commands.command()
+    async def spotify(self, ctx:commands.Context):
+        spotify = discord.utils.find(lambda a: isinstance(a, discord.Spotify), ctx.author.activities)
+
+        if spotify is None:
+            return await ctx.send("You are not listening to spotify!")
+        artists = ', '.join(spotify.artists)
+        embed = discord.Embed(description=f"You are listening to [{spotify.title}]({spotify.track_url}) by artist: **[{artists}](*")
+        
+        embed.set_image(url=spotify.album_cover_url)
+
+        await ctx.send(embed=embed)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(TestingCog(bot))

@@ -1,7 +1,10 @@
 import asyncio
+import typing
 import discord
 import wavelink
 from discord.ext import commands
+
+from typing import Union
 
 class Music(commands.Cog):
     """Music cog to hold Wavelink related commands and listeners."""
@@ -33,11 +36,12 @@ class Music(commands.Cog):
             new = player.queue.get()
             await ctx.send(f"Now playing: **{new}**")
             await player.play(new)
-
+            
+    
 
     @commands.command()
-    async def play(self, ctx: commands.Context, *, search: wavelink.YouTubeTrack):
-        """Play a song with the given search query.
+    async def play(self, ctx: commands.Context, *, track: wavelink.YouTubeTrack):
+        """Play a song with the given tracl query.
 
         If not connected, connect to our voice channel.
         """
@@ -47,15 +51,23 @@ class Music(commands.Cog):
             vc: wavelink.Player = ctx.voice_client
 
         if vc.queue.is_empty and not vc.is_playing():
-            await vc.play(search)
-            embed = discord.Embed(title=f"Now playing: **{search.title} By {search.author}**")
+            await vc.play(track)
+            embed = discord.Embed(title=f"Now playing: **{track.title} By {track.author}**")
             embed.set_author(name=ctx.author, url=ctx.author.display_avatar.url)
-            embed.set_image(url=search.thumbnail)
+            embed.set_image(url=track.thumbnail)
             await ctx.send(embed=embed)
         else:
-            await vc.queue.put_wait(search)
-            await ctx.send(f'Added `{search.title}` to the queue...')
+            await vc.queue.put_wait(track)
+            await ctx.send(f'Added `{track.title}` to the queue...')
 
+    @commands.command(aliases=["currentlyplaying"])
+    async def cp(self, ctx: commands.Context):
+        if not ctx.voice_client:
+            return await ctx.send("I am not in a voice channel!")
+
+        vc: wavelink.Player = ctx.voice_client
+
+        await ctx.send(f"Currently playing: {vc.source.uri}\n{vc.source.title}")
 
 
     @commands.command()
@@ -86,8 +98,31 @@ class Music(commands.Cog):
             return await ctx.send("I am not currently in a voice channel!")
         else:
             vc: wavelink.Player = ctx.voice_client
+        
+        exists = await self.bot.db.fetchrow("SELECT enabled FROM loop WHERE voice = $1", vc.channel.id)
 
-        current = vc.source()
+        
+
+        if exists ==  None:
+            await self.bot.db.execute('INSERT INTO loop(enabled, song_track, guild_id, voice) VALUES ($1, $2, $3, $4)', True, vc.source.uri, ctx.guild.id, vc.channel.id)
+            await ctx.send("Enabled looping!")
+        else:
+            enabled = exists.get("enabled")
+
+            if enabled is True:
+                await self.bot.db.execute('UPDATE loop SET VOICE = NULL, enabled = false, song_track = NULL WHERE guild_id = $1',ctx.guild.id)
+                await ctx.send("Disabled loop!")
+            else:
+                await self.bot.db.execute('UPDATE loop SET VOICE = $1, SET enabled = $2, song_track = $3 WHERE guild_id = $4',  vc.channel.id, True,vc.source.uri,ctx.guild.id)
+                await ctx.send("Enabled looping!")
+
+
+
+        
+
+
+
+        
 
         
     
