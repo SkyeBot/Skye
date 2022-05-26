@@ -121,7 +121,7 @@ class Logging(commands.Cog):
                                 bio.seek(0)
                                 send_file = discord.File(bio, filename=file.filename)
 
-                                deleted.add_field(name="Deleted Video:", value=None,inline=False)
+                                deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
                                 deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
                                 await channel.send(embed=deleted, file=send_file)
             
