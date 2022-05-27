@@ -21,7 +21,7 @@ class Admin(commands.Cog):
         if prefix is None:
             await ctx.send("Please insert an prefix!")
 
-        await self.bot.pool.execute('UPDATE prefix SET prefix = $1 WHERE guild_id = $2', (prefix, ctx.guild.id))
+        await self.bot.pool.execute('UPDATE prefix SET prefix = $1 WHERE guild_id = $2', prefix, ctx.guild.id)
 
         embed = discord.Embed(description=f"<a:BosnianWarcrimes:880998885844213790> Succesfully updated this servers prefix to ``{prefix}``", color=0x4365ab)
 
