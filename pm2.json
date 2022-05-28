@@ -1,0 +1,11 @@
+{
+    "apps": [
+      {
+        "name":"skye-rewrite",
+        "script":"launcher.py",
+        "interpreter" : "python3",
+        "interpreter_args": "-u"
+      }
+    ]
+  }
+  

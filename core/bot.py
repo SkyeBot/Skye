@@ -1,3 +1,5 @@
+import asyncio
+import random
 import discord
 from discord.ext import commands
 from typing import Optional, TypeVar
@@ -43,14 +45,14 @@ class SkyeBot(commands.AutoShardedBot):
                 prefix = await self.pool.fetchval('SELECT prefix FROM prefix WHERE guild_id = $1', message.guild.id)
                 if len(prefix) == 0:
                     await self.pool.execute('INSERT INTO prefix(guild_id, prefix) VALUES ($1, $2)', (message.guild.id, defualt_prefix))
-                print(prefix)
                 return commands.when_mentioned_or(prefix,defualt_prefix)(client, message)
             except:
                 pass
         
         super().__init__(
             command_prefix=get_prefix,
-            intents=discord.Intents.all()
+            intents=discord.Intents.all(),
+            activity=discord.Activity(type=discord.ActivityType.playing, name="skye help")
         )
 
 
@@ -68,17 +70,23 @@ class SkyeBot(commands.AutoShardedBot):
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             )
             print(f"{msg}")
+        
             for extension in self.cogs:
-
                 print(f"Loaded cogs.{extension.lower()}")
+
+
     
     async def setup_hook(self):
-        for filename in os.listdir('./cogs'):
-            if filename.endswith('.py'):
-                await self.load_extension(f'cogs.{filename[:-3]}')
-        
-        await self.load_extension("jishaku")
-    
+        exts = ["jishaku"] + [
+        f"cogs.{x}"
+        for x in (
+            "admin",
+            "music"
+            )
+        ]
+        for ext in exts:
+            await self.load_extension(ext)
+
     async def close(self):
         try:
             await self.session.close()

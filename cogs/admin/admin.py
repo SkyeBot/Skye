@@ -30,7 +30,3 @@ class Admin(commands.Cog):
     @app_commands.command()
     async def test(self, interaction: discord.Interaction):
         await self.bot.db.execute("UPDATE prefix SET prefix = NULL, guild_id = NULL where guild_id= $1", interaction.guild.id)
-
-
-async def setup(bot: SkyeBot):
-    await bot.add_cog(Admin(bot))
