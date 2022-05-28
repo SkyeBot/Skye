@@ -23,9 +23,8 @@ class SkyeBot(commands.AutoShardedBot):
     def __init__(
         self,*,
         session: aiohttp.ClientSession(), 
-        thino: thino.Client(),
+        thino_session: thino.Client(),
         pool: asyncpg.Pool,
-
         **kwargs   
     ):
         self._connected = False
@@ -33,7 +32,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.start_time = discord.utils.utcnow()
         self.logger = logging.getLogger(__name__)
         self.session: aiohttp.ClientSession = session
-        self.thino: thino.Client = thino
+        self.thino: thino.Client() = thino_session
         self.pool: asyncpg.Pool = pool
         
         async def get_prefix(client, message):
@@ -81,7 +80,8 @@ class SkyeBot(commands.AutoShardedBot):
         f"cogs.{x}"
         for x in (
             "admin",
-            "music"
+            "music",
+            "nsfw"
             )
         ]
         for ext in exts:
