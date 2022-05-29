@@ -93,3 +93,5 @@ class NSFW(commands.Cog):
             await interaction.response.send_message(embed=embed, file=discord.File(bio, filename=image))
         except KeyError:
             await interaction.response.send_message("There was no image found!")
+
+            
