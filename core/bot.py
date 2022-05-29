@@ -1,5 +1,6 @@
 import asyncio
 import random
+
 import discord
 from discord.ext import commands
 from typing import Optional, TypeVar
@@ -34,6 +35,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.session: aiohttp.ClientSession = session
         self.thino: thino.Client() = thino_session
         self.pool: asyncpg.Pool = pool
+        self.color = 0x3867a8
         
         async def get_prefix(client, message):
             try:
@@ -42,19 +44,18 @@ class SkyeBot(commands.AutoShardedBot):
                     return commands.when_mentioned_or(defualt_prefix)(client, message)
 
                 prefix = await self.pool.fetchval('SELECT prefix FROM prefix WHERE guild_id = $1', message.guild.id)
-                if len(prefix) == 0:
-                    await self.pool.execute('INSERT INTO prefix(guild_id, prefix) VALUES ($1, $2)', (message.guild.id, defualt_prefix))
+                if prefix is None:
+                    await self.pool.execute('INSERT INTO prefix(guild_id, prefix) VALUES ($1, $2)', message.guild.id, defualt_prefix)
                 return commands.when_mentioned_or(prefix,defualt_prefix)(client, message)
-            except:
+            except TypeError:
                 pass
         
         super().__init__(
             command_prefix=get_prefix,
             intents=discord.Intents.all(),
-            activity=discord.Activity(type=discord.ActivityType.playing, name="skye help")
+            activity=discord.Activity(type=discord.ActivityType.playing, name="skye help"),
+            status=discord.Status.dnd
         )
-
-
 
     async def on_ready(self):
         if self._connected:
@@ -66,6 +67,7 @@ class SkyeBot(commands.AutoShardedBot):
             msg = (
                 f"Successfully logged into {self.user}. ({round(self.latency * 1000)}ms)\n"
                 f"Created Postgresql Pool!\n"
+                f"Running {self.shard_count} Shards!\n"
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             )
             print(f"{msg}")
@@ -76,14 +78,9 @@ class SkyeBot(commands.AutoShardedBot):
 
     
     async def setup_hook(self):
-        exts = ["jishaku"] + [
-        f"cogs.{x}"
-        for x in (
-            "admin",
-            "music",
-            "nsfw"
-            )
-        ]
+        dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
+        exts = ["jishaku"] + dirs
+
         for ext in exts:
             await self.load_extension(ext)
 
