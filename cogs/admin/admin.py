@@ -5,6 +5,7 @@ from core.bot import SkyeBot
 from discord import app_commands
 
 class Admin(commands.Cog):
+    
     def __init__(self, bot: SkyeBot):
         self.bot = bot
 
