@@ -36,6 +36,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.thino: thino.Client() = thino_session
         self.pool: asyncpg.Pool = pool
         self.color = 0x3867a8
+        self.error_color = 0xB00020
         
         async def get_prefix(client, message):
             try:

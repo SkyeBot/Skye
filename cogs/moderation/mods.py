@@ -31,7 +31,8 @@ class Mods(commands.Cog):
         utc_time = calendar.timegm(date.utctimetuple())
 
         embed = discord.Embed(
-            title=f"*{member} was banned!*", description=f"Reason: {reason} \nMember banned at <t:{utc_time}:F>"
+            title=f"*{member} was banned!*", description=f"Reason: {reason} \nMember banned at <t:{utc_time}:F>",
+            color = self.bot.color
         )
         embed.set_author(name=f"{member}", icon_url=member.display_avatar.url)
         await member.send(f"``You Have Been Banned From {interaction.guild.name} for \n {reason}``")
@@ -41,6 +42,7 @@ class Mods(commands.Cog):
 
     
     @app_commands.command(name="unban", description="Unbans a user")
+    @app_commands.describe(member="Takes in a Full Member Name or id")
     async def unban_slash(self, interaction: discord.Interaction, member:str):
         ctx = await commands.Context.from_interaction(interaction)
         try:
@@ -54,7 +56,36 @@ class Mods(commands.Cog):
             utc_time = calendar.timegm(date.utctimetuple())
             
             
-            embed = discord.Embed(title=f"Succesfully unbanned: {user}!", description=f"Responsible moderator: {interaction.user}\nMember unbanned at <t:{utc_time}:F>")
+            embed = discord.Embed(title=f"Succesfully unbanned: {user}!", description=f"Responsible moderator: {interaction.user}\nMember unbanned at <t:{utc_time}:F>",color =self.bot.color)
             await interaction.response.send_message(embed=embed)
-        except discord.errors.NotFound:
-            return
+        except discord.errors.NotFound as e:
+            print(e)
+            embed = discord.Embed(title="Error!", description="No user found! Please try this cmd again but with their full username including their discriminator or try their ID with this.", color=self.bot.error_color)
+            return await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="hackban", description="A ban cmd that can ban users outside guild")
+    async def hackban_slash(self, interaction: discord.Interaction, member: str, reason: str = None):
+        guild = interaction.guild
+
+        if reason == None:
+            reason = "No Reason Specified"
+
+        date = datetime.datetime.utcnow()
+        utc_time = calendar.timegm(date.utctimetuple())
+        ctx = await commands.Context.from_interaction(interaction)
+        try:
+            user = await commands.converter.UserConverter().convert(ctx, member)
+        except Exception as e:
+            print(e)
+        
+        embed = discord.Embed(
+            title=f"*{user} was hack-banned!*", description=f"**Reason: {reason} \n Member banned at <t:{utc_time}:F>**",
+            color = self.bot.color,
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.set_author(name=user, icon_url=user.display_avatar.url)
+
+
+
+        await guild.ban(discord.Object(id=user.id))
+        await ctx.send(embed=embed)

@@ -43,55 +43,50 @@ class NSFW(commands.Cog):
 
     @app_commands.command(description=f"Search for an image from the thino.pics API", nsfw=True)
     async def search(self, interaction:discord.Interaction, image: str):
-        try:
-                
+        finished_url = f"https://i.thino.pics/{str(image)}"
+        async with self.bot.session.get(f"https://thino.pics/search/{image}") as request:
+            data = await request.json()
+            url = data['url']
+    
+        async with self.bot.session.get(f"https://i.thino.pics/{image}") as req:
+            if req.status == 404:
+                return await interaction.response.send_message("No image was found!")
+            else:
+                bio = BytesIO(await req.read())
+                bio.seek(0)
 
-            finished_url = f"https://i.thino.pics/{str(image)}"
-            async with self.bot.session.get(f"https://thino.pics/search/{image}") as request:
-                data = await request.json()
-                url = data['url']
-        
-            async with self.bot.session.get(f"https://i.thino.pics/{image}") as req:
-                if req.status == 404:
-                    return await interaction.response.send_message("No image was found!")
-                else:
-                    bio = BytesIO(await req.read())
-                    bio.seek(0)
+        if url == "https://thino.pics/api/v1/hentai":
+            url_endpoint = "hentai"
 
-            if url == "https://thino.pics/api/v1/hentai":
-                url_endpoint = "hentai"
+        if url == "https://thino.pics/api/v1/helltaker":
+            url_endpoint = "Helltaker"
 
-            if url == "https://thino.pics/api/v1/helltaker":
-                url_endpoint = "Helltaker"
+        if url == "https://thino.pics/api/v1/neko":
+            url_endpoint = "neko"
 
-            if url == "https://thino.pics/api/v1/neko":
-                url_endpoint = "neko"
+        if url == "https://thino.pics/api/v1/tomboy":
+            url_endpoint = "tomboy"
 
-            if url == "https://thino.pics/api/v1/tomboy":
-                url_endpoint = "tomboy"
+        if url == "https://thino.pics/api/v1/femboy":
+            url_endpoint = "femboy"
 
-            if url == "https://thino.pics/api/v1/femboy":
-                url_endpoint = "femboy"
+        if url == "https://thino.pics/api/v1/thighs":
+            url_endpoint = "thighs"
 
-            if url == "https://thino.pics/api/v1/thighs":
-                url_endpoint = "thighs"
+        if url == "https://thino.pics/api/v1/dildo":
+            url_endpoint = "dildo"
 
-            if url == "https://thino.pics/api/v1/dildo":
-                url_endpoint = "dildo"
+        if url == "https://thino.pics/api/v1/porn":
+            url_endpoint = "porn"
 
-            if url == "https://thino.pics/api/v1/porn":
-                url_endpoint = "porn"
+        print(url_endpoint)
+        print(url)
+        print(finished_url)
+        embed = discord.Embed(description=f"Found the file name: [{image}]({finished_url}) on the endpoint: [{url_endpoint}]({url})", timestamp=datetime.datetime.utcnow(), color=self.bot.color)
+        embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+        embed.set_image(url=f"attachment://{image}")
+        embed.set_footer(text="Powered by thino.pics!")
 
-            print(url_endpoint)
-            print(url)
-            print(finished_url)
-            embed = discord.Embed(description=f"Found the file name: [{image}]({finished_url}) on the endpoint: [{url_endpoint}]({url})", timestamp=datetime.datetime.utcnow(), color=self.bot.color)
-            embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
-            embed.set_image(url=f"attachment://{image}")
-            embed.set_footer(text="Powered by thino.pics!")
-
-            await interaction.response.send_message(embed=embed, file=discord.File(bio, filename=image))
-        except KeyError:
-            await interaction.response.send_message("There was no image found!")
+        await interaction.response.send_message(embed=embed, file=discord.File(bio, filename=image))
 
             
