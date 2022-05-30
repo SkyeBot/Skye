@@ -1,6 +1,7 @@
 import datetime
 from io import BytesIO
 import pathlib
+import secrets
 import discord
 from discord.ext import commands
 from typing import Union, List
@@ -88,5 +89,3 @@ class NSFW(commands.Cog):
         embed.set_footer(text="Powered by thino.pics!")
 
         await interaction.response.send_message(embed=embed, file=discord.File(bio, filename=image))
-
-            

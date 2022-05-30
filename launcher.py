@@ -10,11 +10,8 @@ import asyncpg
 
 dotenv.load_dotenv()
 
-
-
-
 async def main():
-    async with aiohttp.ClientSession() as session, asyncpg.create_pool(os.environ["POSTGRES_URI"]) as pool ,SkyeBot(session=session, thino_session=thino.Client(), pool=pool) as bot:
-        await bot.start(os.environ["TEST_TOKEN"])
+    async with aiohttp.ClientSession() as session, asyncpg.create_pool(os.environ["POSTGRES_URI"]) as pool, SkyeBot(session=session, thino_session=thino.Client(), pool=pool) as bot:
+        await bot.start(os.environ["TOKEN"])
 
 asyncio.run(main())

@@ -74,12 +74,11 @@ class Logging(commands.Cog):
         
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", message.guild.id)
-            channel = await self.bot.fetch_channel(exists.get("channel_id"))
-        
+            channel = self.bot.get_channel(exists.get("channel_id"))
+            print(channel)
             if exists is not None:
                 if message.author.id == 824119071556763668:
                     pass
-
                 else:
                     if message.author is message.author.bot:
                         pass
@@ -123,11 +122,9 @@ class Logging(commands.Cog):
                                 deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
                                 deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
                                 await channel.send(embed=deleted, file=send_file)
-            
-
-
-        except:
-            pass
+        
+        except Exception as e:
+            print(e)
 
 
 
@@ -143,7 +140,7 @@ class Logging(commands.Cog):
                     pass
                 else:
                     exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", before.guild.id)
-                    channel = await self.bot.fetch_channel(exists.get("channel_id"))
+                    channel = self.bot.get_channel(exists.get("channel_id"))
                     embed = discord.Embed(
                     timestamp=after.created_at,
                     description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",
@@ -168,7 +165,7 @@ class Logging(commands.Cog):
     async def on_member_ban(self, guild: discord.Guild, user:discord.Member):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", guild.id)
-            channel = await self.bot.fetch_channel(exists.get("channel_id"))
+            channel = self.bot.get_channel(exists.get("channel_id"))
 
             show_roles = ", ".join(
                 [f"<@&{x.id}>" for x in sorted(user.roles, key=lambda x: x.position, reverse=True) if
@@ -193,7 +190,7 @@ class Logging(commands.Cog):
     async def on_member_unban(self, guild, user:discord.Member):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", guild.id)
-            channel = await self.bot.fetch_channel(exists.get("channel_id"))
+            channel = self.bot.get_channel(exists.get("channel_id"))
 
             embed = discord.Embed(
                 title=f"User: {user.mention} was unbanned!"
@@ -214,7 +211,7 @@ class Logging(commands.Cog):
     async def on_guild_role_create(self, role: discord.Role):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", role.guild.id)
-            channel = await self.bot.fetch_channel(exists.get("channel_id"))
+            channel = await self.bot.get_channel(exists.get("channel_id"))
 
             embed = discord.Embed(description=f"Role: {role} Was created!")
             embed.add_field("ID of Role:", value=f"{role.id}")
@@ -231,7 +228,7 @@ class Logging(commands.Cog):
     async def on_guild_channel_update(self, before, after):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", before.guild.id)
-            channel = await self.bot.fetch_channel(exists.get("channel_id"))
+            channel = self.bot.get_channel(exists.get("channel_id"))
         
             if before.name != after.name and after.name is not None:
                 embed = discord.Embed(description=f"Channel ``{before.name}`` Has been updated!")
