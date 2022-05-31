@@ -55,7 +55,8 @@ class SkyeBot(commands.AutoShardedBot):
             command_prefix=get_prefix,
             intents=discord.Intents.all(),
             activity=discord.Activity(type=discord.ActivityType.playing, name="skye help"),
-            status=discord.Status.dnd
+            status=discord.Status.dnd,
+            help_command=None
         )
 
     async def on_ready(self):
@@ -87,6 +88,10 @@ class SkyeBot(commands.AutoShardedBot):
 
     async def close(self):
         try:
+            await self.pool.close()
+            self.logger.info("Closed Database Pool Connection.")
+            await self.thino.close()
+            self.logger.info("Closed thino Session.")
             await self.session.close()
             self.logger.info("Closed Session.")
         finally:

@@ -75,7 +75,7 @@ class Logging(commands.Cog):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", message.guild.id)
             channel = self.bot.get_channel(exists.get("channel_id"))
-            print(channel)
+            print(f"Channel Name: {channel}\nChannel ID: {channel.id}")
             if exists is not None:
                 if message.author.id == 824119071556763668:
                     pass

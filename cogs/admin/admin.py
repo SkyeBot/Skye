@@ -4,6 +4,16 @@ from discord.ext import commands
 from core.bot import SkyeBot
 from discord import app_commands
 
+class MuteRole(discord.ui.Modal, title="Mute Settings"):
+    def __init__(self, bot: SkyeBot):
+        self.bot = bot
+         
+    name = discord.ui.TextInput(label='Role ID', placeholder="Insert Your Role ID for mutes")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        self.bot.pool.execute("INSERT INTO")
+        
+
 class Admin(commands.Cog):
     
     def __init__(self, bot: SkyeBot):
@@ -27,7 +37,3 @@ class Admin(commands.Cog):
         embed = discord.Embed(description=f"<a:BosnianWarcrimes:880998885844213790> Succesfully updated this servers prefix to ``{prefix}``", color=0x4365ab)
 
         await ctx.send(embed=embed)
-
-    @app_commands.command()
-    async def test(self, interaction: discord.Interaction):
-        await self.bot.db.execute("UPDATE prefix SET prefix = NULL, guild_id = NULL where guild_id= $1", interaction.guild.id)
