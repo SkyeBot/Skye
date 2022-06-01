@@ -5,6 +5,8 @@ from discord.ext import commands
 
 from discord.utils import format_dt
 
+import logging
+
 import datetime
 
 from core.bot import SkyeBot
@@ -75,7 +77,7 @@ class Logging(commands.Cog):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", message.guild.id)
             channel = self.bot.get_channel(exists.get("channel_id"))
-            print(f"Channel Name: {channel}\nChannel ID: {channel.id}")
+            self.bot.logger.info(f"Channel Name: {channel}\nChannel ID: {channel.id}")
             if exists is not None:
                 if message.author.id == 824119071556763668:
                     pass
@@ -89,7 +91,7 @@ class Logging(commands.Cog):
                         deleted.set_author(name=message.author, icon_url=message.author.avatar)
                         deleted.timestamp = message.created_at
                         deleted.color = discord.Color.random()
-                        print(deleted.color)
+                        self.bot.logger.info(deleted.color)
 
                         if message.content:
                             deleted.add_field(name="Message:\n", value=message.content, inline=False)

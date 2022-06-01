@@ -1,5 +1,9 @@
 import calendar
-from typing import Optional
+from contextlib import redirect_stdout
+import io
+import textwrap
+import traceback
+from typing import Any, Optional
 import datetime
 import discord
 from discord.ext import commands
@@ -8,25 +12,28 @@ from discord import app_commands
 # Local Imports
 from core.bot import SkyeBot
 from utils import default
-from utils.context import Context
 
-class MyModal(discord.ui.Modal, title="cock"):
-    name = discord.ui.TextInput(label='name')
-    foo = discord.ui.Select(options=[discord.SelectOption(label='option 1'), discord.SelectOption(label='option 2')])
+
+class sampbanmodal(discord.ui.Modal):
+    def __init__(self , interaction , args):
+        self.interaction = interaction
+        self.args: discord.Member = args
+        super().__init__(title='Samp Ban Application')
+    
+    ign = discord.ui.TextInput(label="User's Ingame  Name",style=discord.TextStyle.short)
+    reason = discord.ui.TextInput(label='Reason For Punishment', style=discord.TextStyle.paragraph)
 
     async def on_submit(self, interaction: discord.Interaction):
-        value = ", ".join(x for x in self.foo.values)
-        await interaction.response.send_message(f"Thanks For Your response, {self.name}, **{value}", ephemeral=True)
-
-class MyView(discord.ui.View):
-    
-    @discord.ui.button(label="Cock")
-    async def cock(self, interaction, _):
-        await interaction.response.send_modal(MyModal())
+        await interaction.response.send_message(f'Ban Application Has Been Announced, {interaction.user}!', ephemeral=True)
+        embed = discord.Embed(description=f"{self.ign} **Is Banned From MalluCity**\n\nUser Ingame-Name - `{self.ign}`\n Reason - `{self.reason}`\nWarnings - `{self.warningno}`\nUnban Time - `{self.unbantime}`",color=0xff0000)       
+        embed.set_footer(text=f"Banned By {interaction.user}")
+        channel = interaction.guild.get_channel(980667221351219230)   
+        await channel.send(self.args.mention, embed=embed) 
 
 class Mods(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
+        self._last_result: Optional[Any] = None
 
     @app_commands.command(name="ban", description="Bans a specified user")
     @app_commands.checks.has_permissions(ban_members=True)
@@ -61,7 +68,7 @@ class Mods(commands.Cog):
     @app_commands.describe(member="Takes in a Full Member Name or id")
     @app_commands.checks.has_permissions(ban_members=True)
     async def unban_slash(self, interaction: discord.Interaction, member:str):
-        ctx = await Context.from_interaction(interaction)
+        ctx = await commands.Context.from_interaction(interaction)
         try:    
             user = await commands.converter.UserConverter().convert(ctx, member)
         except Exception as e:
@@ -108,17 +115,8 @@ class Mods(commands.Cog):
         await guild.ban(discord.Object(id=user.id))
         await ctx.send(embed=embed)
 
-    @app_commands.command(name="mute", description="Mutes Member")
-    @app_commands.checks.has_permissions(moderate_members=True)
-    async def mute_slash(self, interaction: discord.Interaction, member: discord.Member, reason: Optional[str]):
-        pass
-
-    
-
-
-
-
-
-    @commands.command()
-    async def asd(self, ctx):
-        await ctx.send('hi', view=MyView())
+    @app_commands.command(name='sampban')
+    @app_commands.default_permissions(administrator=True)
+    async def sampban(self , interaction: discord.Interaction , args : discord.Member):
+        modal=sampbanmodal(interaction, args)
+        await interaction.response.send_modal(modal)  

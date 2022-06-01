@@ -72,26 +72,36 @@ class SkyeBot(commands.AutoShardedBot):
                 f"Running {self.shard_count} Shards!\n"
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             )
-            print(f"{msg}")
+            self.logger.info(f"{msg}")
         
             for extension in self.cogs:
-                print(f"Loaded cogs.{extension.lower()}")
-
+                self.logger.info(f"Loaded cogs.{extension.lower()}")
 
     
     async def setup_hook(self):
+        logging.basicConfig(level=logging.INFO)
+        handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+        handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+        self.logger.addHandler(handler)
+        
         dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
         exts = ["jishaku"] + dirs
 
         for ext in exts:
             await self.load_extension(ext)
 
+    async def on_guild_join(self, guild: discord.Guild):
+        try:
+            await self.pool.execute('INSERT INTO guilds(guild_id, guild_name, owner_id) VALUES ($1, $2, $3)',guild.id, guild.name, guild.owner_id)
+
+            self.logger.info(f"! Added {guild.id} To The Database !")
+        except asyncpg.exceptions.UniqueViolationError:
+            self.logger.info(f"Guild: {guild.id} is already in the database, passing")
+
     async def close(self):
         try:
             await self.pool.close()
             self.logger.info("Closed Database Pool Connection.")
-            await self.thino.close()
-            self.logger.info("Closed thino Session.")
             await self.session.close()
             self.logger.info("Closed Session.")
         finally:

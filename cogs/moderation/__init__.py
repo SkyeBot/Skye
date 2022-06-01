@@ -7,9 +7,10 @@ from discord.ext import commands
 from core.bot import SkyeBot
 
 from .mods import Mods
+from .mute import Mute
 
 
-class Moderation(Mods):
+class Moderation(Mods, Mute):
     """Moderation Cog"""
 
 
