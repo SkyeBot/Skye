@@ -93,10 +93,13 @@ class Music(commands.Cog):
         else:
             vc: wavelink.Player = interaction.guild.voice_client
         
-        next = vc.queue.get()
-        await asyncio.sleep(3)
-        await vc.play(next)
-        await interaction.response.send_message(f"Skipped Song!\nNow Playing **{next}**")
+        try:
+            next = vc.queue.get()
+            await asyncio.sleep(3)
+            await vc.play(next)
+            await interaction.response.send_message(f"Skipped Song!\nNow Playing **{next}**")
+        except wavelink.errors.QueueEmpty:
+            await interaction.response.send_message("No song to skip too in the queue!")
 
     @app_commands.command()
     async def stop(self, interaction: discord.Interaction):
@@ -200,15 +203,16 @@ class Music(commands.Cog):
         await interaction.response.send_message("Resumed.")
 
     @app_commands.command()
-    async def join(self, interaction:commands.Context):
+    async def join(self, interaction:discord.Interaction):
 
         if not interaction.guild.voice_client:
             ctx = await commands.Context.from_interaction(interaction)
-            vc: wavelink.Player = await ctx.guild.voice.channel.connect(cls=wavelink.Player)
+            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
         else:
-            vc: wavelink.Player = interaction.guild.voice_client
+            ctx = await commands.Context.from_interaction(interaction)
+            vc: wavelink.Player = ctx.voice_client
         
-        await ctx.guild.voice.channel.connect(cls=wavelink.Player)
+        await ctx.author.voice.channel.connect(cls=wavelink.Player)
         
 
 async def setup(bot):

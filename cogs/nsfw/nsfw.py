@@ -42,6 +42,37 @@ class NSFW(commands.Cog):
 
             await interaction.response.send_message(embed=embed, file=discord.File(bio, filename=data.filename))
 
+    @app_commands.command(name="tomboy", description=f"Gets tomboy images from thino.pics", nsfw=True)
+    async def tomboy_slash(self, interaction: discord.Interaction):
+        data = await self.bot.thino.tomboy()
+
+
+        embed = discord.Embed(description=f"File Name: [{data.raw['filename']}]({data.raw['url']})")
+
+        self.bot.logger.info(data.url)
+        self.bot.logger.info(data.filename)
+        
+        embed.set_image(url=data.url)
+        embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text="Powered by thino.pics!")
+
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="helltaker", description=f"Gets helltaker porn from thino.pics", nsfw=True)
+    async def helltaker_slash(self, interaction: discord.Interaction):
+        data = await self.bot.thino.helltaker()
+
+        self.bot.logger.info(data.url)
+        self.bot.logger.info(data.filename)
+
+        embed = discord.Embed(description=f"File Name: [{data.raw['filename']}]({data.raw['url']})")
+
+        embed.set_image(url=data.url)
+        embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text="Powered by thino.pics!")
+
+        await interaction.response.send_message(embed=embed)
+
     @app_commands.command(description=f"Search for an NSFW image from the thino.pics API", nsfw=True)
     async def search(self, interaction:discord.Interaction, image: str):
         finished_url = f"https://i.thino.pics/{str(image)}"

@@ -2,7 +2,7 @@ import asyncio
 import random
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from typing import Optional, TypeVar
 from datetime import datetime
 import logging
@@ -59,6 +59,8 @@ class SkyeBot(commands.AutoShardedBot):
             help_command=None
         )
 
+
+
     async def on_ready(self):
         if self._connected:
             msg = f"Bot reconnected at {datetime.now().strftime('%b %d %Y %H:%M:%S')}"
@@ -93,7 +95,6 @@ class SkyeBot(commands.AutoShardedBot):
     async def on_guild_join(self, guild: discord.Guild):
         try:
             await self.pool.execute('INSERT INTO guilds(guild_id, guild_name, owner_id) VALUES ($1, $2, $3)',guild.id, guild.name, guild.owner_id)
-
             self.logger.info(f"! Added {guild.id} To The Database !")
         except asyncpg.exceptions.UniqueViolationError:
             self.logger.info(f"Guild: {guild.id} is already in the database, passing")
