@@ -35,7 +35,7 @@ class Music(commands.Cog):
         self.bot.logger.info(f'Node: <{node.identifier}> is ready!')
 
     @commands.Cog.listener()
-    async def on_wavelink_track_end(self, player: wavelink.Player, track , reason):
+    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track , reason):
         ctx = player.channel
         vc = wavelink.Player
         if not player.queue.is_empty:
@@ -50,6 +50,8 @@ class Music(commands.Cog):
 
         If not connected, connect to our voice channel.
         """
+
+
         
         url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
@@ -60,21 +62,26 @@ class Music(commands.Cog):
             song = (await node.get_tracks(wavelink.YouTubeTrack, track))[0]
         else:
             song = await wavelink.YouTubeTrack.search(query=track, return_first=True)
-        
-        if not interaction.guild.voice_client:
-            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
-        else:
-            vc: wavelink.Player = interaction.guild.voice_client
+        try: 
+            if not interaction.guild.voice_client:
+                if ctx.author.voice is None:
+                    await interaction.response.send_message("You're not connected to a vc!")
+                else:
+                    vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)   
+            else:
+                vc: wavelink.Player = interaction.guild.voice_client
 
-        if vc.queue.is_empty and not vc.is_playing():
-            await vc.play(song)
-            embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
-            embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
-            embed.set_image(url=song.thumbnail)
-            await interaction.response.send_message(embed=embed)
-        else:
-            await vc.queue.put_wait(song)
-            await interaction.response.send_message(f'Added `{song.title}` to the queue...')
+            if vc.queue.is_empty and not vc.is_playing():
+                await vc.play(song)
+                embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
+                embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+                embed.set_image(url=song.thumbnail)
+                await interaction.response.send_message(embed=embed)
+            else:
+                await vc.queue.put_wait(song)
+                await interaction.response.send_message(f'Added `{song.title}` to the queue...')
+        except UnboundLocalError: 
+            pass
 
     @app_commands.command()
     async def cp(self, interaction: discord.Interaction):
@@ -150,9 +157,6 @@ class Music(commands.Cog):
                 embed = discord.Embed(title="Current queue")
                 embed.description = "\n".join(str(song) for song in vc.queue)
                 await interaction.response.send_message(embed=embed)
-    
-    
-
 
     @queue.command()
     async def clear(self, interaction: discord.Interaction):
@@ -217,5 +221,3 @@ class Music(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Music(bot))
-
-

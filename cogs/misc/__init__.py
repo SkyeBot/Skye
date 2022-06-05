@@ -5,9 +5,10 @@ from discord.ext import commands
 from core.bot import SkyeBot
 
 from .info import Misc
+from .bot_info import bot_info
 
 
-class Misc(Misc):
+class Misc(Misc, bot_info):
     pass
 
 

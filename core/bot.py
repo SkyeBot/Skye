@@ -1,16 +1,19 @@
 import asyncio
 import random
+import sys
+import traceback
 
 import discord
 from discord.ext import commands, tasks
-from typing import Optional, TypeVar
-from datetime import datetime
+from typing import Optional, TypeVar, Union
+import datetime
 import logging
 import os
 import aiohttp
 import thino
 import asyncpg
-
+import datetime as dt
+from discord import app_commands
 
 from typing_extensions import ParamSpec
 
@@ -37,7 +40,9 @@ class SkyeBot(commands.AutoShardedBot):
         self.pool: asyncpg.Pool = pool
         self.color = 0x3867a8
         self.error_color = 0xB00020
-        
+        self.tick = self.tick
+
+
         async def get_prefix(client, message):
             try:
                 defualt_prefix = "skyec "
@@ -60,6 +65,17 @@ class SkyeBot(commands.AutoShardedBot):
         )
 
 
+    def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
+        lookup = {
+            True: '<:greenTick:330090705336664065>',
+            False: '<:redTick:330090723011592193>',
+            None: '<:greyTick:563231201280917524>',
+        }
+        emoji = lookup.get(opt, '<:redTick:330090723011592193>')
+        if label is not None:
+            return f'{emoji}: {label}'
+        return emoji
+
 
     async def on_ready(self):
         if self._connected:
@@ -70,17 +86,21 @@ class SkyeBot(commands.AutoShardedBot):
             self.startup_time = discord.utils.utcnow() - self.start_time
             msg = (
                 f"Successfully logged into {self.user}. ({round(self.latency * 1000)}ms)\n"
+                f"Discord.py Version: {discord.__version__}\n"
+                f"Python version: {sys.version}\n"
                 f"Created Postgresql Pool!\n"
                 f"Running {self.shard_count} Shards!\n"
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             )
             self.logger.info(f"{msg}")
-        
+            
             for extension in self.cogs:
                 self.logger.info(f"Loaded cogs.{extension.lower()}")
 
     
     async def setup_hook(self):
+        os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+        os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         logging.basicConfig(level=logging.INFO)
         handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
@@ -91,6 +111,68 @@ class SkyeBot(commands.AutoShardedBot):
 
         for ext in exts:
             await self.load_extension(ext)
+
+
+    async def on_error(self, event: str, *args, **kwargs):
+        error = sys.exc_info()[1]
+        error_type = type(error)
+        trace = error.__traceback__
+        error_message = "".join(traceback.format_exception(error_type, error, trace))
+        channel = self.get_channel(980538933370830851)
+        embed = discord.Embed(
+            title="An Error Occurred",
+            description=f"**__Event:__** {event.title().replace('_', ' ')}\n"
+            f"**__Error:__** {error_type.__name__}\n```py\n{error_message}\n```",
+            colour=self.error_color,
+            timestamp=discord.utils.utcnow(),
+        )
+        await channel.send(embed=embed)
+        return await super().on_error(event, *args, **kwargs)
+
+    async def on_tree_error(
+        self,
+        interaction: discord.Interaction,
+        command: Optional[Union[app_commands.ContextMenu, app_commands.Command]],
+        error: app_commands.AppCommandError,
+    ):
+        if command and getattr(command, "on_error", None):
+            return
+
+        if self.extra_events.get("on_app_command_error"):
+            return interaction.client.dispatch(
+                "app_command_error", interaction, command, error
+            )
+
+        raise error from None
+
+
+    async def on_interaction(self, interaction: discord.Interaction):
+        if (interaction.type == discord.InteractionType.application_command):
+            await self.pool.execute(
+                "INSERT INTO commands (user_id, command_name) VALUES ($1, $2)",
+                interaction.user.id,
+                interaction.command.name,
+            )
+            
+            try:
+                loc = interaction.guild
+            except:
+                loc = interaction.user
+            else:
+                loc = interaction.guild
+
+            date = dt.datetime.now()
+            waktu = date.strftime("%d/%m/%y %I:%M %p")
+
+            try:
+                text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
+                self.logger.info(text.replace('*', '').replace('`', ''))
+            except:
+                text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on **{loc}**"
+                self.logger.info(text.replace('*', '').replace('`', ''))
+
+
+
 
     async def on_guild_join(self, guild: discord.Guild):
         try:

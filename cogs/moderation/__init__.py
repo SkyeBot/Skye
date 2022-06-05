@@ -8,9 +8,10 @@ from core.bot import SkyeBot
 
 from .mods import Mods
 from .mute import Mute
+from .warn import Warns
 
 
-class Moderation(Mods, Mute):
+class Moderation(Mods, Mute, Warns):
     """Moderation Cog"""
 
 

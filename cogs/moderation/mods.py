@@ -72,7 +72,8 @@ class Mods(commands.Cog):
         try:    
             user = await commands.converter.UserConverter().convert(ctx, member)
         except Exception as e:
-            print(e)
+            embed = discord.Embed(title="Error!", description="No user found! Please try this cmd again but with their full username including their discriminator or try their ID with this.", color=self.bot.error_color)
+            return await interaction.response.send_message(embed=embed)
         
         try:
             await interaction.guild.unban(user, reason=f"Responsible moderator: {interaction.user}")

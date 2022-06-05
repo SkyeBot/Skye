@@ -27,9 +27,3 @@ class Admin(commands.Cog):
         embed = discord.Embed(description=f"<a:BosnianWarcrimes:880998885844213790> Succesfully updated this servers prefix to ``{prefix}``", color=0x4365ab)
 
         await ctx.send(embed=embed)
-
-    @app_commands.command()
-    @app_commands.checks.has_permissions(manage_roles=True)
-    async def role(self, itr: discord.Interaction, user: discord.Member, role: discord.Role):
-
-        pass

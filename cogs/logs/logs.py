@@ -125,8 +125,8 @@ class Logging(commands.Cog):
                                 deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
                                 await channel.send(embed=deleted, file=send_file)
         
-        except Exception as e:
-            print(e)
+        except:
+            pass
 
 
 
