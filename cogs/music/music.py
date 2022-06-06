@@ -51,37 +51,41 @@ class Music(commands.Cog):
         If not connected, connect to our voice channel.
         """
 
-
+    
         
         url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
-
-        ctx = await commands.Context.from_interaction(interaction)
         
-        if re.match(url_regex, track):
-            node = wavelink.NodePool.get_node()
-            song = (await node.get_tracks(wavelink.YouTubeTrack, track))[0]
-        else:
-            song = await wavelink.YouTubeTrack.search(query=track, return_first=True)
-        try: 
-            if not interaction.guild.voice_client:
-                if ctx.author.voice is None:
-                    await interaction.response.send_message("You're not connected to a vc!")
-                else:
-                    vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)   
-            else:
-                vc: wavelink.Player = interaction.guild.voice_client
+        if not interaction.user.voice:
+            return await interaction.response.send_message("You are not connected to a voice channel!")
 
-            if vc.queue.is_empty and not vc.is_playing():
-                await vc.play(song)
-                embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
-                embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
-                embed.set_image(url=song.thumbnail)
-                await interaction.response.send_message(embed=embed)
+        else:
+            if re.match(url_regex, track):
+                node = wavelink.NodePool.get_node()
+                song = (await node.get_tracks(wavelink.YouTubeTrack, track))[0]
             else:
-                await vc.queue.put_wait(song)
-                await interaction.response.send_message(f'Added `{song.title}` to the queue...')
-        except UnboundLocalError: 
-            pass
+                song = await wavelink.YouTubeTrack.search(query=track, return_first=True)
+            
+            ctx = await commands.Context.from_interaction(interaction)
+        
+            try: 
+                if not ctx.voice_client:
+                    vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
+                else:
+                    vc: wavelink.Player = ctx.voice_client
+                
+            
+                
+                if vc.queue.is_empty and not vc.is_playing():
+                    await vc.play(song)
+                    embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
+                    embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+                    embed.set_image(url=song.thumbnail)
+                    await interaction.response.send_message(embed=embed)
+                else:
+                    await vc.queue.put_wait(song)
+                    await interaction.response.send_message(f'Added `{song.title}` to the queue...')
+            except UnboundLocalError: 
+                pass
 
     @app_commands.command()
     async def cp(self, interaction: discord.Interaction):
@@ -134,7 +138,7 @@ class Music(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         voice_state = member.guild.voice_client
     
-            
+        vc : wavelink.Player = voice_state
         if voice_state is None:
                 # Exiting if the bot it's not connected to a voice channel
             return 
@@ -142,21 +146,7 @@ class Music(commands.Cog):
         if len(voice_state.channel.members) == 1:
             await voice_state.disconnect()
 
-    @commands.group()
-    async def queue(self, interaction: discord.Interaction):
-        
-        
-        vc: wavelink.Player = interaction.guild.voice_client
-
-        if not vc:
-            return await interaction.response.send_message('No queue as we are not connected', delete_after=5)
-        if interaction.invoked_subcommand is None:
-            if not vc.queue:
-                return await interaction.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
-            else:
-                embed = discord.Embed(title="Current queue")
-                embed.description = "\n".join(str(song) for song in vc.queue)
-                await interaction.response.send_message(embed=embed)
+    queue = app_commands.Group(name="queue", description="The queue group!")
 
     @queue.command()
     async def clear(self, interaction: discord.Interaction):
@@ -166,12 +156,36 @@ class Music(commands.Cog):
         vc.queue.clear()
 
     @queue.command()
-    async def add(self, interaction: discord.Interaction, *, search: wavelink.YouTubeTrack):
+    async def add(self, interaction: discord.Interaction, *, search: str):
         vc: wavelink.Player = interaction.guild.voice_client
 
-        await vc.queue.put_wait(search)
+        url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
-        await interaction.response.send_message(f"Added **{search.title}** To The Queue")
+        ctx = await commands.Context.from_interaction(interaction)
+        
+        if re.match(url_regex, search):
+            node = wavelink.NodePool.get_node()
+            song = (await node.get_tracks(wavelink.YouTubeTrack, search))[0]
+        else:
+            song = await wavelink.YouTubeTrack.search(query=search, return_first=True)
+
+        await vc.queue.put_wait(song)
+
+        await interaction.response.send_message(f"Added **{song.title}** To The Queue")
+
+    @queue.command()
+    async def see(self, itr:discord.Interaction):
+        vc: wavelink.Player = itr.guild.voice_client
+
+        if not vc:
+            return await itr.response.send_message('No queue as we are not connected', delete_after=5)
+        if itr is None:
+            if not vc.queue:
+                return await itr.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
+            else:
+                embed = discord.Embed(title="Current queue")
+                embed.description = "\n".join(str(song) for song in vc.queue)
+                await itr.response.send_message(embed=embed)
         
     @app_commands.command()
     async def volume(self, interaction: discord.Interaction, volume: int):

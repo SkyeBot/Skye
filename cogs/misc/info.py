@@ -1,3 +1,4 @@
+from code import interact
 from collections import Counter
 import discord
 
@@ -11,8 +12,117 @@ from typing import Union, Optional
 #Local imports
 from core.bot import SkyeBot
 from utils import default, time, format
+from utils.context import Context
+
+class Dropdown(discord.ui.Select):
+    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot,member: discord.Member):
+        self.ctx = ctx
+        self.member = member
+        self.bot = bot
+
+        # Set the options that will be presented inside the dropdown
+        options = [
+            discord.SelectOption(label='avatar', description='Avatar of the user', emoji='🟥'),
+            discord.SelectOption(label='banner', description='The Banner of the user', emoji='🟩'),
+            discord.SelectOption(label='info', description='Actual userinfo', emoji='🟦'),
+        ]
+
+        # The placeholder is what will be shown when no option is chosen
+        # The min and max values indicate we can only pick one of the three options
+        # The options parameter defines the dropdown options. We defined this above
+        super().__init__(min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        # Use the interaction object to send a response message containing
+        # the user's favourite colour or choice. The self object refers to the
+        # Select object, and the values attribute gets a list of the user's
+        # selected options. We only want the first one.
+
+        if isinstance(self.ctx, discord.Interaction):
+            user = self.ctx.user.id
+        else:
+            user = self.ctx.author.id
+
+        if interaction.user.id != user:
+            pass
+        else:
+            await interaction.response.defer()
+
+        if self.member is None:
+            self.member = self.ctx.user        
 
 
+        if self.values[0] == "banner":
+            user = await interaction.client.fetch_user(self.member.id)
+
+            embed = discord.Embed(description=f"{user.mention} Banner",color=0x3867a8)
+    
+            if user.banner is None:
+                embed.description = "User does not have a banner!"
+            else:
+                embed.set_image(url=user.banner.url)
+        
+            
+            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.member))
+
+        if self.values[0] == "avatar":
+            embed = discord.Embed(description=f"{self.member.mention} avatar", color=0x3867a8)
+            embed.set_image(url=self.member.display_avatar.url)
+            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.member))
+
+        if self.values[0] == "info":
+            member = self.member
+
+            member = interaction.guild.get_member(self.member.id)
+
+            created_date = default.date(self.member.created_at, ago=True)
+            joined_date = default.date(self.member.joined_at, ago=True)
+
+            show_roles = ", ".join(
+                [f"<@&{x.id}>" for x in sorted(self.member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
+            ) if len(member.roles) > 1 else "None"
+
+            embed = discord.Embed(description=f"**Info About {member.mention}**", color=0x3867a8)
+
+            embed.add_field(name="ID", value=self.member.id)
+            embed.add_field(name="Created At", value=created_date,inline=True)
+            embed.add_field(name="Joined At", value=joined_date)
+            embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
+            embed.add_field(name="Status", value=f"{str(self.member.status)}")
+            embed.set_author(name=self.member, icon_url=self.member.display_avatar.url)
+            embed.set_thumbnail(url=self.member.display_avatar.url)
+    
+
+            await interaction.message.edit(embed=embed)
+
+
+            
+
+            
+
+
+class DropdownView(discord.ui.View):
+    def __init__(self, ctx: Union[Context, discord.Interaction],bot: SkyeBot, member=None):
+        super().__init__()
+        self.ctx = ctx
+        self.bot = bot
+        # Adds the dropdown to our view object.
+        self.add_item(Dropdown(self.ctx,self.bot,member))
+
+
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if isinstance(self.ctx, discord.Interaction):
+            user = self.ctx.user.id
+        else:
+            user = self.ctx.author.id
+
+
+        if interaction.user.id == user:
+            return True
+        else:
+            await interaction.response.send_message(f"You cant use this as you're not the command invoker, only the author (<@{user}>) Can Do This!", ephemeral=True)
+            return False
 
 class Misc(commands.Cog):
     def __init__(self, bot: SkyeBot):
@@ -24,6 +134,8 @@ class Misc(commands.Cog):
         member = member or itr.user
         
         member = itr.guild.get_member(member.id)
+
+        view = DropdownView(itr,self.bot,member)
 
         created_date = default.date(member.created_at, ago=True)
         joined_date = default.date(member.joined_at, ago=True)
@@ -44,7 +156,7 @@ class Misc(commands.Cog):
         embed.set_author(name=member, icon_url=member.display_avatar.url)
         embed.set_thumbnail(url=member.display_avatar.url)
         
-        await itr.response.send_message(embed=embed)
+        await itr.response.send_message(embed=embed, view=view)
     
     @app_commands.command(name="serverinfo")
     async def serverinfo(self, interaction: discord.Interaction, *, guild_id: str  = None):

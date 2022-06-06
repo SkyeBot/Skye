@@ -69,6 +69,11 @@ class owner(commands.Cog):
 
         return self.bot.dispatch('error', itr.command.qualified_name)
 
+    @commands.command()
+    @commands.is_owner()
+    async def shutdown(self, ctx: Context):
+        await ctx.send(f"Shutting down: {self.bot.user}...")
+        await ctx.bot.close()
 
     @commands.command()
     @commands.is_owner()

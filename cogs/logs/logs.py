@@ -42,7 +42,6 @@ class Logging(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def _enable(self, ctx, channel:discord.TextChannel=None):
         exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", ctx.guild.id)
-    
         try:
             if channel == None:
                 await ctx.send("Please provide a channel for me for logging!")
