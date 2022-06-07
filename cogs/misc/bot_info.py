@@ -56,10 +56,8 @@ class bot_info(commands.Cog):
         text = discord.utils.format_dt(difference.utcnow(), style="R")
         self.bot.logger.info(difference)
         self.bot.logger.info(text)
-        embed = discord.Embed(description=f"**I have been running since: {text}**",colour=self.bot.color, timestamp=datetime.datetime.utcnow())
-        embed.set_author(name=self.bot.user,icon_url=self.bot.user.display_avatar.url)
         try:
-            await ctx.send(embed=embed)
+            await ctx.send(f"I have been running since: {text}!")
         except discord.HTTPException:
             await ctx.send("Current uptime: " + text)
 

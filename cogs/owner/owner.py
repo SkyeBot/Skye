@@ -77,16 +77,33 @@ class owner(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    @commands.guild_only()
+    async def cleanup(self, ctx: Context, limit: int = 30):
+        limit += 1
+        bulk_messages = ctx.channel.permissions_for(ctx.me).manage_messages
+
+        def predicate(message: discord.Message):
+            
+            return message.author == ctx.me or (bulk_messages and message.content.startswith(ctx.prefix))
+
+        res = await ctx.channel.purge(limit=limit, bulk=bulk_messages, check=predicate)
+
+        if not res:
+            return await ctx.send('No messages were found to cleanup.')
+        await ctx.send(f'Cleaned up {len(res)} message{"s" if len(res) > 1 else ""}.', delete_after=10.0)
+
+    
+    @commands.command()
+    @commands.is_owner()
     async def reload(self, ctx: Context, cog: Optional[str]=None):
         if cog is None:
-            await ctx.send("Please specify a cog to reload!")
-        else:
+            return await ctx.send("Please specify a cog to reload!")
 
-            try: 
-                await self.bot.reload_extension(cog)
-                await ctx.send(f":repeat: Succesfully reloaded: ``{cog}``")
-            except Exception as e:
-                return await ctx.send(f"\N{WARNING SIGN} Oh No! there was an error\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}")
+        try: 
+            await self.bot.reload_extension(cog)
+            await ctx.send(f":repeat: Succesfully reloaded: ``{cog}``!")
+        except Exception as e:
+            return await ctx.send(f"\N{WARNING SIGN} Oh No! there was an error\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}")
 
     @commands.command()
     @commands.is_owner()

@@ -10,6 +10,7 @@ import logging
 import datetime
 
 from core.bot import SkyeBot
+from discord import app_commands
 
 
 from utils import http, default
@@ -22,52 +23,38 @@ class Logging(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
 
-    @commands.group()
-    @commands.has_permissions(administrator=True)
-    async def logging(self, ctx):
-        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", ctx.guild.id)
-
-        if ctx.invoked_subcommand is None:
-            em = None
-            if exists == None:
-                em = discord.Embed(title="Logging is disabled for this guild :(", color=discord.Color(0xff0000))
-                await ctx.send(embed=em)
-            else:
-                    em = discord.Embed(title="Logging is enabled for this guild!", color = discord.Color(0x32ff00))
-                    channel = self.bot.get_channel(exists.get("channel_id"))
-                    em.add_field(name="Current Logging Channel:", value=channel.mention)
-                    await ctx.send(embed=em)
+    logging = app_commands.Group(name="logging",description="All logging commands",default_permissions=discord.Permissions(administrator=True))
 
     @logging.command(name="enable")
     @commands.has_permissions(administrator=True)
-    async def _enable(self, ctx, channel:discord.TextChannel=None):
-        exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", ctx.guild.id)
+    async def _enable(self, interaction: discord.Interaction, channel:discord.TextChannel=None):
+        exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", interaction.guild.id)
         try:
-            if channel == None:
-                await ctx.send("Please provide a channel for me for logging!")
+            if not channel:
+                await interaction.response.send_message("Please provide a channel for me for logging!")
+   
+            if (exists == None):
+                await self.bot.pool.execute('INSERT INTO logs(channel_id, guild_id) VALUES ($1, $2)',channel.id, interaction.guild.id)
+                em = discord.Embed(title="", color=discord.Color(0x32ff00))
+                em.add_field(name="Logging currently enabled! ", value="   Logs are in: {}".format(channel.mention))
+                await interaction.response.send_message(embed=em)
             else:
-                if (exists == None):
-                    await self.bot.pool.execute('INSERT INTO logs(channel_id, guild_id) VALUES ($1, $2)',channel.id, ctx.guild.id)
-                    em = discord.Embed(title="", color=discord.Color(0x32ff00))
-                    em.add_field(name="Logging currently enabled! ", value="   Logs are in: {}".format(channel.mention))
-                    await ctx.send(embed=em)
-                else:
-                    await self.bot.pool.execute('UPDATE logs SET channel_id = $1 WHERE guild_id = $2',  channel.id, ctx.guild.id)
-                    em = discord.Embed(title="", color=discord.Color(0x32ff00))
-                    em.add_field(name="Logging channel Updated!", value="New Channel: {}".format(channel.mention))
-                    await ctx.send(embed=em)
+                await self.bot.pool.execute('UPDATE logs SET channel_id = $1 WHERE guild_id = $2',  channel.id, interaction.guild.id)
+                em = discord.Embed(title="", color=discord.Color(0x32ff00))
+                em.add_field(name="Logging channel Updated!", value="New Channel: {}".format(channel.mention))
+                await interaction.response.send_message(embed=em)
         except (Exception) as e:
-            await ctx.send(e)
+            await interaction.response.send_message(e)
 
 
     @logging.command(name="disable")
     @commands.has_permissions(administrator=True)
-    async def _disable(self, ctx, channel: discord.TextChannel):
-        exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", ctx.guild.id)
+    async def _disable(self, interaction: discord.Interaction, channel: discord.TextChannel):
+        exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", interaction.guild.id)
 
         if(exists!=None):
-            await self.bot.pool.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_id= $1", ctx.guild.id)
-            await ctx.send("Logging Now disabled!")
+            await self.bot.pool.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_id= $1", interaction.guild.id)
+            await interaction.response.send_message("Logging Now disabled!")
 
 
     @commands.Cog.listener()
@@ -123,7 +110,6 @@ class Logging(commands.Cog):
                                 deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
                                 deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
                                 await channel.send(embed=deleted, file=send_file)
-        
         except:
             pass
 

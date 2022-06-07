@@ -66,10 +66,6 @@ class Mute(commands.Cog):
             await member.add_roles(muted_role, reason=reason)
             await member.send(f'You have been muted from {interaction.guild.name}! \n Reason: {reason}')    
 
-
-
-
-
         except Exception as e:
             self.bot.logger.error(e)
 
