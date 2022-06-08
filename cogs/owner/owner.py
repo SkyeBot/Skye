@@ -18,20 +18,6 @@ from utils import default
 from discord.ext import commands
 
 import discord
-from urllib.parse import quote_plus
-# Define a simple View that gives us a google link button.
-# We take in `query` as the query that the command author requests for
-class Google(discord.ui.View):
-    def __init__(self, query: str):
-        super().__init__()
-        # we need to quote the query string to make a valid url. Discord will raise an error if it isn't valid.
-        query = quote_plus(query)
-        url = f'https://www.google.com/search?q={query}'
-
-        # Link buttons cannot be made with the decorator
-        # Therefore we have to manually create one.
-        # We add the quoted url to the button, and add the button to the view.
-        self.add_item(discord.ui.Button(label='Click Here', url=url))
 
 
 
@@ -39,7 +25,7 @@ class owner(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
 
-    async def is_nsfw(interaction: discord.Interaction) -> bool:
+    async def is_owner(interaction: discord.Interaction) -> bool:
         
         if interaction.user.id == 894794517079793704:
             return True
@@ -48,7 +34,7 @@ class owner(commands.Cog):
         return False
 
     @app_commands.command(name="shards")
-    @app_commands.check(is_nsfw)
+    @app_commands.check(is_owner)
     async def get_shards(self, itr: discord.Interaction):
         """Checks all """
         shard_id = itr.guild.shard_id
@@ -59,7 +45,7 @@ class owner(commands.Cog):
         await itr.response.send_message(f"All shard servers on the shard *{shard.id}*: **{shard_servers}**")
 
     @app_commands.command(name="test1")
-    @app_commands.check(is_nsfw)
+    @app_commands.check(is_owner)
     async def error_1(self, itr: discord.Interaction):
         """Checks all """
         shard_id = itr.guild.shard_id
@@ -108,17 +94,12 @@ class owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def logs(self,ctx: Context):
-        with open('./discord.log')as f:
+        with open('./logs/discord.log')as f:
             em = discord.Embed(
                 description=f"{self.bot.tick(True)} Here's the logs! ```css\n{''.join(f.readlines())}\n```",
                 color=0x2f3136
             )
         await ctx.send(embed=em)
-
-    @commands.command()
-    async def google(self, ctx: Context, *, query: str):
-        """Returns a google link for a query"""
-        await ctx.send(f'Google Result for: `{query}`', view=Google(query))
 
 
 

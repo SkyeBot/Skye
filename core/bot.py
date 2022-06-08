@@ -2,9 +2,10 @@ import asyncio
 import random
 import sys
 import traceback
+from cachetools import TTLCache
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, ipc
 from typing import Optional, TypeVar, Union
 import datetime
 import logging
@@ -15,7 +16,10 @@ import asyncpg
 import datetime as dt
 from discord import app_commands
 
+
 from typing_extensions import ParamSpec
+
+from utils.context import Context
 
 T = TypeVar("T")
 EB = TypeVar("EB", bound="SkyeBot")
@@ -61,9 +65,11 @@ class SkyeBot(commands.AutoShardedBot):
             intents=discord.Intents.all(),
             activity=discord.Activity(type=discord.ActivityType.playing, name="skye help"),
             status=discord.Status.dnd,
-            help_command=None
         )
 
+
+    async def get_context(self, message, *, cls=Context):
+        return await super().get_context(message, cls=cls)
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
         lookup = {
@@ -102,10 +108,12 @@ class SkyeBot(commands.AutoShardedBot):
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         logging.basicConfig(level=logging.INFO)
-        handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+        handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
         
+        self.cached_edits = TTLCache(maxsize=2000, ttl=300.0) # mapping of (command).message.id to (response).message id
+
         dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
         exts = ["jishaku"] + dirs
 
@@ -145,6 +153,32 @@ class SkyeBot(commands.AutoShardedBot):
 
         raise error from None
 
+    
+    async def on_command_completion(self, ctx: Context):
+        await self.pool.execute(
+            "INSERT INTO commands (user_id, command_name) VALUES ($1, $2)",
+            ctx.author.id,
+            ctx.command.name,
+        )
+
+        try:
+            loc = ctx.guild
+        except:
+            loc = ctx.author
+        else:
+            loc = ctx.guild
+
+        date = dt.datetime.now()
+        waktu = date.strftime("%d/%m/%y %I:%M %p")
+
+        try:
+            text = f" `{waktu}` | **{ctx.author}** used `{ctx.command.name}` command on `#{ctx.channel}`, **{loc}**"
+            self.logger.info(text.replace('*', '').replace('`', ''))
+        except:
+            text = f" `{waktu}` | **{ctx.author}** used `{ctx.command.name}` command on **{loc}**"
+            self.logger.info(text.replace('*', '').replace('`', ''))
+
+
 
     async def on_interaction(self, interaction: discord.Interaction):
         if (interaction.type == discord.InteractionType.application_command):
@@ -163,6 +197,10 @@ class SkyeBot(commands.AutoShardedBot):
 
             date = dt.datetime.now()
             waktu = date.strftime("%d/%m/%y %I:%M %p")
+
+            if interaction.namespace:
+                self.logger.info(str(interaction.namespace))
+
 
             try:
                 text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"

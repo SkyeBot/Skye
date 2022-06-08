@@ -39,75 +39,68 @@ class Dropdown(discord.ui.Select):
         # selected options. We only want the first one.
 
         if isinstance(self.ctx, discord.Interaction):
-            user = self.ctx.user.id
+            original = self.ctx.user.id
         else:
-            user = self.ctx.author.id
+            original = self.ctx.author.id
 
-        if interaction.user.id != user:
+        if interaction.user.id != original:
             pass
         else:
             await interaction.response.defer()
-
-        if self.member is None:
-            self.member = self.ctx.user        
+   
 
 
         if self.values[0] == "banner":
-            user = await interaction.client.fetch_user(self.member.id)
+            member = await interaction.guild.fetch_member(self.member.id)
 
-            embed = discord.Embed(description=f"{user.mention} Banner",color=0x3867a8)
+            embed = discord.Embed(description=f"{member.mention} Banner",color=0x3867a8)
     
-            if user.banner is None:
+            if member.banner is None:
                 embed.description = "User does not have a banner!"
             else:
-                embed.set_image(url=user.banner.url)
+                embed.set_image(url=member.banner.url)
         
             
-            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.member))
+            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "avatar":
-            embed = discord.Embed(description=f"{self.member.mention} avatar", color=0x3867a8)
-            embed.set_image(url=self.member.display_avatar.url)
-            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.member))
+            member = interaction.guild.get_member(self.member.id)
+            embed = discord.Embed(description=f"{member.mention} avatar", color=0x3867a8)
+            embed.set_image(url=member.display_avatar.url)
+            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "info":
-            member = self.member
-
             member = interaction.guild.get_member(self.member.id)
-
-            created_date = default.date(self.member.created_at, ago=True)
-            joined_date = default.date(self.member.joined_at, ago=True)
+            created_date = default.date(member.created_at, ago=True)
+            joined_date = default.date(member.joined_at, ago=True)
 
             show_roles = ", ".join(
-                [f"<@&{x.id}>" for x in sorted(self.member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
+                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
             ) if len(member.roles) > 1 else "None"
 
             embed = discord.Embed(description=f"**Info About {member.mention}**", color=0x3867a8)
 
-            embed.add_field(name="ID", value=self.member.id)
+            embed.add_field(name="ID", value=member.id)
             embed.add_field(name="Created At", value=created_date,inline=True)
             embed.add_field(name="Joined At", value=joined_date)
             embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
-            embed.add_field(name="Status", value=f"{str(self.member.status)}")
-            embed.set_author(name=self.member, icon_url=self.member.display_avatar.url)
-            embed.set_thumbnail(url=self.member.display_avatar.url)
+            embed.add_field(name="Status", value=f"{str(member.status)}")
+            embed.set_author(name=member, icon_url=self.member.display_avatar.url)
+            embed.set_thumbnail(url=member.display_avatar.url)
     
 
-            await interaction.message.edit(embed=embed)
+            await interaction.message.edit(embed=embed,view=DropdownView(interaction,self.bot,member))
 
-
-            
-
-            
 
 
 class DropdownView(discord.ui.View):
-    def __init__(self, ctx: Union[Context, discord.Interaction],bot: SkyeBot, member=None):
+    def __init__(self, ctx: Union[Context, discord.Interaction],bot: SkyeBot, member: discord.Member=None):
         super().__init__()
         self.ctx = ctx
         self.bot = bot
+        self.member = member
         # Adds the dropdown to our view object.
-        self.add_item(Dropdown(self.ctx,self.bot,member))
+        self.add_item(Dropdown(self.ctx,self.bot,self.member))
 
 
 

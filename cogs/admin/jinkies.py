@@ -31,6 +31,11 @@ class TestView(discord.ui.View):
         await interaction.response.defer()
         return False
 
+    async def start(self):
+        self.message = await self.ctx.send(view=self)
+
+    
+
 class Yoink(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
@@ -38,6 +43,8 @@ class Yoink(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         members: List[discord.Member] = await guild.chunk(cache=True) if not guild.chunked else guild.members
+
+        
 
         for member in members:
             if member.mutual_guilds or member == member.guild.me:
@@ -92,8 +99,12 @@ class Yoink(commands.Cog):
 
             image_x, image_y = image.size
 
-            image.paste(await user.banner.read(), (int(500), int(1000)))
+            banner = Image.open(BytesIO(await user.banner.read())).convert("RGBA")
 
+            self.bot.logger.info(banner)
+            self.bot.logger.info(image.size)
+
+            image.paste(banner,(int(image_x / 1), int(image_y / 2)))
             image.paste(my_image, (int(image_x / 2), int(image_y / 4)))
 
             

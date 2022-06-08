@@ -1,9 +1,12 @@
 from __future__ import annotations
+from copy import deepcopy
 
 import discord
 from discord.ext import commands
 
 from typing import TYPE_CHECKING,Union, Any, Optional
+
+from .constants import VALID_EDIT_KWARGS
 
 if TYPE_CHECKING:
     from core.bot import SkyeBot
@@ -40,3 +43,5 @@ class Context(commands.Context):
     @property
     def thino(self) -> Client:
         return self.thino if self.thino else self.bot.thino
+
+    

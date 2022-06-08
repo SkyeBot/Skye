@@ -88,6 +88,22 @@ class NSFW(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
+    @app_commands.command(name="femboy",nsfw=True)
+    async def femboy_slash(self, interaction: discord.Interaction):
+        """Returns nsfw femboy images"""
+
+        data = await self.bot.thino.femboy()
+
+
+        embed = discord.Embed(description=f"Filename: [{data.filename}`]({data.url})")
+        embed.set_image(url=data.url)
+        embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text="Powered by thino.pics!")
+
+        await interaction.response.send_message(embed=embed)
+
+
+
 
     @app_commands.command(description=f"Search for an NSFW image from the thino.pics API", nsfw=True)
     async def search(self, interaction:discord.Interaction, image: str):

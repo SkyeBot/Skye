@@ -1,7 +1,6 @@
 import asyncio
 import typing
 import discord
-from sqlalchemy import desc
 import wavelink
 from discord.ext import commands
 from core.bot import SkyeBot
@@ -89,6 +88,8 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def cp(self, interaction: discord.Interaction):
+        """Returns whats currently playing"""
+
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not in a voice channel!")
 
@@ -99,6 +100,7 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def skip(self, interaction: discord.Interaction):
+        """Skips a song"""
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not currently in a voice channel!")
         else:
@@ -114,6 +116,7 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def stop(self, interaction: discord.Interaction):
+        """Stops a song"""
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not currently in a voice channel!")
         else:
@@ -124,6 +127,7 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def disconnect(self, interaction:discord.Interaction):
+        """Disconnects client from vc"""
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not currently in a voice channel!")
         
@@ -150,6 +154,7 @@ class Music(commands.Cog):
 
     @queue.command()
     async def clear(self, interaction: discord.Interaction):
+        """Clears queue"""
         vc : wavelink.Player = interaction.guild.voice_client
 
         await interaction.response.send_message(f"Cleared {len(vc.queue)} songs from the queue.")
@@ -157,6 +162,7 @@ class Music(commands.Cog):
 
     @queue.command()
     async def add(self, interaction: discord.Interaction, *, search: str):
+        """Adds query to queue"""
         vc: wavelink.Player = interaction.guild.voice_client
 
         url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
@@ -175,6 +181,7 @@ class Music(commands.Cog):
 
     @queue.command()
     async def see(self, itr:discord.Interaction):
+        """Allows you to see the queue"""
         vc: wavelink.Player = itr.guild.voice_client
 
         if not vc:
@@ -189,6 +196,7 @@ class Music(commands.Cog):
         
     @app_commands.command()
     async def volume(self, interaction: discord.Interaction, volume: int):
+        """Set a volume"""
         vc: wavelink.Player = interaction.guild.voice_client
 
         if not vc:
@@ -203,6 +211,7 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def pause(self, interaction: discord.Interaction):
+        """Pauses the song currently playing"""
         vc: wavelink.Player = interaction.guild.voice_client
 
         if not vc:
@@ -213,6 +222,7 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def resume(self, interaction: discord.Interaction):
+        """Resumes the song currently playing"""
         vc: wavelink.Player = interaction.guild.voice_client
         if not vc: 
             return await interaction.response.send_message("I am not connected to a voice channel.")
@@ -222,6 +232,7 @@ class Music(commands.Cog):
 
     @app_commands.command()
     async def join(self, interaction:discord.Interaction):
+        """Joins a voice channel"""
 
         if not interaction.guild.voice_client:
             ctx = await commands.Context.from_interaction(interaction)
