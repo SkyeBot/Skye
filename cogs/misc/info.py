@@ -51,10 +51,12 @@ class Dropdown(discord.ui.Select):
 
 
         if self.values[0] == "banner":
-            member = await interaction.guild.fetch_member(self.member.id)
+            member = await interaction.client.fetch_user(self.member.id)
 
             embed = discord.Embed(description=f"{member.mention} Banner",color=0x3867a8)
     
+            print(member.banner)
+
             if member.banner is None:
                 embed.description = "User does not have a banner!"
             else:
@@ -65,7 +67,9 @@ class Dropdown(discord.ui.Select):
 
         if self.values[0] == "avatar":
             member = interaction.guild.get_member(self.member.id)
-            embed = discord.Embed(description=f"{member.mention} avatar", color=0x3867a8)
+            text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
+            
+            embed = discord.Embed(description=text, color=0x3867a8)
             embed.set_image(url=member.display_avatar.url)
             await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
 

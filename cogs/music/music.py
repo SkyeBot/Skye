@@ -50,7 +50,7 @@ class Music(commands.Cog):
         If not connected, connect to our voice channel.
         """
 
-    
+            
         
         url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
         
@@ -72,7 +72,7 @@ class Music(commands.Cog):
                 else:
                     vc: wavelink.Player = ctx.voice_client
                 
-            
+                await interaction.guild.change_voice_state(channel=ctx.author.voice.channel,self_deaf=True)
                 
                 if vc.queue.is_empty and not vc.is_playing():
                     await vc.play(song)
@@ -236,12 +236,15 @@ class Music(commands.Cog):
 
         if not interaction.guild.voice_client:
             ctx = await commands.Context.from_interaction(interaction)
-            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
         else:
             ctx = await commands.Context.from_interaction(interaction)
             vc: wavelink.Player = ctx.voice_client
         
+
+
         await ctx.author.voice.channel.connect(cls=wavelink.Player)
+        await interaction.guild.change_voice_state(channel=ctx.author.voice.channel,self_deaf=True)
+        await interaction.response.send_message(f"Joined: <#{ctx.author.voice.channel.id}>")
         
 
 async def setup(bot):

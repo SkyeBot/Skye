@@ -12,7 +12,7 @@ from utils.context import Context
 
 from core.bot import SkyeBot
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont, ImageChops
 
 class TestView(discord.ui.View):
     def __init__(self, ctx: Union[Context, discord.Interaction], member: discord.Member):
@@ -39,6 +39,20 @@ class TestView(discord.ui.View):
 class Yoink(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
+
+    def circle(self,pfp,size = (215,215)):
+    
+        pfp = pfp.resize(size, Image.ANTIALIAS).convert("RGBA")
+
+        bigsize = (pfp.size[0] * 3, pfp.size[1] * 3)
+        mask = Image.new('L', bigsize, 0)
+        draw = ImageDraw.Draw(mask) 
+        draw.ellipse((0, 0) + bigsize, fill=255)
+        mask = mask.resize(pfp.size, Image.ANTIALIAS)
+        mask = ImageChops.darker(mask, pfp.split()[-1])
+        pfp.putalpha(mask)
+        return pfp
+
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
@@ -83,34 +97,55 @@ class Yoink(commands.Cog):
         if before.avatar != after.avatar:
             self.bot.dispatch("user_avatar_update", before, after)
     
+    async def get_banner(self, banner_url):
+        async with self.bot.session.get(banner_url) as resp:
+            bytes = await resp.read()
+            
+        return bytes
+
     @commands.command()
     async def pil_test(self, ctx: Context):
-        async with self.bot.session.get(ctx.author.display_avatar.url) as response:
-            avatar_bytes = await response.read()
+        user = await self.bot.fetch_user(ctx.author.id)
+        
+        output_buffer = BytesIO()
 
-        with Image.open(BytesIO(avatar_bytes)) as my_image:
-            user = await self.bot.fetch_user(ctx.author.id)
-            
-            output_buffer = BytesIO()
+        banner = await self.get_banner(user.banner.url)
 
-            image = Image.new('RGBA',(1000, 500))
-            
-            my_image = my_image.resize((200, 200))
+        image = Image.new('RGBA',(1000, 500))
 
-            image_x, image_y = image.size
+        pfp = ctx.author.avatar.replace(size=256)
+        data = BytesIO(await pfp.read())
 
-            banner = Image.open(BytesIO(await user.banner.read())).convert("RGBA")
+        pfp = Image.open(data).convert("RGBA")
+        
 
-            self.bot.logger.info(banner)
-            self.bot.logger.info(image.size)
 
-            image.paste(banner,(int(image_x / 1), int(image_y / 2)))
-            image.paste(my_image, (int(image_x / 2), int(image_y / 4)))
+        image_x, image_y = image.size
 
-            
+        banner = Image.open(BytesIO(banner))
 
-            image.save(output_buffer, "png")  # or whatever format
-            output_buffer.seek(0)
+
+
+        canvas_to_banner_ratio = image_y / banner.height
+        banner = banner.resize((int(banner.width * canvas_to_banner_ratio), image_y ))
+
+        I1 = ImageDraw.Draw(image)
+
+        pfp = self.circle(pfp,(215,215))
+
+        image.paste(pfp, (int(image_x / 20), int(image_y / 3)))
+
+
+
+        font = ImageFont.truetype("./Nunito-Regular.ttf",38)
+
+        # Usually, .paste pastes from the top left, so let's an offset of 1/4 the image width, and 1/2 the height
+        I1.text((int(image_x / 2), int(image_y / 2)), text=f"fuck you: {user}", font=font)
+
+        
+
+        image.save(output_buffer, "png")  # or whatever format
+        output_buffer.seek(0)
 
         await ctx.send(file=discord.File(fp=output_buffer, filename="my_file.png"))
 

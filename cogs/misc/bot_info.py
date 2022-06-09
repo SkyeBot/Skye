@@ -1,13 +1,11 @@
 import itertools
 import os
-from typing import Union
+from typing import Optional, Union
 import discord
 
 from discord.ext import commands
 
 from discord import app_commands
-
-import time
 
 import datetime
 
@@ -21,7 +19,7 @@ import pygit2
 #local imports
 from core.bot import SkyeBot
 from utils.context import Context
-from utils import default
+from utils import default, time
 from utils import constants
 
 
@@ -44,30 +42,33 @@ def get_latest_commits(limit: int = 5):
     return "\n".join(format_commit(c) for c in commits)
 
 
+class info_view(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=180)
+        self.add_item(discord.ui.Button(style=discord.ButtonStyle.link,label="Website", url="https://skyebot.dev/", emoji=constants.WEBSITE))
+        self.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url="https://discord.gg/ERMMtyyQ8D", emoji=constants.INVITE))
+
+
 
 class bot_info(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
 
+    def get_bot_uptime(self, *, brief: bool = False) -> str:
+        return time.human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)
+
     @commands.command()
     async def uptime(self, ctx: Context):
-        current_time = datetime.datetime.utcnow().timestamp()
-        difference = datetime.datetime.fromtimestamp(current_time - start_time)
-        text = discord.utils.format_dt(difference.utcnow(), style="R")
-        self.bot.logger.info(difference)
-        self.bot.logger.info(text)
-        try:
-            await ctx.send(f"I have been running since: {text}!")
-        except discord.HTTPException:
-            await ctx.send("Current uptime: " + text)
+        """Tells you how long the bot has been up for."""
+        await ctx.send(f'I have been running since: **{self.get_bot_uptime()}** ago')
 
     @app_commands.command()
     async def botinfo(self, itr: discord.Interaction):
         """Provides info about the bot"""
 
         process = psutil.Process(os.getpid())
-        ramUsage = process.memory_full_info().rss / 1024**2
-
+        ramUsage = process.memory_full_info().rss / 1024**2    
+    
         version = pkg_resources.get_distribution("discord.py").version
 
         embed = discord.Embed(title="Hi! im Skye! I'm a multipurpose open source Discord Bot!",
@@ -123,7 +124,7 @@ class bot_info(commands.Cog):
         )
         embed.timestamp = discord.utils.utcnow()
 
-        await itr.response.send_message(embed=embed)
+        await itr.response.send_message(embed=embed, view=info_view())
 
     @app_commands.command(name="source", description="Links you to the source codde")
     async def source_slash(self, itr: discord.Interaction):

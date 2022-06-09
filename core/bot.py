@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 import random
 import sys
 import traceback
@@ -45,6 +46,8 @@ class SkyeBot(commands.AutoShardedBot):
         self.color = 0x3867a8
         self.error_color = 0xB00020
         self.tick = self.tick
+        self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
+        self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
 
 
         async def get_prefix(client, message):
@@ -84,6 +87,9 @@ class SkyeBot(commands.AutoShardedBot):
 
 
     async def on_ready(self):
+        if not hasattr(self, 'uptime'):
+            self.uptime = discord.utils.utcnow()
+
         if self._connected:
             msg = f"Bot reconnected at {datetime.now().strftime('%b %d %Y %H:%M:%S')}"
             print(msg)        
@@ -103,6 +109,9 @@ class SkyeBot(commands.AutoShardedBot):
             for extension in self.cogs:
                 self.logger.info(f"Loaded cogs.{extension.lower()}")
 
+    async def on_shard_resumed(self, shard_id: int):
+        print(f'Shard ID {shard_id} has resumed...')
+        self.resumes[shard_id].append(discord.utils.utcnow())
     
     async def setup_hook(self):
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"

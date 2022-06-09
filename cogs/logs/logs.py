@@ -33,7 +33,7 @@ class Logging(commands.Cog):
             if not channel:
                 await interaction.response.send_message("Please provide a channel for me for logging!")
    
-            if (exists == None):
+            if (exists == None):    
                 await self.bot.pool.execute('INSERT INTO logs(channel_id, guild_id) VALUES ($1, $2)',channel.id, interaction.guild.id)
                 em = discord.Embed(title="", color=discord.Color(0x32ff00))
                 em.add_field(name="Logging currently enabled! ", value="   Logs are in: {}".format(channel.mention))
