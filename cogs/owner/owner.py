@@ -1,6 +1,7 @@
 
 # -*- coding: utf-8 -*-
 
+import io
 from typing import Optional
 import discord
 
@@ -95,12 +96,15 @@ class owner(commands.Cog):
     @commands.is_owner()
     async def logs(self,ctx: Context):
         with open('./logs/discord.log')as f:
-            em = discord.Embed(
-                description=f"{self.bot.tick(True)} Here's the logs! ```css\n{''.join(f.readlines())}\n```",
-                color=0x2f3136
-            )
-        await ctx.send(embed=em)
+                em = discord.Embed(
+                    description=f"{self.bot.tick(True)} Here's the logs! ```css\n{''.join(f.readlines())}\n```",
+                    color=0x2f3136
+                )
+                await ctx.send(embed=em)
 
+    @commands.command()
+    @commands.is_owner()
+    async def check(self, ctx: Context, name: str):   
+        async for guild in self.bot.fetch_guilds(limit=150):
+            await ctx.send(f"```diff\n{guild.name}\n{guild.id}```")
 
-
-        

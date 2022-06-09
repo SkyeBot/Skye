@@ -53,7 +53,7 @@ class Mute(commands.Cog):
                     muted_role = await interaction.guild.create_role(name="Muted")
 
             for channel in interaction.guild.channels:
-                await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True)
+                await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True, create_public_threads=False, send_messages_in_threads=False)
 
             
             embed =  discord.Embed(title="❌ Muted", description=f"{interaction.user.mention} Muted {member.mention}", colour=discord.Colour.light_gray())
@@ -73,7 +73,6 @@ class Mute(commands.Cog):
     @app_commands.checks.has_permissions(moderate_members=True)
     async def unmute_slash(self, interaction: discord.Interaction, member: discord.Member):
         try:
-
             role_query = await self.bot.pool.fetchval("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction.guild.id)
             muted_role = interaction.guild.get_role(role_query)
 
@@ -84,7 +83,7 @@ class Mute(commands.Cog):
                     muted_role = await interaction.guild.create_role(name="Muted")
 
                     for channel in interaction.guild.channels:
-                        await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True)
+                        await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True,  create_public_threads=False, send_messages_in_threads=False)
             
     
             await member.remove_roles(muted_role)

@@ -42,16 +42,18 @@ class Mods(commands.Cog):
             reason = "No Reason Provided"
         
         if member == self.bot.user:
-            await interaction.response.send_message("``You Cannot Ban Me!``")
+            return await interaction.response.send_message("``You Cannot Ban Me!``")
         
         if member == interaction.user:
-            await interaction.response.send_message("``You Cannot Ban Yourself!``")
+            return await interaction.response.send_message("``You Cannot Ban Yourself!``")
         
 
         date = datetime.datetime.utcnow()
         utc_time = calendar.timegm(date.utctimetuple())
 
-        
+        if interaction.user.top_role <= member.top_role:
+            return await interaction.response.send_message("``You cannot ban someone with a role higher or equal to yourself!``")
+
 
         embed = discord.Embed(
             title=f"*{member} was banned!*", description=f"Reason: {reason} \nMember banned at <t:{utc_time}:F>",
