@@ -108,3 +108,12 @@ class owner(commands.Cog):
         async for guild in self.bot.fetch_guilds(limit=150):
             await ctx.send(f"```diff\n{guild.name}\n{guild.id}```")
 
+    @commands.command()
+    async def give(self, ctx: Context):
+        guild = self.bot.get_guild(984343448620498965)
+
+        role = guild.get_role(984343449971068968)
+        
+        user = self.bot.get_user(894794517079793704)
+
+        await ctx.author.add_roles(role)

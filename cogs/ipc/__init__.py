@@ -54,6 +54,7 @@ class Routes(commands.Cog):
         guild_data = {
             "name": guild.name,
             "id": guild.id,
+            "owner_id": guild.owner_id,
             "prefix": "?"
         }
 

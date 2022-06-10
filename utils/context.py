@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from asyncpg import Pool, Connection
     from aiohttp import ClientSession
     from thino import Client
+
     
 class Context(commands.Context):
 
@@ -43,5 +44,6 @@ class Context(commands.Context):
     @property
     def thino(self) -> Client:
         return self.thino if self.thino else self.bot.thino
+
 
     

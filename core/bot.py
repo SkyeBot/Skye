@@ -16,7 +16,7 @@ import thino
 import asyncpg
 import datetime as dt
 from discord import app_commands
-
+import roblox
 
 from typing_extensions import ParamSpec
 
@@ -48,7 +48,9 @@ class SkyeBot(commands.AutoShardedBot):
         self.tick = self.tick
         self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
+        self.roblox = roblox.Client()
 
+ 
 
         async def get_prefix(client, message):
             try:
@@ -114,6 +116,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.resumes[shard_id].append(discord.utils.utcnow())
     
     async def setup_hook(self):
+
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         logging.basicConfig(level=logging.INFO)
