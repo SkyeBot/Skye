@@ -3,7 +3,6 @@ import asyncio
 import aiohttp
 import dotenv
 import os
-from discord.ext import commands
 import thino
 from core.bot import SkyeBot
 import asyncpg

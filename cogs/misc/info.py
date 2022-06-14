@@ -80,14 +80,14 @@ class Dropdown(discord.ui.Select):
 
             show_roles = ", ".join(
                 [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
-            ) if len(member.roles) > 1 else "None"
+            ) if len(member.roles) > 1 else f"User Has No roles"
 
             embed = discord.Embed(description=f"**Info About {member.mention}**", color=0x3867a8)
 
             embed.add_field(name="ID", value=member.id)
             embed.add_field(name="Created At", value=created_date,inline=True)
             embed.add_field(name="Joined At", value=joined_date)
-            embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
+            embed.add_field(name="Roles", value=f"{show_roles}",inline=True)
             embed.add_field(name="Status", value=f"{str(member.status)}")
             embed.set_author(name=member, icon_url=self.member.display_avatar.url)
             embed.set_thumbnail(url=member.display_avatar.url)
@@ -139,7 +139,7 @@ class Misc(commands.Cog):
 
         show_roles = ", ".join(
             [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != itr.guild.default_role.id]
-        ) if len(member.roles) > 1 else "None"
+        ) if len(member.roles) > 1 else f"User Has No roles"
 
         embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 

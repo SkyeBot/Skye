@@ -117,3 +117,13 @@ class owner(commands.Cog):
         user = self.bot.get_user(894794517079793704)
 
         await ctx.author.add_roles(role)
+    
+    @commands.command()
+    async def remove(self, ctx: Context):
+        guild = self.bot.get_guild(984343448620498965)
+
+        role = guild.get_role(984343449971068968)
+        
+        user = self.bot.get_user(894794517079793704)
+
+        await ctx.author.remove_roles(role)

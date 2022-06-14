@@ -115,6 +115,7 @@ class SkyeBot(commands.AutoShardedBot):
         print(f'Shard ID {shard_id} has resumed...')
         self.resumes[shard_id].append(discord.utils.utcnow())
     
+        
     async def setup_hook(self):
 
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"

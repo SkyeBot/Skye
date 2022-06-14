@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from io import BytesIO
+import string
 import discord
 from discord.ext import commands
 
@@ -104,16 +105,15 @@ class Yoink(commands.Cog):
         return bytes
 
     @commands.command()
-    async def pil_test(self, ctx: Context):
-        user = await self.bot.fetch_user(ctx.author.id)
+    async def pil_test(self, ctx: Context, user: discord.Member=None):
+        user = user.id or ctx.author.id
+        user = await self.bot.fetch_user(user)
         
         output_buffer = BytesIO()
 
-        banner = await self.get_banner(user.banner.url)
-
         image = Image.new('RGBA',(1000, 500))
 
-        pfp = ctx.author.avatar.replace(size=256)
+        pfp = user.avatar.replace(size=256).with_static_format('jpg')
         data = BytesIO(await pfp.read())
 
         pfp = Image.open(data).convert("RGBA")
@@ -122,16 +122,16 @@ class Yoink(commands.Cog):
 
         image_x, image_y = image.size
 
-        banner = Image.open(BytesIO(banner))
+        banner = Image.open('./ass.jpg')
 
 
 
         canvas_to_banner_ratio = image_y / banner.height
         banner = banner.resize((int(banner.width * canvas_to_banner_ratio), image_y ))
 
-        I1 = ImageDraw.Draw(image)
+        image.paste(banner)
 
-        pfp = self.circle(pfp,(215,215))
+        I1 = ImageDraw.Draw(image)
 
         image.paste(pfp, (int(image_x / 20), int(image_y / 3)))
 
@@ -148,6 +148,18 @@ class Yoink(commands.Cog):
         output_buffer.seek(0)
 
         await ctx.send(file=discord.File(fp=output_buffer, filename="my_file.png"))
+
+    @commands.command()
+    async def wel(self, ctx: Context):
+        text_db = str(await self.bot.pool.fetchval("SELECT message FROM welcome_config WHERE guild_id = $1", ctx.guild.id))
+        
+        new_text = string.Template(text_db).safe_substitute(
+            user=ctx.author.mention,
+            guild=ctx.guild
+        )
+
+        await ctx.send(new_text)
+
 
 
 async def setup(bot):

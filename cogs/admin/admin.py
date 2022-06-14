@@ -4,6 +4,8 @@ from discord.ext import commands
 from core.bot import SkyeBot
 from discord import app_commands
 
+from utils.context import Context
+
 class Admin(commands.Cog):
     
     def __init__(self, bot: SkyeBot):
@@ -27,3 +29,8 @@ class Admin(commands.Cog):
         embed = discord.Embed(description=f"<a:BosnianWarcrimes:880998885844213790> Succesfully updated this servers prefix to ``{prefix}``", color=0x4365ab)
 
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def hi(self, ctx: Context):
+        async for entry in ctx.guild.audit_logs(limit=100):
+            await ctx.send(f'{entry.user} did {entry.action} to {entry.target}')

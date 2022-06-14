@@ -212,6 +212,15 @@ class Logging(commands.Cog):
             pass
       
     @commands.Cog.listener()
+    async def on_guild_emojis_update(self,guild: discord.Guild, before: discord.Emoji, after: discord.Emoji):
+        if before == after:
+            return
+
+        if before != after and after is not None:
+            pass
+
+
+    @commands.Cog.listener()
     async def on_guild_channel_update(self, before, after):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", before.guild.id)
