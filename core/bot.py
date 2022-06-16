@@ -70,7 +70,6 @@ class SkyeBot(commands.AutoShardedBot):
             intents=discord.Intents.all(),
             activity=discord.Activity(type=discord.ActivityType.playing, name="skye help"),
             status=discord.Status.dnd,
-            owner_ids=[506899611332509697, 894794517079793704]
         )
 
 
