@@ -1,4 +1,5 @@
 from io import BytesIO
+from typing import Optional
 import discord
 
 from discord.ext import commands
@@ -27,11 +28,10 @@ class Logging(commands.Cog):
 
     @logging.command(name="enable")
     @commands.has_permissions(administrator=True)
-    async def _enable(self, interaction: discord.Interaction, channel:discord.TextChannel=None):
+    async def _enable(self, interaction: discord.Interaction,  channel: Optional[discord.TextChannel]):
         exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", interaction.guild.id)
         try:
-            if not channel:
-                await interaction.response.send_message("Please provide a channel for me for logging!")
+            channel = channel or interaction.channel
    
             if (exists == None):    
                 await self.bot.pool.execute('INSERT INTO logs(channel_id, guild_id) VALUES ($1, $2)',channel.id, interaction.guild.id)
@@ -49,12 +49,26 @@ class Logging(commands.Cog):
 
     @logging.command(name="disable")
     @commands.has_permissions(administrator=True)
-    async def _disable(self, interaction: discord.Interaction, channel: discord.TextChannel):
-        exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", interaction.guild.id)
+    async def _disable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel]):
+        try:
+            channel = channel or interaction.channel
 
-        if(exists!=None):
-            await self.bot.pool.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_id= $1", interaction.guild.id)
-            await interaction.response.send_message("Logging Now disabled!")
+            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_ida = $1", interaction.guild.id)
+
+            if exists is None:
+                return await interaction.response.send_message("Logging Is Not Enabled!", ephemeral=True)
+
+            if (exists is not None):
+                await self.bot.pool.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_ida= $1", interaction.guild.id)
+                await interaction.response.send_message("Logging is now disabled!", ephemeral=True)
+        except Exception as e:
+            return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
+        
+
+
+
+
+
 
 
     @commands.Cog.listener()
@@ -198,18 +212,41 @@ class Logging(commands.Cog):
     async def on_guild_role_create(self, role: discord.Role):
         try:
             exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", role.guild.id)
-            channel = await self.bot.get_channel(exists.get("channel_id"))
+            channel = self.bot.get_channel(exists.get("channel_id"))
 
             embed = discord.Embed(description=f"Role: {role} Was created!")
-            embed.add_field("ID of Role:", value=f"{role.id}")
+            embed.add_field(name="ID of Role:", value=f"{role.id}")
             embed.timestamp = datetime.datetime.utcnow()
 
             await channel.send(embed=embed)
 
+        except:
+            pass
+            
+    @commands.Cog.listener()
+    async def on_guild_role_delete(self, role: discord.Role):
+        try:
+            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", role.guild.id)
+            channel = self.bot.get_channel(exists.get("channel_id"))
 
+            self.bot.logger.info(exists)
+            embed = discord.Embed(description=f"**Role: {role.name} Was Deleted!**")
+
+            async for entry in role.guild.audit_logs(action=discord.AuditLogAction.role_delete):
+                if entry.id == role.id:
+                    embed.add_field(name=f"Responsible Moderator", value=f"{entry.user}")
+
+                 
+
+
+            embed.add_field(name = "ID of Role:", value=f"{role.id}")
+            embed.timestamp = datetime.datetime.utcnow()
+
+            await channel.send(embed=embed)
 
         except:
             pass
+
       
     @commands.Cog.listener()
     async def on_guild_emojis_update(self,guild: discord.Guild, before: discord.Emoji, after: discord.Emoji):
