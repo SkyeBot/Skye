@@ -83,13 +83,12 @@ class Music(commands.Cog):
                 else:
                     await vc.queue.put_wait(song)
                     await interaction.response.send_message(f'Added `{song.title}` to the queue...')
-            except UnboundLocalError: 
-                pass
+            except Exception as e: 
+                await interaction.response.send_message(e)
 
     @app_commands.command()
     async def cp(self, interaction: discord.Interaction):
         """Returns whats currently playing"""
-
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not in a voice channel!")
 

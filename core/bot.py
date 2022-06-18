@@ -118,7 +118,7 @@ class SkyeBot(commands.AutoShardedBot):
     
         
     async def setup_hook(self):
-
+        self.log_channel = await self.fetch_channel(980538933370830851)
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         logging.basicConfig(level=logging.INFO)

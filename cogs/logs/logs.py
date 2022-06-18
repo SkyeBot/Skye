@@ -44,7 +44,7 @@ class Logging(commands.Cog):
                 em.add_field(name="Logging channel Updated!", value="New Channel: {}".format(channel.mention))
                 await interaction.response.send_message(embed=em)
         except (Exception) as e:
-            await interaction.response.send_message(e)
+            await interaction.response.send_message(f"AAAAA\n{e}")
 
 
     @logging.command(name="disable")
@@ -64,66 +64,55 @@ class Logging(commands.Cog):
         except Exception as e:
             return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
         
-
-
-
-
-
-
-
     @commands.Cog.listener()
     async def on_message_delete(self,message: discord.Message):
         
         try:
-            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", message.guild.id)
-            channel = self.bot.get_channel(exists.get("channel_id"))
-            self.bot.logger.info(f"Channel Name: {channel}\nChannel ID: {channel.id}")
+            exists = await self.bot.pool.fetchval("SELECT channel_id FROM LOGS WHERE guild_id = $1", message.guild.id)
+            channel = self.bot.get_channel(exists)
             if exists is not None:
-                if message.author.id == 824119071556763668:
+                if message.author is message.author.bot:
                     pass
                 else:
-                    if message.author is message.author.bot:
-                        pass
-                    else:
-                        deleted = discord.Embed(
-                        description = f"Message deleted in {message.channel.mention}"
+                    deleted = discord.Embed(
+                     description = f"Message deleted in {message.channel.mention}"
                     )
-                        deleted.set_author(name=message.author, icon_url=message.author.avatar)
-                        deleted.timestamp = message.created_at
-                        deleted.color = discord.Color.random()
-                        self.bot.logger.info(deleted.color)
+                    deleted.set_author(name=message.author, icon_url=message.author.avatar)
+                    deleted.timestamp = message.created_at
+                    deleted.color = discord.Color.random()
+                    self.bot.logger.info(deleted.color)
 
-                        if message.content:
-                            deleted.add_field(name="Message:\n", value=message.content, inline=False)
-                            deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```")
+                    if message.content:
+                        deleted.add_field(name="Message:\n", value=message.content, inline=False)
+                        deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```")
 
-                            await channel.send(embed=deleted)
-                        if message.attachments:
-                            file = message.attachments[0]
-                            file_type = file.proxy_url.split(".")
+                        await channel.send(embed=deleted)
+                    if message.attachments:
+                        file = message.attachments[0]
+                        file_type = file.proxy_url.split(".")
 
-                            if len(file_type) != 1 and file_type[-1] in ["png", "jpeg","gif", "webp", "jpg"]:
-                                req = await http.get(file.proxy_url, res_method="read",no_cache=True)
-                                print(file.proxy_url)
-                                bio = BytesIO(req)
-                                bio.seek(0)
-                                deleted.set_image(url=f"attachment://{file.filename}")
-                                send_file = discord.File(bio, filename=file.filename)
+                        if len(file_type) != 1 and file_type[-1] in ["png", "jpeg","gif", "webp", "jpg"]:
+                            req = await http.get(file.proxy_url, res_method="read",no_cache=True)
+                            print(file.proxy_url)
+                            bio = BytesIO(req)
+                            bio.seek(0)
+                            deleted.set_image(url=f"attachment://{file.filename}")
+                            send_file = discord.File(bio, filename=file.filename)
 
-                                deleted.add_field(name="Deleted Image:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
-                                deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
+                            deleted.add_field(name="Deleted Image:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
+                            deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
 
-                                await channel.send(embed=deleted, file=send_file)
+                            await channel.send(embed=deleted, file=send_file)
 
-                            if len(file_type) != 1 and file_type[-1] in ["mp4", "mov", "webm"]:
-                                req = await http.get(file.proxy_url, res_method="read",no_cache=True)
-                                bio = BytesIO(req)
-                                bio.seek(0)
-                                send_file = discord.File(bio, filename=file.filename)
+                        if len(file_type) != 1 and file_type[-1] in ["mp4", "mov", "webm"]:
+                            req = await http.get(file.proxy_url, res_method="read",no_cache=True)
+                            bio = BytesIO(req)
+                            bio.seek(0)
+                            send_file = discord.File(bio, filename=file.filename)
 
-                                deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
-                                deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
-                                await channel.send(embed=deleted, file=send_file)
+                            deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
+                            deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
+                            await channel.send(embed=deleted, file=send_file)
         except:
             pass
 
@@ -248,6 +237,58 @@ class Logging(commands.Cog):
             pass
 
       
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        try:
+            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", member.guild.id)
+            channel = self.bot.get_channel(exists.get("channel_id"))
+
+
+            show_roles = ", ".join(
+                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if
+                 x.id != member.guild.default_role.id]
+            ) if len(member.roles) > 1 else "None"
+
+            embed = discord.Embed(title=f"New member!\nThis server is now at {len(member.guild.members)} Members", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.dark_green)
+            embed.add_field(name=f"Join server date: ",value=default.date(member.joined_at), inline=False)
+            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+            embed.add_field(name="User ID", value=member.id, inline=False)
+            embed.add_field(name="Roles", value=show_roles, inline=False)
+            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+            embed.set_thumbnail(url=f"{member.avatar}")
+            embed.set_footer(text=member.id)
+            
+            await channel.send(embed=embed)
+            
+        except:
+            pass
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        try:
+            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", member.guild.id)
+            channel = self.bot.get_channel(exists.get("channel_id"))
+
+            show_roles = ", ".join(
+                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if
+                 x.id != member.guild.default_role.id]
+            ) if len(member.roles) > 1 else "None"
+
+            embed = discord.Embed(title=f"A Member Left!\nThis server is now at {len(member.guild.members)} Members!", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.brand_red)
+            embed.add_field(name=f"left server date: ",value=default.date(datetime.datetime.utcnow(), ago=True), inline=False)
+            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+            embed.add_field(name="User ID", value=member.id, inline=False)
+            embed.add_field(name="Roles", value=show_roles, inline=False)
+            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+            embed.set_thumbnail(url=f"{member.avatar.url}")
+            embed.set_footer(text=member.id)
+
+            await channel.send(embed=embed)
+        
+        except TypeError:
+            pass
+
     @commands.Cog.listener()
     async def on_guild_emojis_update(self,guild: discord.Guild, before: discord.Emoji, after: discord.Emoji):
         if before == after:

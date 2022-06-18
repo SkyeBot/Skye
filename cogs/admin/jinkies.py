@@ -105,6 +105,10 @@ class Yoink(commands.Cog):
         return bytes
 
     @commands.command()
+    async def asss(self, ctx: Context):
+        await ctx.send([(f"channel: {channel.name}") for channel in ctx.guild.channels])
+
+    @commands.command()
     async def pil_test(self, ctx: Context, user: discord.Member=None):
         user = user.id or ctx.author.id
         user = await self.bot.fetch_user(user)
