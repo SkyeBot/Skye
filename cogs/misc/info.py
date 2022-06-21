@@ -91,8 +91,7 @@ class Dropdown(discord.ui.Select):
             embed.add_field(name="Status", value=f"{str(member.status)}")
             embed.set_author(name=member, icon_url=self.member.display_avatar.url)
             embed.set_thumbnail(url=member.display_avatar.url)
-    
-
+            
             await interaction.message.edit(embed=embed,view=DropdownView(interaction,self.bot,member))
 
 

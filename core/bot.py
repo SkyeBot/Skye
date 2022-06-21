@@ -19,6 +19,7 @@ from discord import app_commands
 import roblox
 
 from typing_extensions import ParamSpec
+from utils.cache import CacheManager
 
 from utils.context import Context
 
@@ -125,6 +126,8 @@ class SkyeBot(commands.AutoShardedBot):
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
+
+        self.cache: CacheManager = CacheManager(bot=self)
         
         self.cached_edits = TTLCache(maxsize=2000, ttl=300.0) # mapping of (command).message.id to (response).message id
 

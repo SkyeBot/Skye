@@ -53,13 +53,13 @@ class Logging(commands.Cog):
         try:
             channel = channel or interaction.channel
 
-            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_ida = $1", interaction.guild.id)
+            exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", interaction.guild.id)
 
             if exists is None:
                 return await interaction.response.send_message("Logging Is Not Enabled!", ephemeral=True)
 
             if (exists is not None):
-                await self.bot.pool.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_ida= $1", interaction.guild.id)
+                await self.bot.pool.execute("UPDATE logs SET channel_id = NULL, guild_id = NULL where guild_id= $1", interaction.guild.id)
                 await interaction.response.send_message("Logging is now disabled!", ephemeral=True)
         except Exception as e:
             return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
@@ -285,8 +285,7 @@ class Logging(commands.Cog):
             embed.set_footer(text=member.id)
 
             await channel.send(embed=embed)
-        
-        except TypeError:
+        except:
             pass
 
     @commands.Cog.listener()
@@ -319,10 +318,6 @@ class Logging(commands.Cog):
                 embed.add_field(name="New Category:", value=after.category, inline=False)
                 embed.timestamp = datetime.datetime.utcnow()
 
-                await channel.send(embed=embed)
-
-
+                await channel.send(embed=embed)      
         except:
             pass
-
-

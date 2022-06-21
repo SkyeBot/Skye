@@ -83,8 +83,11 @@ class Music(commands.Cog):
                 else:
                     await vc.queue.put_wait(song)
                     await interaction.response.send_message(f'Added `{song.title}` to the queue...')
-            except Exception as e: 
-                await interaction.response.send_message(e)
+            except UnboundLocalError: 
+                pass
+            
+            except IndexError:
+                print
 
     @app_commands.command()
     async def cp(self, interaction: discord.Interaction):

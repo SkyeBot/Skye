@@ -18,7 +18,8 @@ class sampbanmodal(discord.ui.Modal):
     def __init__(self , interaction , args):
         self.interaction = interaction
         self.args: discord.Member = args
-        super().__init__(title='Samp Ban Application')
+        self.ign = self.ign
+        super().__init__(title='hi')
     
     ign = discord.ui.TextInput(label="User's Ingame  Name",style=discord.TextStyle.short)
     reason = discord.ui.TextInput(label='Reason For Punishment', style=discord.TextStyle.paragraph)
