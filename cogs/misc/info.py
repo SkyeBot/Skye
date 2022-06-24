@@ -56,7 +56,7 @@ class Dropdown(discord.ui.Select):
             embed = discord.Embed(description=f"{member.mention} Banner",color=0x3867a8)
     
             print(member.banner)
-
+        
             if member.banner is None:
                 embed.description = "User does not have a banner!"
             else:
@@ -66,7 +66,13 @@ class Dropdown(discord.ui.Select):
             await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "avatar":
-            member = interaction.guild.get_member(self.member.id)
+            member = self.member
+            if isinstance(member, discord.User):   
+                member = await self.bot.fetch_user(member.id)
+
+            else:
+                member = interaction.guild.get_member(self.member.id)
+            
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
             
             embed = discord.Embed(description=text, color=0x3867a8)
@@ -74,30 +80,38 @@ class Dropdown(discord.ui.Select):
             await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "info":
-            member = interaction.guild.get_member(self.member.id)
-            created_date = default.date(member.created_at, ago=True)
-            joined_date = default.date(member.joined_at, ago=True)
+            member = self.member
+            embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 
-            show_roles = ", ".join(
-                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
-            ) if len(member.roles) > 1 else f"User Has No roles"
+            if isinstance(member, discord.User):   
+                member = await self.bot.fetch_user(member.id)
 
-            embed = discord.Embed(description=f"**Info About {member.mention}**", color=0x3867a8)
+            else:
+                member = interaction.guild.get_member(member.id)
+                joined_date = default.date(member.joined_at, ago=True)
+                show_roles = ", ".join(
+                    [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
+                    ) if len(member.roles) > 1 else f"User Has No roles"
+                status = str(member.status)
 
-            embed.add_field(name="ID", value=member.id)
-            embed.add_field(name="Created At", value=created_date,inline=True)
-            embed.add_field(name="Joined At", value=joined_date)
-            embed.add_field(name="Roles", value=f"{show_roles}",inline=True)
-            embed.add_field(name="Status", value=f"{str(member.status)}")
-            embed.set_author(name=member, icon_url=self.member.display_avatar.url)
-            embed.set_thumbnail(url=member.display_avatar.url)
-            
-            await interaction.message.edit(embed=embed,view=DropdownView(interaction,self.bot,member))
+                embed.add_field(name="Joined At", value=joined_date)
+                embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
+                embed.add_field(name="Status", value=f"{status}")
+
+                created_date = default.date(member.created_at, ago=True)
+
+
+                embed.add_field(name="ID", value=member.id)
+                embed.add_field(name="Created At", value=created_date,inline=True)
+                embed.set_author(name=member, icon_url=member.display_avatar.url)
+                embed.set_thumbnail(url=member.display_avatar.url)
+
+                await interaction.message.edit(embed=embed,view=DropdownView(interaction,self.bot,member))
 
 
 
 class DropdownView(discord.ui.View):
-    def __init__(self, ctx: Union[Context, discord.Interaction],bot: SkyeBot, member: discord.Member=None):
+    def __init__(self, ctx: Union[Context, discord.Interaction],bot: SkyeBot, member: Union[discord.Member, discord.User]=None):
         super().__init__()
         self.ctx = ctx
         self.bot = bot
@@ -126,32 +140,37 @@ class Misc(commands.Cog):
 
     @app_commands.command(name="userinfo")
     @app_commands.guild_only()
-    async def userinfo_slash(self, itr: discord.Interaction, member: Optional[discord.Member]=None):
+    async def userinfo_slash(self, itr: discord.Interaction, member: Optional[Union[discord.Member, discord.User]]=None):
         member = member or itr.user
-        
-        member = itr.guild.get_member(member.id)
-
-        view = DropdownView(itr,self.bot,member)
-
-        created_date = default.date(member.created_at, ago=True)
-        joined_date = default.date(member.joined_at, ago=True)
-
-        show_roles = ", ".join(
-            [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != itr.guild.default_role.id]
-        ) if len(member.roles) > 1 else f"User Has No roles"
 
         embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 
+        if isinstance(member, discord.User):   
+            member = await self.bot.fetch_user(member.id)
+        
+        else:
+            member = itr.guild.get_member(member.id)
+            joined_date = default.date(member.joined_at, ago=True)
+            show_roles = ", ".join(
+                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != itr.guild.default_role.id]
+                ) if len(member.roles) > 1 else f"User Has No roles"
+            status = str(member.status)
+
+            embed.add_field(name="Joined At", value=joined_date)
+            embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
+            embed.add_field(name="Status", value=f"{status}")
+        
+        
+        view = DropdownView(itr,self.bot,member)
+
+        created_date = default.date(member.created_at, ago=True)
+
+
         embed.add_field(name="ID", value=member.id)
         embed.add_field(name="Created At", value=created_date,inline=True)
-        embed.add_field(name="Joined At", value=joined_date)
-        embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
-        embed.add_field(name="Status", value=f"{str(member.status)}")
-        self.bot.logger.info(member.status)
-        self.bot.logger.info(self.bot.intents)
         embed.set_author(name=member, icon_url=member.display_avatar.url)
         embed.set_thumbnail(url=member.display_avatar.url)
-        
+    
         await itr.response.send_message(embed=embed, view=view)
     
     @app_commands.command(name="serverinfo")

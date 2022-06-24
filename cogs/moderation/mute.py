@@ -18,7 +18,6 @@ class Mute(commands.Cog):
     @mute.command(name="set", description="Set A Mute Role")
     async def set_mute(self, interaction: discord.Interaction, role: discord.Role):
         exists = await self.bot.pool.fetchrow("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction   .guild.id)
-    
         try:
             if role is None:
                 await interaction.response.send_message("Please provide a channel for me for logging!")

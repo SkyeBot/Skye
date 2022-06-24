@@ -78,7 +78,6 @@ class welcomer(commands.Cog):
         message = message or "Welcome $user to $guild!"
         channel = channel or interaction.channel
         exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
-        interaction.user.joined_at
 
         if exists is None:
             await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',channel.id, message,interaction.guild.id)

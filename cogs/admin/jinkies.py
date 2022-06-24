@@ -164,7 +164,19 @@ class Yoink(commands.Cog):
 
         await ctx.send(new_text)
 
+    @commands.command()
+    async def api_check(self, ctx: Context):
+        async with ctx.session.get("http://127.0.0.1:6060/bot/users?id=506899611332509697") as resp:
+            data = await resp.json()
 
+        servers = data["mutual_guilds"]["ids"]
+
+
+        data = ', '.join(str(x) for x in servers)
+
+        await ctx.send(data)
+
+    
 
 async def setup(bot):
     await bot.add_cog(Yoink(bot))

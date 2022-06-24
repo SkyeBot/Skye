@@ -161,11 +161,11 @@ class Docs(commands.Cog, name="Documentation"):
         self.matches = self.finder(obj, cache, key=lambda t: t[0], lazy=False)[:8]
 
         e = discord.Embed(title=f"Make sure to read the fucking docs! (hence the name)")
-        e.set_footer(text=f'Requested By {interaction.user}', icon_url=f'{interaction.user.avatar.url}')
-        e.set_thumbnail(url=interaction.user.avatar.url)
+        e.set_footer(text=f'Requested By {interaction.user}', icon_url=f'{interaction.user.display_avatar.url}')
+        e.set_thumbnail(url=interaction.user.display_avatar.url)
         if len(self.matches) == 0:
             embed = discord.Embed(description=f"**Could not find anything. Sorry.!**")
-            embed.set_footer(text=f"Read The Fucking Manual :)", icon_url=interaction.user.avatar.url)
+            embed.set_footer(text=f"Read The Fucking Manual :)", icon_url=interaction.user.display_avatar.url)
 
 
 
