@@ -62,6 +62,7 @@ CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
     END
     $$;
 
+
 CREATE FUNCTION createTag (tag_name TEXT, tag_content TEXT, tag_owner BIGINT, tag_guild_id BIGINT)
     RETURNS INT
     LANGUAGE plpgsql

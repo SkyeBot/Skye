@@ -110,20 +110,20 @@ class Tags(commands.Cog):
 
 
     async def tags_autocomplete(self, interaction: discord.Interaction, current: Dict[str, Union[int, float, str]]) -> List[app_commands.Choice[str]]:
-
+        
+        
         query = """
         SELECT
             name
         FROM
             tag_lookup
         WHERE
-            SIMILARITY(name, $1) > 0.25 AND guild_id = $2
+            SIMILARITY(name, $1) > 0.10 AND guild_id = $2
         ORDER BY
             similarity(name, $1) 
             DESC
             LIMIT 10
         """
-        
 
         tags = await self.bot.pool.fetch(query, current, interaction.guild.id)
         return [
@@ -179,7 +179,7 @@ class Tags(commands.Cog):
             await interaction.response.send_message(resp['createalias'])
         except asyncpg.UniqueViolationError:
             await interaction.response.send_message("A tag/alias with that name already exists")
-
+        
 
     @tags.command()
     @app_commands.autocomplete(name=tags_autocomplete)
