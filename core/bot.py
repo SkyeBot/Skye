@@ -7,7 +7,7 @@ from cachetools import TTLCache
 
 import discord
 from discord.ext import commands, tasks, ipc
-from typing import Optional, TypeVar, Union
+from typing import Dict, Optional, TypeVar, Union
 import datetime
 import logging
 import os

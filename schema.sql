@@ -32,7 +32,7 @@ CREATE FUNCTION isTagOwner(tagID_ INTEGER, requester BIGINT)
     END
     $$;
 
-CREATE FUNCTION findTag(givenName TEXT)
+CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
     RETURNS TEXT[] -- [name, content]
     LANGUAGE plpgsql
     AS
@@ -41,11 +41,12 @@ CREATE FUNCTION findTag(givenName TEXT)
         tagID_ INT;
         tagName TEXT;
         tagContent TEXT;
+        tagGuild_id BIGINT
     BEGIN
         SELECT tagId
             INTO tagID_
             FROM tag_lookup
-            WHERE name = givenName;
+            WHERE name = givenName AND guild_id = tagGuild_id;
 
         IF tagID_ IS NULL
             THEN RETURN NULL;
@@ -61,7 +62,7 @@ CREATE FUNCTION findTag(givenName TEXT)
     END
     $$;
 
-CREATE FUNCTION createTag (tag_name TEXT, tag_content TEXT, tag_owner BIGINT)
+CREATE FUNCTION createTag (tag_name TEXT, tag_content TEXT, tag_owner BIGINT, tag_guild_id BIGINT)
     RETURNS INT
     LANGUAGE plpgsql
     AS
@@ -70,12 +71,12 @@ CREATE FUNCTION createTag (tag_name TEXT, tag_content TEXT, tag_owner BIGINT)
         tagID_ INT;
     BEGIN
         INSERT INTO
-            tags_new (name, content, owner)
-            VALUES (tag_name, tag_content, tag_owner)
+            tags_new (name, content, owner, guildId)
+            VALUES (tag_name, tag_content, tag_owner, tag_guild_id)
             RETURNING id INTO tagID_;
         INSERT INTO
-            tag_lookup (name, tagId, isAlias)
-            VALUES (tag_name, tagID_, FALSE);
+            tag_lookup (name, tagId, isAlias, guildId)
+            VALUES (tag_name, tagID_, FALSE, tag_guild_id);
         RETURN tagID_;
     END
     $$;
