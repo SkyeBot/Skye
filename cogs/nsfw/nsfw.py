@@ -42,6 +42,8 @@ class NSFW(commands.Cog):
 
             await interaction.response.send_message(embed=embed, file=discord.File(bio, filename=data.filename))
 
+    
+
     @app_commands.command(name="tomboy", description=f"Gets tomboy images from thino.pics", nsfw=True)
     async def tomboy_slash(self, interaction: discord.Interaction):
         data = await self.bot.thino.tomboy()

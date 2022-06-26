@@ -1,4 +1,5 @@
 from __future__ import annotations
+from io import BytesIO
 from typing import Dict, List, Optional, Union
 import asyncpg
 
@@ -7,8 +8,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.bot import SkyeBot
-
-
+from utils.context import Context
 
 
 class TagAddModal(discord.ui.Modal):
@@ -20,12 +20,12 @@ class TagAddModal(discord.ui.Modal):
                 label="Name", placeholder="The name of your tag", style=discord.TextStyle.short
     )
     content = discord.ui.TextInput(
-            label="Content", placeholder="The content of your tag", style=discord.TextStyle.short
+            label="Content", placeholder="The content of your tag", style=discord.TextStyle.long
     )
 
     async def on_submit(self, interaction: discord.Interaction):
         name = self.name.value.strip().lower() # type: ignore
-        content = self.content.value.strip().lower() # type: ignore
+        content = self.content.value.strip() # type: ignore
 
         if name.isdigit(): # type: ignore
             return await interaction.response.send_message("Invalid tag name", ephemeral=True)
@@ -81,12 +81,16 @@ class Tags(commands.Cog):
 
     tags = app_commands.Group(name="tags", description="Tag commands")
 
+    @app_commands.command()
+    async def aaa(self, itr: discord.Interaction):
+        pass
+    
     @tags.command()
     async def add(self, interaction: discord.Interaction, name: Optional[str], content: Optional[str]):
         if name is None:
             return await interaction.response.send_modal(TagAddModal(self.bot))
             
-        name = name.strip().lower() 
+        name = name.strip()
         
         
         if not name or 3 > len(name) > 32 or name.isdigit():
@@ -107,10 +111,30 @@ class Tags(commands.Cog):
         else:
             await interaction.response.send_message(f"Created tag {name}", ephemeral=True)
 
-
+    @commands.command()
+    async def tag_showcase(self, ctx: Context):
+        embed = discord.Embed(title="Tag System Showcase", description="Ive been working on a tag system and finished it so im showing it off")
+        embed.set_author(name="Made By Sawsha#0598", icon_url=ctx.author.display_avatar.url)
+        await ctx.send(embed=embed)
 
     async def tags_autocomplete(self, interaction: discord.Interaction, current: Dict[str, Union[int, float, str]]) -> List[app_commands.Choice[str]]:
-        
+        if not current:
+            query = """
+            SELECT
+                name
+            FROM
+                tag_lookup
+            WHERE
+             guild_id = $1
+
+            """
+            tags = await self.bot.pool.fetch(query, interaction.guild.id)
+
+
+            return [
+                app_commands.Choice(name=n["name"], value=n["name"])
+                for n in tags
+            ]
         
         query = """
         SELECT
@@ -126,10 +150,14 @@ class Tags(commands.Cog):
         """
 
         tags = await self.bot.pool.fetch(query, current, interaction.guild.id)
+
+
         return [
             app_commands.Choice(name=n["name"], value=n["name"])
              for n in tags if current.lower()
         ]
+
+
 
     @tags.command()
     @app_commands.autocomplete(tag=tags_autocomplete)

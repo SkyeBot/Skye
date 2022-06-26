@@ -1,0 +1,12 @@
+git+https://github.com/Rapptz/discord.py
+git+https://github.com/PythonistaGuild/Wavelink
+git+https://github.com/MiroslavRosenov/better-ipc
+
+aiohttp
+asyncpg
+python-dotenv
+cachetools
+roblox
+tabulate
+pygit2
+robloxpy

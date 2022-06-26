@@ -19,10 +19,6 @@ from discord import app_commands
 import roblox
 
 from typing_extensions import ParamSpec
-from utils.cache import CacheManager
-
-from utils.context import Context
-
 T = TypeVar("T")
 EB = TypeVar("EB", bound="SkyeBot")
 P = ParamSpec("P")
@@ -33,7 +29,7 @@ class SkyeBot(commands.AutoShardedBot):
     def __init__(
         self,*,
         session: aiohttp.ClientSession(), 
-        thino_session: thino.Client(),
+        thino_session: thino.Client,
         pool: asyncpg.Pool,
         **kwargs   
     ):
@@ -42,7 +38,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.start_time = discord.utils.utcnow()
         self.logger = logging.getLogger(__name__)
         self.session: aiohttp.ClientSession = session
-        self.thino: thino.Client() = thino_session
+        self.thino: thino.Client = thino_session
         self.pool: asyncpg.Pool = pool
         self.color = 0x3867a8
         self.error_color = 0xB00020
@@ -75,8 +71,6 @@ class SkyeBot(commands.AutoShardedBot):
         )
 
 
-    async def get_context(self, message, *, cls=Context):
-        return await super().get_context(message, cls=cls)
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
         lookup = {
@@ -95,7 +89,7 @@ class SkyeBot(commands.AutoShardedBot):
             self.uptime = discord.utils.utcnow()
 
         if self._connected:
-            msg = f"Bot reconnected at {datetime.now().strftime('%b %d %Y %H:%M:%S')}"
+            msg = f"Bot reconnected at {datetime.datetime.now().strftime('%b %d %Y %H:%M:%S')}"
             print(msg)        
         else:
             self._connected = True
@@ -127,7 +121,6 @@ class SkyeBot(commands.AutoShardedBot):
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
 
-        self.cache: CacheManager = CacheManager(bot=self)
         
         self.cached_edits = TTLCache(maxsize=2000, ttl=300.0) # mapping of (command).message.id to (response).message id
 
@@ -171,7 +164,7 @@ class SkyeBot(commands.AutoShardedBot):
         raise error from None
 
     
-    async def on_command_completion(self, ctx: Context):
+    async def on_command_completion(self, ctx):
         await self.pool.execute(
             "INSERT INTO commands (user_id, command_name) VALUES ($1, $2)",
             ctx.author.id,

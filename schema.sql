@@ -37,20 +37,25 @@ CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
     LANGUAGE plpgsql
     AS
     $$
+
     DECLARE
         tagID_ INT;
         tagName TEXT;
         tagContent TEXT;
-        tagGuild_id BIGINT
+        tagGuild_id BIGINT;
+        tagAlias BOOLEAN
     BEGIN
-        SELECT tagId
-            INTO tagID_
+        SELECT tagId, isAlias
+            INTO tagID_, tagAlias
             FROM tag_lookup
-            WHERE name = givenName AND guild_id = tagGuild_id;
+            WHERE name = givenName AND guild_id = guildID;
 
         IF tagID_ IS NULL
             THEN RETURN NULL;
         END IF;
+
+       IF tagAlias IS TRUE
+            THEN SELECT 
 
         UPDATE tags_new
             SET uses = uses + 1
@@ -60,7 +65,7 @@ CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
 
         RETURN ARRAY[tagName, tagContent];
     END
-    $$;
+
 
 
 CREATE FUNCTION createTag (tag_name TEXT, tag_content TEXT, tag_owner BIGINT, tag_guild_id BIGINT)

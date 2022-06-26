@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import BytesIO
 import string
+import aiohttp
 import discord
 from discord.ext import commands
 
@@ -175,6 +176,18 @@ class Yoink(commands.Cog):
         data = ', '.join(str(x) for x in servers)
 
         await ctx.send(data)
+
+    async def idkfunctionnameig(self, api_url: str):
+        async with self.bot.session.get(api_url) as response:
+            json = await response.json()
+        
+        return json
+
+    @commands.command()
+    async def helper_func(self, ctx: Context):
+        data = await self.idkfunctionnameig("https://users.roblox.com/v1/users/36178192")
+        await ctx.send(data)
+
 
     
 
