@@ -126,12 +126,11 @@ class DropdownView(discord.ui.View):
         else:
             user = self.ctx.author.id
 
-
-        if interaction.user.id == user:
+        if interaction.user and interaction.user.id == user:
             return True
-        else:
-            await interaction.response.send_message(f"You cant use this as you're not the command invoker, only the author (<@{user}>) Can Do This!", ephemeral=True)
-            return False
+        await interaction.response.defer()
+        await interaction.followup.send(f"You cant use this as you're not the command invoker, only the author (<@{user}>) Can Do This!", ephemeral=True)
+        return False
         
 
 
@@ -143,7 +142,7 @@ class roblx(commands.Cog):
     @commands.command()
     async def robloxui(self, ctx: Context, username: str):
         
-        async with ctx.session.get(url = f"https://api.roblox.com/users/get-by-username?username={username}") as r:
+        async with self.bot.session.get(f"https://api.roblox.com/users/get-by-username?username={username}") as r:
             res = await r.json()
             isOnline = res['IsOnline']
 
@@ -153,8 +152,6 @@ class roblx(commands.Cog):
                 isOnline = "Online"
         
         user = await self.bot.roblox.get_user_by_username(username, expand=True)
-
-        friends = ', '.join(x.name for x in await user.get_friends())
 
         badges = ', '.join(x.name for x in await user.get_roblox_badges())
         

@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  bot:
+  
+    build: ./
+    env_file:
+      - ./.env
+
+  db:
+    container_name: postgres_container
+    image: postgres:13
+    restart: always
+    user: root
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    
+
+    ports:
+      - 5432:5432
+    
+

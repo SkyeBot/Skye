@@ -1,17 +1,53 @@
-CREATE TABLE tags_new (
+
+CREATE EXTENSION pg_trgm;
+
+CREATE TABLE IF NOT EXISTS commands (
+    user_id BIGINT,
+    command_name TEXT
+);
+
+CREATE TABLE IF NOT EXISTS guilds (
+    guild_id BIGINT,
+    owner_id BIGINT,
+    guild_name TEXT
+
+);
+
+CREATE TABLE IF NOT EXISTS logs (
+    guild_id BIGINT,
+    channel_id BIGINT
+
+);
+
+CREATE TABLE IF NOT EXISTS welcome_config(
+    guild_id BIGINT,
+    message TEXT,
+    channel_id BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS tags_new(
     id SERIAL UNIQUE,
     name TEXT NOT NULL CHECK (char_length(name) <= 32),
     PRIMARY KEY (name),
     content TEXT NOT NULL CHECK (char_length(content) <= 2000),
     owner BIGINT NOT NULL,
     uses INT DEFAULT 0,
+    guildId BIGINT ,
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc')
 );
-CREATE TABLE tag_lookup (
+
+CREATE TABLE prefix(
+    guild_id BIGINT,
+    prefix TEXT
+);
+
+CREATE TABLE tag_lookup(
     name TEXT PRIMARY KEY CHECK (char_length(name) <= 32),
     tagId INT NOT NULL REFERENCES tags_new(id),
-    isAlias BOOLEAN NOT NULL
+    isAlias BOOLEAN NOT NULL,
+    guildid BIGINT
 );
+
 
 CREATE FUNCTION isTagOwner(tagID_ INTEGER, requester BIGINT)
     RETURNS BOOLEAN
@@ -32,7 +68,7 @@ CREATE FUNCTION isTagOwner(tagID_ INTEGER, requester BIGINT)
     END
     $$;
 
-CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
+CREATE FUNCTION findTag(givenName TEXT, guildid BIGINT)
     RETURNS TEXT[] -- [name, content]
     LANGUAGE plpgsql
     AS
@@ -43,29 +79,37 @@ CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
         tagName TEXT;
         tagContent TEXT;
         tagGuild_id BIGINT;
-        tagAlias BOOLEAN
+        tagAlias BOOLEAN;
+        tagAliasName TEXT;
     BEGIN
         SELECT tagId, isAlias
             INTO tagID_, tagAlias
             FROM tag_lookup
-            WHERE name = givenName AND guild_id = guildID;
+            WHERE name = givenName AND guildid = guildid;
 
         IF tagID_ IS NULL
             THEN RETURN NULL;
         END IF;
 
-       IF tagAlias IS TRUE
-            THEN SELECT 
 
+        
         UPDATE tags_new
             SET uses = uses + 1
             WHERE id = tagID_
             RETURNING name, content
                 INTO tagName, tagContent;
+        
+        IF tagAlias IS TRUE
+            THEN SELECT name 
+                INTO tagAliasName
+                FROM tag_lookup 
+                WHERE tagId = tagID_ AND isalias = tagAlias;
+            RETURN ARRAY[tagName, tagContent];
+        END IF;
 
         RETURN ARRAY[tagName, tagContent];
     END
-
+    $$;
 
 
 CREATE FUNCTION createTag (tag_name TEXT, tag_content TEXT, tag_owner BIGINT, tag_guild_id BIGINT)
@@ -152,19 +196,6 @@ CREATE FUNCTION deleteTag (tagName TEXT, requester BIGINT)
     $$;
 
 
-CREATE TABLE IF NOT EXISTS levelling_config (
-    guild_id BIGINT PRIMARY KEY
-        REFERENCES guilds(guild_id)
-            ON DELETE CASCADE,
-    announce_channel BIGINT,
-    xp_modifier FLOAT NOT NULL DEFAULT 1.0,
-    blacklisted_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    blacklisted_channels BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    card_background BYTEA,
-    enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    levelup_messages TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
-);
-
 
 
 CREATE TABLE IF NOT EXISTS avatars(
@@ -172,10 +203,10 @@ CREATE TABLE IF NOT EXISTS avatars(
     time_changed TIMESTAMP WITH TIME ZONE NOT NULL,
     avatar BYTEA NOT NULL
 
-)
+);
 
 CREATE TABLE IF NOT EXISTS warn(
     warns BIGINT,
     member_id BIGINT,
     guild_id BIGINT
-)
+);

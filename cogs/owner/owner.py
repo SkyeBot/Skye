@@ -99,7 +99,7 @@ class owner(commands.Cog):
                 em = discord.Embed(
                     description=f"{self.bot.tick(True)} Here's the logs! ```css\n{''.join(f.readlines())}\n```",
                     color=0x2f3136
-                )
+                )   
                 await ctx.send(embed=em)
 
     @commands.command()
@@ -125,5 +125,5 @@ class owner(commands.Cog):
         role = guild.get_role(984343449971068968)
         
         user = self.bot.get_user(894794517079793704)
-
+    
         await ctx.author.remove_roles(role)

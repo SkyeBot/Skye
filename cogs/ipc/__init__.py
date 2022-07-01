@@ -6,7 +6,7 @@ from discord.ext import commands, ipc
 from discord.ext.ipc.server import route
 from discord.ext.ipc.errors import IPCError
 
-from core.bot import SkyeBot
+from core.bot import SkyeBot    
 
 
 class Routes(commands.Cog):
@@ -18,6 +18,8 @@ class Routes(commands.Cog):
             )
 
             bot.ipc.start()
+
+        
 
     @commands.Cog.listener()
     async def on_ipc_ready(self):

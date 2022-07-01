@@ -17,6 +17,7 @@ import asyncpg
 import datetime as dt
 from discord import app_commands
 import roblox
+from  utils.constants  import STARTUP_QUERY
 
 from typing_extensions import ParamSpec
 T = TypeVar("T")
@@ -28,7 +29,7 @@ P = ParamSpec("P")
 class SkyeBot(commands.AutoShardedBot):
     def __init__(
         self,*,
-        session: aiohttp.ClientSession(), 
+        session: aiohttp.ClientSession, 
         thino_session: thino.Client,
         pool: asyncpg.Pool,
         **kwargs   
@@ -63,7 +64,7 @@ class SkyeBot(commands.AutoShardedBot):
                 pass
         
         super().__init__(
-            command_prefix=get_prefix,
+            command_prefix="skyec ",
             intents=discord.Intents.all(),
             activity=discord.Activity(type=discord.ActivityType.playing, name="skye help"),
             status=discord.Status.dnd,
@@ -121,6 +122,7 @@ class SkyeBot(commands.AutoShardedBot):
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
 
+        self.pool.execute(STARTUP_QUERY)
         
         self.cached_edits = TTLCache(maxsize=2000, ttl=300.0) # mapping of (command).message.id to (response).message id
 

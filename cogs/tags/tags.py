@@ -83,7 +83,18 @@ class Tags(commands.Cog):
 
     @app_commands.command()
     async def aaa(self, itr: discord.Interaction):
-        pass
+            query = """
+            SELECT
+                name
+            FROM
+                tag_lookup
+            WHERE
+             guildid = $1
+
+            """
+            tags = await self.bot.pool.fetch(query, itr.guild.id)
+
+            await itr.response.send_message(tags)
     
     @tags.command()
     async def add(self, interaction: discord.Interaction, name: Optional[str], content: Optional[str]):
@@ -118,14 +129,14 @@ class Tags(commands.Cog):
         await ctx.send(embed=embed)
 
     async def tags_autocomplete(self, interaction: discord.Interaction, current: Dict[str, Union[int, float, str]]) -> List[app_commands.Choice[str]]:
-        if not current:
+        if current is '':
             query = """
             SELECT
                 name
             FROM
                 tag_lookup
             WHERE
-             guild_id = $1
+             guildid = $1
 
             """
             tags = await self.bot.pool.fetch(query, interaction.guild.id)
@@ -133,7 +144,7 @@ class Tags(commands.Cog):
 
             return [
                 app_commands.Choice(name=n["name"], value=n["name"])
-                for n in tags
+                for n in tags 
             ]
         
         query = """
@@ -142,7 +153,7 @@ class Tags(commands.Cog):
         FROM
             tag_lookup
         WHERE
-            SIMILARITY(name, $1) > 0.10 AND guild_id = $2
+            SIMILARITY(name, $1) > 0.10 AND guildid = $2
         ORDER BY
             similarity(name, $1) 
             DESC
@@ -158,6 +169,7 @@ class Tags(commands.Cog):
         ]
 
 
+    
 
     @tags.command()
     @app_commands.autocomplete(tag=tags_autocomplete)

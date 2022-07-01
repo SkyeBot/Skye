@@ -13,7 +13,6 @@ import logging
 import pkg_resources
 import psutil
 import inspect
-import pygit2
 
 
 #local imports
@@ -36,10 +35,6 @@ def format_commit(commit):
     return f"[`{short_sha2}`](https://github.com/SkyeBot/Skye/commit/{commit.hex}) {short} ({offset})"
 
 
-def get_latest_commits(limit: int = 5):
-    repo = pygit2.Repository("./.git")
-    commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), limit))
-    return "\n".join(format_commit(c) for c in commits)
 
 
 class info_view(discord.ui.View):
@@ -80,7 +75,7 @@ class bot_info(commands.Cog):
         )
         
 
-        embed.add_field(name="Latest updates:", value=get_latest_commits(limit=5), inline=False)
+        embed.add_field(name="Latest updates:", value="not available", inline=False)
 
         embed.set_author(name="I was made by: Sawsha#0598!", icon_url="https://cdn.discordapp.com/avatars/894794517079793704/02fc9ee15032b33756ba9829f00449d9.png?size=1024")
 

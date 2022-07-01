@@ -187,6 +187,7 @@ class Yoink(commands.Cog):
     async def helper_func(self, ctx: Context):
         data = await self.idkfunctionnameig("https://users.roblox.com/v1/users/36178192")
         await ctx.send(data)
+        await ctx.db
 
 
     
