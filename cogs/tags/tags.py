@@ -80,24 +80,12 @@ class Tags(commands.Cog):
         self.options: Dict[str, Union[int, float, str]]
 
     tags = app_commands.Group(name="tags", description="Tag commands")
-
-    @app_commands.command()
-    async def aaa(self, itr: discord.Interaction):
-            query = """
-            SELECT
-                name
-            FROM
-                tag_lookup
-            WHERE
-             guildid = $1
-
-            """
-            tags = await self.bot.pool.fetch(query, itr.guild.id)
-
-            await itr.response.send_message(tags)
     
     @tags.command()
     async def add(self, interaction: discord.Interaction, name: Optional[str], content: Optional[str]):
+
+        """Adds a tag with specified name and content"""
+
         if name is None:
             return await interaction.response.send_modal(TagAddModal(self.bot))
             
@@ -129,7 +117,7 @@ class Tags(commands.Cog):
         await ctx.send(embed=embed)
 
     async def tags_autocomplete(self, interaction: discord.Interaction, current: Dict[str, Union[int, float, str]]) -> List[app_commands.Choice[str]]:
-        if current is '':
+        if current == '':
             query = """
             SELECT
                 name
@@ -174,6 +162,7 @@ class Tags(commands.Cog):
     @tags.command()
     @app_commands.autocomplete(tag=tags_autocomplete)
     async def info(self, interaction: discord.Interaction, tag: str):
+        """Gets info about specified tag"""
         name = tag.strip().lower()
         query = """
         SELECT
@@ -210,6 +199,8 @@ class Tags(commands.Cog):
     @tags.command()
     @app_commands.autocomplete(tag=tags_autocomplete)
     async def alias(self, interaction: discord.Interaction, tag: str, alias: str):
+        """Creates an alias for an tag"""
+
         alias = alias.strip().lower()
         if not alias or len(alias) > 32 or alias.isdigit():
             return await interaction.response.send_message("Invalid alias name", ephemeral=True)
@@ -224,6 +215,9 @@ class Tags(commands.Cog):
     @tags.command()
     @app_commands.autocomplete(name=tags_autocomplete)
     async def edit(self, interaction: discord.Interaction, name: str, content: Optional[str]=None):
+
+        """Allows user to edit a specified tag"""
+
         name = name.strip().lower()
         query = """
                 SELECT
@@ -258,6 +252,8 @@ class Tags(commands.Cog):
     @app_commands.command()
     @app_commands.autocomplete(name=tags_autocomplete)
     async def tag(self, interaction: discord.Interaction, name: str):
+        """Shows specified tag"""
+
         data = await self.bot.pool.fetchrow("SELECT findTag($1, $2)", name, interaction.guild.id)
         
         print(data)

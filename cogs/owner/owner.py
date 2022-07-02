@@ -43,18 +43,8 @@ class owner(commands.Cog):
         shard_ping = shard.latency
         shard_servers = ", ".join(guild.name for guild in self.bot.guilds if guild.shard_id == shard_id)
 
-        await itr.response.send_message(f"All shard servers on the shard *{shard.id}*: **{shard_servers}**")
-
-    @app_commands.command(name="test1")
-    @app_commands.check(is_owner)
-    async def error_1(self, itr: discord.Interaction):
-        """Checks all """
-        shard_id = itr.guild.shard_id
-        shard = self.bot.get_shard(shard_id)
-        shard_ping = shard.latency
-        shard_servers = ", ".join(guild.name for guild in self.bot.guilds if guild.shard_id == shard_id)
-
-        return self.bot.dispatch('error', itr.command.qualified_name)
+        await itr.response.send_message(f"All shard servers on the shard *{shard.id}*: **{shard_servers}**\n\nShard {shard.id}'s Latency: {shard_ping}")
+    
 
     @commands.command()
     @commands.is_owner()
@@ -92,15 +82,6 @@ class owner(commands.Cog):
         except Exception as e:
             return await ctx.send(f"\N{WARNING SIGN} Oh No! there was an error\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}")
 
-    @commands.command()
-    @commands.is_owner()
-    async def logs(self,ctx: Context):
-        with open('./logs/discord.log')as f:
-                em = discord.Embed(
-                    description=f"{self.bot.tick(True)} Here's the logs! ```css\n{''.join(f.readlines())}\n```",
-                    color=0x2f3136
-                )   
-                await ctx.send(embed=em)
 
     @commands.command()
     @commands.is_owner()

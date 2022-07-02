@@ -7,7 +7,9 @@ from core.bot import SkyeBot
 
 from .ping import ping
 
-class utilities(ping):
+from .suggest import Suggest
+
+class utilities(ping, Suggest):
     """Utilites Cog"""
 
 

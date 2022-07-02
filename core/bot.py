@@ -48,21 +48,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.roblox = roblox.Client()
 
- 
 
-        async def get_prefix(client, message):
-            try:
-                defualt_prefix = "skyec "
-                if not message.guild:
-                    return commands.when_mentioned_or(defualt_prefix)(client, message)
-
-                prefix = await self.pool.fetchval('SELECT prefix FROM prefix WHERE guild_id = $1', message.guild.id)
-                if prefix is None:
-                    await self.pool.execute('INSERT INTO prefix(guild_id, prefix) VALUES ($1, $2)', message.guild.id, defualt_prefix)
-                return commands.when_mentioned_or(prefix,defualt_prefix)(client, message)
-            except TypeError:
-                pass
-        
         super().__init__(
             command_prefix="skyec ",
             intents=discord.Intents.all(),
@@ -121,17 +107,15 @@ class SkyeBot(commands.AutoShardedBot):
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
-
-        self.pool.execute(STARTUP_QUERY)
-        
         self.cached_edits = TTLCache(maxsize=2000, ttl=300.0) # mapping of (command).message.id to (response).message id
 
         dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
-        exts = ["jishaku"] + dirs
+        exts = ["jishaku"] + dirs 
 
         for ext in exts:
             await self.load_extension(ext)
 
+    
 
     async def on_error(self, event: str, *args, **kwargs):
         error = sys.exc_info()[1]

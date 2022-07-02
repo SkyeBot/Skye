@@ -171,8 +171,7 @@ class Yoink(commands.Cog):
             data = await resp.json()
 
         servers = data["mutual_guilds"]["ids"]
-
-
+        ctx.author.display_avatar
         data = ', '.join(str(x) for x in servers)
 
         await ctx.send(data)

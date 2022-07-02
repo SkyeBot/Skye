@@ -66,15 +66,10 @@ class welcomer(commands.Cog):
 
 
     welcomer = app_commands.Group(name="welcomer", description="All commands for setting up welcoming",default_permissions=discord.Permissions(administrator=True))
-
-    @app_commands.command()
-    @app_commands.guilds(discord.Object(id=980538933370830848))
-    async def hi(self, interaction: discord.Interaction):
-        await interaction.response.send_message(view=WelecomerView(interaction))
-
+    
     @welcomer.command()
     async def enable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel], message: Optional[str]):
-        """Enables Welcomer"""
+        """Enables Welcomer with optional message"""
         message = message or "Welcome $user to $guild!"
         channel = channel or interaction.channel
         exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)

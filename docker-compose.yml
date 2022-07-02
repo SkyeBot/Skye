@@ -16,8 +16,17 @@ services:
       - ./postgres:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     
+    environment:
+      POSTGRES_DB: "skyetest"
 
     ports:
       - 5432:5432
     
+  lavalink:
+    image: fredboat/lavalink:dev
+    volumes : 
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml
+
+    ports:
+      - 2333:2333
 

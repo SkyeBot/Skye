@@ -65,6 +65,7 @@ class SQLCommands(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.is_owner()
     async def sql(self, ctx: Context, *, query: UntilFlag[SqlCommandFlags]):
         """|coro|
         Executes an SQL query
