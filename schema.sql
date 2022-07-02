@@ -1,4 +1,5 @@
-
+CREATE ROLE skye LOGIN SUPERUSER PASSWORD 'insertpasswordhere';
+CREATE DATABASE skyetest OWNER skye;
 CREATE EXTENSION pg_trgm;
 
 CREATE TABLE IF NOT EXISTS commands (
