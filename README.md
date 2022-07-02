@@ -11,7 +11,8 @@ How to self-host with PM2
 - Install PM2 from [the PM2 website](https://pm2.keymetrics.io/)
 - CD into the bot directory and then run ``pm2 start pm2.json`` which will open the bot with pm2. <br>
 (Note, If you are using this method, make sure you have lavalink installed and you have postgres 13 or up installed on your system and setup) <br>
-the way to open the logs for the bot running with PM2 is by using the command ``pm2 log insertthepm2botprocessnameorid``
+the way to open the logs for the bot running with PM2 is by using the command ``pm2 log insertthepm2botprocessnameorid``<br>
+(Make sure to fill out the .env file)
 
 <br>
 Another way to selfhost skye is too use docker. we provide a dockerfile and docker-compose files pre made (they may not work because the postgres image thingys are dumb) <br>
