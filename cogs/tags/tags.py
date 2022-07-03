@@ -111,8 +111,8 @@ class Tags(commands.Cog):
             await interaction.response.send_message(f"Created tag {name}", ephemeral=True)
 
     @commands.command()
-    async def tag_showcase(self, ctx: Context):
-        embed = discord.Embed(title="Tag System Showcase", description="Ive been working on a tag system and finished it so im showing it off")
+    async def osu_showcase(self, ctx: Context):
+        embed = discord.Embed(title="Osu Command Showcase", description="I made an osu command that shows info about a osu profile")
         embed.set_author(name="Made By Sawsha#0598", icon_url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
 

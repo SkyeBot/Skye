@@ -4,6 +4,8 @@ import asyncpg
 from core.bot import SkyeBot
 
 async def check(bot: SkyeBot,user):
+    """Basic check for blacklisted users"""
+
     query = """
     SELECT 
         *
@@ -20,6 +22,8 @@ async def check(bot: SkyeBot,user):
         return False
     else:
         return True
+
+
 
 
     

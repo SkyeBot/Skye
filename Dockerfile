@@ -14,6 +14,10 @@ RUN /usr/local/bin/python -m pip install --upgrade pip
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
+# Cmake is a dependency for building libgit2
+
+
+
 COPY . .
 
 CMD [ "python3", "launcher.py" ]

@@ -20,7 +20,7 @@ services:
       POSTGRES_DB: "skyetest"
 
     ports:
-      - 5432:5432
+      - 3231:3231
     
   lavalink:
     image: fredboat/lavalink:dev

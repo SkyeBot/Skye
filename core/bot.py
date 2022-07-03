@@ -18,6 +18,7 @@ import datetime as dt
 from discord import app_commands
 import roblox
 from  utils.constants  import STARTUP_QUERY
+from utils.osu import Osu
 
 from typing_extensions import ParamSpec
 T = TypeVar("T")
@@ -32,6 +33,7 @@ class SkyeBot(commands.AutoShardedBot):
         session: aiohttp.ClientSession, 
         thino_session: thino.Client,
         pool: asyncpg.Pool,
+        osu: Osu,
         **kwargs   
     ):
         self._connected = False
@@ -47,6 +49,7 @@ class SkyeBot(commands.AutoShardedBot):
         self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.roblox = roblox.Client()
+        self.osu: Osu = osu
 
 
         super().__init__(

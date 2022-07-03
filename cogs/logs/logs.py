@@ -122,32 +122,27 @@ class Logging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self,before, after):
-        try:
-            if before.content == after.content:
-                    pass
-            else:
-                if before.author is self.bot.user.bot:
-                    pass
-                else:
-                    exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", before.guild.id)
-                    channel = self.bot.get_channel(exists.get("channel_id"))
-                    embed = discord.Embed(
-                    timestamp=after.created_at,
-                    description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",
-                    colour = discord.Colour(0x00FF00)
-                    )
+        if before.content == after.content:
+            return 
 
-                    print(channel)
-                    print(exists)
-                    embed.set_author(name=f'{before.author.name}#{before.author.discriminator}', icon_url=before.author.avatar)
-                    embed.set_footer(text=f"Author ID:{before.author.id} • Message ID: {before.id}")
-                    embed.add_field(name='Before:', value=before.content, inline=False)
-                    embed.add_field(name="After:", value=after.content, inline=False)
-                    embed.add_field(name="ID:", value=f"```User = {before.author.id} \nMessage = {before.id}```", inline=False)
+        exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", before.guild.id)
 
-                    await channel.send(embed=embed)
-        except:
-            pass
+        if exists is None:
+            return
+
+        channel = self.bot.get_channel(exists.get("channel_id"))
+        embed = discord.Embed(
+            timestamp=after.created_at,
+            description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",
+            colour = discord.Colour(0x00FF00)
+        )
+        embed.set_author(name=f'{before.author.name}#{before.author.discriminator}', icon_url=before.author.avatar)
+        embed.set_footer(text=f"Author ID:{before.author.id} • Message ID: {before.id}")
+        embed.add_field(name='Before:', value=before.content, inline=False)
+        embed.add_field(name="After:", value=after.content, inline=False)
+        embed.add_field(name="ID:", value=f"```User = {before.author.id} \nMessage = {before.id}```", inline=False)
+
+        await channel.send(embed=embed)
 
 
 

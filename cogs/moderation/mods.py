@@ -13,24 +13,6 @@ from discord import app_commands
 from core.bot import SkyeBot
 from utils import default
 
-
-class sampbanmodal(discord.ui.Modal):
-    def __init__(self , interaction , args):
-        self.interaction = interaction
-        self.args: discord.Member = args
-        self.ign = self.ign
-        super().__init__(title='hi')
-    
-    ign = discord.ui.TextInput(label="User's Ingame  Name",style=discord.TextStyle.short)
-    reason = discord.ui.TextInput(label='Reason For Punishment', style=discord.TextStyle.paragraph)
-
-    async def on_submit(self, interaction: discord.Interaction):
-        await interaction.response.send_message(f'Ban Application Has Been Announced, {interaction.user}!', ephemeral=True)
-        embed = discord.Embed(description=f"{self.ign} **Is Banned From MalluCity**\n\nUser Ingame-Name - `{self.ign}`\n Reason - `{self.reason}`\nWarnings - `{self.warningno}`\nUnban Time - `{self.unbantime}`",color=0xff0000)       
-        embed.set_footer(text=f"Banned By {interaction.user}")
-        channel = interaction.guild.get_channel(980667221351219230)   
-        await channel.send(self.args.mention, embed=embed) 
-
 class Mods(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
@@ -118,9 +100,3 @@ class Mods(commands.Cog):
 
         await guild.ban(discord.Object(id=user.id))
         await ctx.send(embed=embed)
-
-    @app_commands.command(name='sampban')
-    @app_commands.default_permissions(administrator=True)
-    async def sampban(self , interaction: discord.Interaction , args : discord.Member):
-        modal=sampbanmodal(interaction, args)
-        await interaction.response.send_modal(modal)  
