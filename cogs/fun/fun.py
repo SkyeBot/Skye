@@ -26,21 +26,6 @@ class fun(commands.Cog):
     @app_commands.command()
     async def osutest(self, itr: discord.Interaction, username: str):
         user = await self.bot.osu.get_user(username)
-
-        profile_order ='\n ​ ​ ​ ​ ​ ​ ​ ​  - '.join(x for x in user['profile_order'])    
-
-        
-        rank = str(user['global_rank'])
-        rank = rank[:3] + ',' + rank[3:]
-
-        ss_text = user['ranks']['ss']
-        ssh_text = user['ranks']['ssh']
-        s_text = user['ranks']['s']
-        sh_text = user['ranks']['sh']
-        a_text = user['ranks']['a']
-
-
-        embed = discord.Embed(title=f"Profile for {username}", description=f"▹ **Rank**: #{rank}\n▹ **Join Date**: {user['join_date']}\n▹ **PP**: {user['pp']} **Acc**: {user['acc']:.2f}%\n▹ **Ranks**: ``SS {ss_text}`` | ``SSH {ssh_text}`` | ``S {s_text}`` | ``SH {sh_text}`` | ``A {a_text}``\n▹ **Profile Order**: \n** ​ ​ ​ ​ ​ ​ ​ ​  - {profile_order}**")
-        embed.set_thumbnail(url=user['avatar_url'])
-
+        embed = discord.Embed(title=f"Profile for {username}", description=f"▹ **Bancho Rank**: #{user.global_rank} ({user.country}#{user.country_rank})\n▹ **Join Date**: {user.joined_at}\n▹ **PP**: {user.pp} **Acc**: {user.accuracy:.2f}%\n▹ **Ranks**: {user.ranks}\n▹ **Profile Order**: \n** ​ ​ ​ ​ ​ ​ ​ ​  - {user.profile_order}**")
+        embed.set_thumbnail(url=user.avatar_url)
         await itr.response.send_message(embed=embed)
