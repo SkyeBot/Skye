@@ -55,11 +55,8 @@ class SkyeBot(commands.AutoShardedBot):
         super().__init__(
             command_prefix="skyec ",
             intents=discord.Intents.all(),
-            activity=discord.Activity(type=discord.ActivityType.playing, name="skye help"),
-            status=discord.Status.dnd,
             owner_ids=[506899611332509697, 894794517079793704]
         )
-
 
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
@@ -103,22 +100,20 @@ class SkyeBot(commands.AutoShardedBot):
     
         
     async def setup_hook(self):
-        self.log_channel = await self.fetch_channel(980538933370830851)
-        os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
-        os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         logging.basicConfig(level=logging.INFO)
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
-        self.cached_edits = TTLCache(maxsize=2000, ttl=300.0) # mapping of (command).message.id to (response).message id
+        
+        await self.change_presence(status=discord.Status.dnd, activity=discord.Activity(type=discord.ActivityType.playing, name= f'Running {f"{len(self.shards)} shards" if len(self.shards) > 1 else f"{len(self.shards)} shard"}'))
 
-        dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
-        exts = ["jishaku"] + dirs 
-
+        exts = ["jishaku"] + [
+            f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
+            for ext in os.listdir("cogs")
+            if not ext.startswith("_")
+        ]
         for ext in exts:
             await self.load_extension(ext)
-
-    
 
     async def on_error(self, event: str, *args, **kwargs):
         error = sys.exc_info()[1]

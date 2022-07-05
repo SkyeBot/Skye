@@ -20,4 +20,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+EXPOSE 2300
+
 CMD [ "python3", "launcher.py" ]

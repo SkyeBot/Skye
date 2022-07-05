@@ -2,10 +2,15 @@ version: "3"
 
 services:
   bot:
+    container_name: "skye"
   
     build: ./
     env_file:
       - ./.env
+
+    depends_on:
+      - db
+      - lavalink
 
   db:
     container_name: postgres_container

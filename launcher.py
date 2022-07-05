@@ -30,7 +30,6 @@ async def main():
                 return False
             else:
                 return True
-
         bot.tree.interaction_check = blacklist_check
         await bot.start(os.environ["TOKEN"])
 

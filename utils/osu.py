@@ -40,7 +40,7 @@ class Osu:
 
 
 
-        return ThisUser(json)
+        return User(json)
 
     async def get_user_recent(self, user: Union[str, int]):
         autorization = await self.get_token()
@@ -53,7 +53,7 @@ class Osu:
         params = {
             "limit":5
         }
-        async with self.session.get(self.API_URL+f"/users/{user}/recent_activity",headers=headers,params=params) as response:
+        async with self.session.get(self.API_URL+f"/users/{user}/scores/recent",headers=headers,params=params) as response:
             json = await response.json()
 
         return json
@@ -77,55 +77,37 @@ class Osu:
 
         return json
 
-class ThisUser:
+class User:
     def __init__(self, data):
         self.data = data
-        self._joined_at = date(datetime.datetime.strptime(data['join_date'], '%Y-%m-%dT%H:%M:%S+00:00').timestamp(), ago=True)
-        self._username = data['username']
+        self.joined_at = date(datetime.datetime.strptime(data['join_date'], '%Y-%m-%dT%H:%M:%S+00:00').timestamp(), ago=True)
+        self.username = data['username']
         self._global_rank = str(data['statistics']['global_rank'])
         self._profile_order = data['profile_order']
-        self._pp = data['statistics']['pp']
+        self.pp = data['statistics']['pp']
         self._rank = data['statistics']['grade_counts']
-        self._acc = data['statistics']['hit_accuracy']
+        self.accuracy = data['statistics']['hit_accuracy']
         self._country_rank = str(data['statistics']['country_rank'])
-        self._country = data['country_code']
-        self._avatar_url = data['avatar_url']
+        self.country = data['country_code']
+        self.avatar_url = data['avatar_url']
 
 
-    @property
-    def username(self) -> str:
-        return self._username
 
     @property
     def global_rank(self) -> Any:
         rank = self._global_rank[:3] + ',' + self._global_rank[3:] if int(self._global_rank) >  10000 else self._global_rank if int(self._global_rank) < 1000 else  self._global_rank[:1] + ',' + self._global_rank[1:]
         return rank
-
-    @property
-    def country(self) -> str:
-        return self._country
-
-    @property
-    def avatar_url(self) -> str:
-        return self._avatar_url
-
+    
     @property
     def country_rank(self):
         rank = self._country_rank[:2] + ',' + self._country_rank[2:] if int(self._country_rank) > 10000 else self._country_rank if int(self._country_rank) < 1000 else  self._country_rank[:1] + ',' + self._country_rank[1:]
         return rank
 
-    @property
-    def joined_at(self) -> str:
-        return self._joined_at
             
     @property
     def profile_order(self) -> str:
         profile_order ='\n ​ ​ ​ ​ ​ ​ ​ ​  - '.join(x for x in self._profile_order)
         return profile_order
-
-    @property
-    def pp(self) -> int:
-        return self._pp
 
     @property
     def ranks(self) -> str:
@@ -136,10 +118,11 @@ class ThisUser:
         a_text = self._rank['a']
         return f"``SS {ss_text}`` | ``SSH {ssh_text}`` | ``S {s_text}`` | ``SH {sh_text}`` | ``A {a_text}``"
 
-    @property
-    def accuracy(self):
-        return self._acc
 
     @property
     def raw(self) -> Dict[str, any]:
         return self.data
+
+class UserRecent:
+    def __init__(self) -> None:
+        pass
