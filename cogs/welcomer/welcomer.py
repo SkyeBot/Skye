@@ -144,8 +144,6 @@ class welcomer(commands.Cog):
                 guild=member.guild
             )
 
-            new_text = discord.utils.escape_mentions(new_text)
-
             embed = discord.Embed(title=f"Welcome {member} to {member.guild}!", description=f"{new_text}")
 
             embed.timestamp = datetime.datetime.utcnow()
