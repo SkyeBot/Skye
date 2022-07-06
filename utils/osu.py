@@ -126,3 +126,7 @@ class User:
 class UserRecent:
     def __init__(self) -> None:
         pass
+
+class Beatmap:
+    def __init__(self, data):
+        pass

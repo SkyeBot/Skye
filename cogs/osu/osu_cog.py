@@ -27,6 +27,10 @@ class osu(base_cog):
 
         try:
             if re.match(beatmap_regex, str(message.content)):
-                await message.channel.send("Ass")
+                numbers = re.findall(r'\d+', message.content)
+                numbers = ''.join(x for x in numbers)
+                await message.channel.send(numbers)
         except Exception as e:
             print(e)
+
+    

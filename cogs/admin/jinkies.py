@@ -15,6 +15,7 @@ from utils.context import Context
 from core.bot import SkyeBot
 
 from PIL import Image, ImageDraw, ImageFont, ImageChops
+from discord import app_commands
 
 class TestView(discord.ui.View):
     def __init__(self, ctx: Union[Context, discord.Interaction], member: discord.Member):
@@ -36,6 +37,20 @@ class TestView(discord.ui.View):
     async def start(self):
         self.message = await self.ctx.send(view=self)
 
+class MyModal(discord.ui.Modal, title='Cock'):
+    def __init__(self, channels: discord.TextChannel):
+        super().__init__()
+        self.channels: discord.TextChannel = channels
+        self.foo = discord.ui.Select(options=[discord.SelectOption(label=f"#{x.name}") for x in channels])
+        self.add_item(self.foo)
+
+
+
+
+    async def on_submit(self, interaction):
+        a = ''.join(x.mention for x in interaction.guild.channels if f"#{x.name}" == self.foo.values[0])
+        
+        await interaction.response.send_message(f'The Channel You Picked: {a} ', ephemeral=True)
     
 
 class Yoink(commands.Cog):
@@ -55,6 +70,10 @@ class Yoink(commands.Cog):
         pfp.putalpha(mask)
         return pfp
 
+    @app_commands.command()
+    async def hithere(self, itr:discord.Interaction):
+        
+        await itr.response.send_modal(MyModal([x for x in itr.guild.channels if type(x) is discord.TextChannel]))
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
@@ -167,14 +186,12 @@ class Yoink(commands.Cog):
 
     @commands.command()
     async def api_check(self, ctx: Context):
-        async with ctx.session.get("http://127.0.0.1:6060/bot/users?id=506899611332509697") as resp:
-            data = await resp.json()
+        message = await ctx.send("a")
 
-        servers = data["mutual_guilds"]["ids"]
-        ctx.author.display_avatar
-        data = ', '.join(str(x) for x in servers)
+        async with self.bot.session.get("https://sawsha-is.gay/vYyj0P8.png") as resp:
+            image = BytesIO.read(resp.read())
 
-        await ctx.send(data)
+        await message.edit(attachments=discord.File(image, filename="vYyj0P8.png"))
 
     async def idkfunctionnameig(self, api_url: str):
         async with self.bot.session.get(api_url) as response:

@@ -45,6 +45,12 @@ class owner(commands.Cog):
 
         await itr.response.send_message(f"All shard servers on the shard *{shard.id}*: **{shard_servers}**\n\nShard {shard.id}'s Latency: {shard_ping}")
     
+    @commands.command()
+    @commands.is_owner()
+    async def status(self, ctx: Context, *, status: str):
+
+        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=status))
+
 
     @commands.command()
     @commands.is_owner()

@@ -245,7 +245,7 @@ class Logging(commands.Cog):
                  x.id != member.guild.default_role.id]
             ) if len(member.roles) > 1 else "None"
 
-            embed = discord.Embed(title=f"New member!\nThis server is now at {len(member.guild.members)} Members", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.dark_green)
+            embed = discord.Embed(title=f"New member!\nThis server is now at {len(member.guild.members)} Members", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.dark_green())
             embed.add_field(name=f"Join server date: ",value=default.date(member.joined_at), inline=False)
             embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.add_field(name="User ID", value=member.id, inline=False)
@@ -256,8 +256,9 @@ class Logging(commands.Cog):
             
             await channel.send(embed=embed)
             
-        except:
-            pass
+        except Exception as e:
+            self.bot.logger.info(e)
+
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
@@ -270,7 +271,7 @@ class Logging(commands.Cog):
                  x.id != member.guild.default_role.id]
             ) if len(member.roles) > 1 else "None"
 
-            embed = discord.Embed(title=f"A Member Left!\nThis server is now at {len(member.guild.members)} Members!", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.brand_red)
+            embed = discord.Embed(title=f"A Member Left!\nThis server is now at {len(member.guild.members)} Members!", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.brand_red())
             embed.add_field(name=f"left server date: ",value=default.date(datetime.datetime.utcnow(), ago=True), inline=False)
             embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.add_field(name="User ID", value=member.id, inline=False)
@@ -280,8 +281,8 @@ class Logging(commands.Cog):
             embed.set_footer(text=member.id)
 
             await channel.send(embed=embed)
-        except:
-            pass
+        except Exception as e:
+            self.bot.logger.info(e)
 
     @commands.Cog.listener()
     async def on_guild_emojis_update(self,guild: discord.Guild, before: discord.Emoji, after: discord.Emoji):

@@ -9,7 +9,40 @@ from utils.context import Context
 
 from discord import app_commands
 
-class WelcomerModal(discord.ui.Modal):
+class WelcomerModal1(discord.ui.Modal):
+    def __init__(self , bot: SkyeBot=None, interaction: discord.Interaction=None, channel: discord.TextChannel=None):
+        self.bot: SkyeBot = bot
+        self.interaction = interaction
+        self.channel: discord.TextChannel = channel 
+        
+        super().__init__(title='Welcome Message')
+        channels = [c.name for c in self.interaction.guild.text_channels]
+        # When creating item:
+        self.foo = discord.ui.Select(options=[discord.SelectOption(label=f"#{x.name}" if channels.count(x.name) == 1 else f'{x.name} - {x.category or "No Category"}' ,value=x.id) for x in channel])
+        self.add_item(self.foo)
+
+
+
+    message = discord.ui.TextInput(placeholder="Variables: $user and $guild",label="Message ",style=discord.TextStyle.paragraph)
+
+
+    async def on_submit(self, interaction: discord.Interaction):
+        
+        try:
+            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
+            if exists is None:
+                await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',int(self.foo.values[0]), self.message.value,interaction.guild.id)
+                new_text = string.Template(self.message.value).safe_substitute(
+                    user=interaction.user.mention,
+                    guild=interaction.guild
+                )
+
+                return await interaction.response.send_message(f"Welcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        except Exception as e:
+            self.bot.logger.info(e)
+
+
+class WelcomerModal2(discord.ui.Modal):
     def __init__(self , bot: SkyeBot=None, interaction: discord.Interaction=None, channel: discord.TextChannel=None):
         self.bot: SkyeBot = bot
         self.interaction = interaction
@@ -18,24 +51,14 @@ class WelcomerModal(discord.ui.Modal):
    
     message = discord.ui.TextInput(placeholder="Variables: $user and $guild",label="Message ",style=discord.TextStyle.short)
 
-
     async def on_submit(self, interaction: discord.Interaction):
         exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
-        if exists is None:
-            await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',self.channel.id, self.message.value,interaction.guild.id)
-            new_text = string.Template(self.message.value).safe_substitute(
+        await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3', exists.get("channel_id"), self.message.value, interaction.guild.id)
+        new_text = string.Template(self.message.value).safe_substitute(
                 user=interaction.user.mention,
                 guild=interaction.guild
-            )
-
-            return await interaction.response.send_message(f"Welcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
-        else:
-            await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3',  self.channel.id, self.message.value, interaction.guild.id)
-            new_text = string.Template(self.message.value).safe_substitute(
-                user=interaction.user.mention,
-                guild=interaction.guild
-            )
-            return await interaction.response.send_message(f"Welcome Message Is Now Updated To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        )
+        return await interaction.response.send_message(f"Welcome Message Is Now Updated To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
 class WelecomerView(discord.ui.View):
     def __init__(self, ctx: Union[Context, discord.Interaction]):
@@ -44,7 +67,7 @@ class WelecomerView(discord.ui.View):
 
     @discord.ui.button(label="Custom Message", style=discord.ButtonStyle.grey)
     async def confirm(self, interaction: discord.Interaction, button: discord.Button):
-        await interaction.response.send_modal(WelcomerModal(interaction.client, interaction, interaction.channel))
+        await interaction.response.send_modal(WelcomerModal1(interaction.client, interaction, interaction.channel))
     
 
 
@@ -68,23 +91,46 @@ class welcomer(commands.Cog):
     welcomer = app_commands.Group(name="welcomer", description="All commands for setting up welcoming",default_permissions=discord.Permissions(administrator=True))
     
     @welcomer.command()
-    async def enable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel], message: Optional[str]):
+    async def enable(self, interaction: discord.Interaction):
         """Enables Welcomer with optional message"""
-        message = message or "Welcome $user to $guild!"
-        channel = channel or interaction.channel
-        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
+        try:
+            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)        
 
-        if exists is None:
-            await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',channel.id, message,interaction.guild.id)
-            em = discord.Embed(title="", color= discord.Color(0x32ff00))
-            
-            em.add_field(name="Skye welcoming is currently enabled! ", value="   Logs are in: {}".format(channel.mention))
-            await interaction.response.send_message(embed=em)
-        else:
-            await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3',  channel.id, message, interaction.guild.id)
-            em = discord.Embed(title="", color= discord.Color(0x32ff00))
-            em.add_field(name="Welcome channel Updated!", value=f"New Channel: {channel.mention}")
-            await interaction.response.send_message(embed=em)
+
+
+            if exists is None:
+                    return await interaction.response.send_modal(WelcomerModal1(self.bot, interaction, [x for x in interaction.guild.channels if type(x) is discord.TextChannel]))
+            else:
+                return await interaction.response.send_modal(WelcomerModal2(self.bot, interaction, [x for x in interaction.guild.channels if type(x) is discord.TextChannel]))
+        
+        
+        except Exception as e:
+            self.bot.logger.info
+
+    @welcomer.command()
+    async def disable(self, interaction: discord.Interaction):
+        try: 
+            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)  
+            if exists is None:
+                return await interaction.response.send_message("Welcomer was not enabled in the first place!",ephermal=True)
+
+            await self.bot.pool.execute("DELETE FROM welcome_config WHERE guild_id = $1", interaction.guild.id)
+            await interaction.response.send_message("Succesfully disabled welcomer!")
+
+        except Exception as e:
+            return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
+
+
+    @commands.command()
+    async def chec(self, ctx: Context):
+            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", ctx.guild.id)
+            channel = self.bot.get_channel(exists.get("channel_id"))
+
+            new_text = string.Template(exists.get("message")).safe_substitute(
+                user=ctx.author.mention,
+                guild=ctx.guild
+            )
+            await ctx.send(new_text)
 
 
     @commands.Cog.listener()

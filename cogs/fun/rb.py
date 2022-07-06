@@ -11,7 +11,7 @@ import roblox
 from utils import default
 from robloxpy import User
 import asyncio
-
+from discord import app_commands
 
 class Dropdown(discord.ui.Select):
     def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot, member):
@@ -139,8 +139,9 @@ class roblx(commands.Cog):
         self.bot = bot
 
 
-    @commands.command()
-    async def robloxui(self, ctx: Context, username: str):
+    @app_commands.command()
+    async def robloxui(self, interaction: discord.Interaction, username: str):
+        """Get info about a roblox user"""
         
         async with self.bot.session.get(f"https://api.roblox.com/users/get-by-username?username={username}") as r:
             res = await r.json()
@@ -181,11 +182,6 @@ class roblx(commands.Cog):
         embed.add_field(name="Description", value=f"**{description!r}**", inline=False)
 
 
-        view = DropdownView(ctx,self.bot,user.name)
+        view = DropdownView(interaction,self.bot,user.name)
 
-        await ctx.send(embed=embed, view=view)
-
-    @commands.command()
-    async def get_slash(self, ctx:Context):
-        commands = await self.bot.tree.fetch_commands()
-        nsfw_commands = commands.to_dict()
+        await interaction.response.send_message(embed=embed, view=view)

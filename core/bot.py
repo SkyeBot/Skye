@@ -104,6 +104,8 @@ class SkyeBot(commands.AutoShardedBot):
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
+        os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+        os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         
         await self.change_presence(status=discord.Status.dnd, activity=discord.Activity(type=discord.ActivityType.playing, name= f'Running {f"{len(self.shards)} shards" if len(self.shards) > 1 else f"{len(self.shards)} shard"}'))
 

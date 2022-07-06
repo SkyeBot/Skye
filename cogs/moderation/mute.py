@@ -7,6 +7,7 @@ from discord.ext import commands
 from core.bot import SkyeBot
 
 from discord import app_commands
+from utils.mute import get_mute
 
 
 class Mute(commands.Cog):
@@ -19,8 +20,6 @@ class Mute(commands.Cog):
     async def set_mute(self, interaction: discord.Interaction, role: discord.Role):
         exists = await self.bot.pool.fetchrow("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction   .guild.id)
         try:
-            if role is None:
-                await interaction.response.send_message("Please provide a channel for me for logging!")
             
             if (exists == None):
                 await self.bot.pool.execute('INSERT INTO mute_config(role_id, guild_id) VALUES ($1, $2)',role.id, interaction.guild.id)
@@ -32,6 +31,7 @@ class Mute(commands.Cog):
                 em = discord.Embed(title="", color=discord.Color(0x32ff00))
                 em.add_field(name="Mute Config Updated", value=f"New Mute Role: {role.mention}")
                 await interaction.response.send_message(embed=em)
+        
         except (Exception) as e:
             await interaction.response.send_message(e)
 
@@ -43,16 +43,7 @@ class Mute(commands.Cog):
             reason = reason or "No Reason Specified"
 
             role_query = await self.bot.pool.fetchval("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction.guild.id)
-            muted_role = interaction.guild.get_role(role_query)
-
-            if muted_role is None:
-                muted_role = discord.utils.get(interaction.guild.roles, name="Muted")
-                
-                if not muted_role:
-                    muted_role = await interaction.guild.create_role(name="Muted")
-
-            for channel in interaction.guild.channels:
-                await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True, create_public_threads=False, send_messages_in_threads=False)
+            muted_role = await get_mute(role_query, guild=interaction.guild)       
 
             
             embed =  discord.Embed(title="❌ Muted", description=f"{interaction.user.mention} Muted {member.mention}", colour=discord.Colour.light_gray())
@@ -63,7 +54,7 @@ class Mute(commands.Cog):
 
             await interaction.response.send_message(embed=embed)
             await member.add_roles(muted_role, reason=reason)
-            await member.send(f'You have been muted from {interaction.guild.name}! \n Reason: {reason}')    
+            await member.send(f'You have been muted from {interaction.guild.name}\nReason: {reason}')    
 
         except Exception as e:
             self.bot.logger.error(e)
@@ -73,22 +64,12 @@ class Mute(commands.Cog):
     async def unmute_slash(self, interaction: discord.Interaction, member: discord.Member):
         try:
             role_query = await self.bot.pool.fetchval("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction.guild.id)
-            muted_role = interaction.guild.get_role(role_query)
+            muted_role = await get_mute(role_query, guild=interaction.guild)
 
-            if muted_role is None:
-                muted_role = discord.utils.get(interaction.guild.roles, name="Muted")
-
-                if not muted_role:
-                    muted_role = await interaction.guild.create_role(name="Muted")
-
-                    for channel in interaction.guild.channels:
-                        await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True,  create_public_threads=False, send_messages_in_threads=False)
-            
-    
             await member.remove_roles(muted_role)
             embed = discord.Embed(title="✅ Unmuted!", description=f"Unmuted {member.mention}",colour=discord.Colour.light_gray())
             await interaction.response.send_message(embed=embed)
-            await member.send(f"you have unmuted from: {interaction.guild.name}")        
+            await member.send(f"you have unmuted from {interaction.guild.name}!")        
 
 
 
