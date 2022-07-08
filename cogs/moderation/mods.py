@@ -3,7 +3,7 @@ from contextlib import redirect_stdout
 import io
 import textwrap
 import traceback
-from typing import Any, Optional
+from typing import Any, List, Optional
 import datetime
 import discord
 from discord.ext import commands
@@ -36,6 +36,8 @@ class Mods(commands.Cog):
 
         if interaction.user.top_role <= member.top_role:
             return await interaction.response.send_message("``You cannot ban someone with a role higher or equal to yourself!``")
+
+
 
 
         embed = discord.Embed(
@@ -88,7 +90,11 @@ class Mods(commands.Cog):
             user = await commands.converter.UserConverter().convert(ctx, member)
         except Exception as e:
             print(e)
+
         
+        if interaction.user.top_role <= member.top_role:
+            return await interaction.response.send_message("``You cannot ban someone with a role higher or equal to yourself!``")
+
         embed = discord.Embed(
             title=f"*{user} was hack-banned!*", description=f"**Reason: {reason} \n Member banned at <t:{utc_time}:F>**",
             color = self.bot.color,

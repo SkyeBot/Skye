@@ -19,6 +19,7 @@ from discord import app_commands
 import roblox
 from  utils.constants  import STARTUP_QUERY
 from utils.osu import Osu
+import asyncpraw
 
 from typing_extensions import ParamSpec
 T = TypeVar("T")
@@ -34,6 +35,7 @@ class SkyeBot(commands.AutoShardedBot):
         thino_session: thino.Client,
         pool: asyncpg.Pool,
         osu: Osu,
+        reddit: asyncpraw.Reddit,
         **kwargs   
     ):
         self._connected = False
@@ -50,6 +52,10 @@ class SkyeBot(commands.AutoShardedBot):
         self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.roblox = roblox.Client()
         self.osu: Osu = osu
+        self.reddit: asyncpraw.Reddit  = reddit
+
+        def get_prefix(bot, message):
+            return bot.prefixes[message.guild.id]
 
 
         super().__init__(
@@ -57,6 +63,9 @@ class SkyeBot(commands.AutoShardedBot):
             intents=discord.Intents.all(),
             owner_ids=[506899611332509697, 894794517079793704]
         )
+
+
+
 
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
@@ -69,6 +78,20 @@ class SkyeBot(commands.AutoShardedBot):
         if label is not None:
             return f'{emoji}: {label}'
         return emoji
+
+
+    async def startup(self):
+        await self.wait_until_ready
+
+        for guild in self.guilds:
+            prefix = await self.pool.fetchval('SELECT prefix FROM prefix WHERE guild_id = $1', guild.id)
+
+            if prefix is None:
+                prefix = "skyec "
+
+            self.prefixes = {
+                guild.id: prefix
+            } 
 
 
     async def on_ready(self):
@@ -106,8 +129,8 @@ class SkyeBot(commands.AutoShardedBot):
         self.logger.addHandler(handler)
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
-        
-        await self.change_presence(status=discord.Status.dnd, activity=discord.Activity(type=discord.ActivityType.playing, name= f'Running {f"{len(self.shards)} shards" if len(self.shards) > 1 else f"{len(self.shards)} shard"}'))
+
+        self.loop.create_task(self.startup())
 
         exts = ["jishaku"] + [
             f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"

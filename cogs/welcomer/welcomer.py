@@ -133,6 +133,8 @@ class welcomer(commands.Cog):
             await ctx.send(new_text)
 
 
+
+
     @commands.Cog.listener()
     async def on_member_join(self,member:discord.Member):
         try: 
@@ -143,6 +145,7 @@ class welcomer(commands.Cog):
                 user=member.mention,
                 guild=member.guild
             )
+        
 
             embed = discord.Embed(title=f"Welcome {member} to {member.guild}!", description=f"{new_text}")
 

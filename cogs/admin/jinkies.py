@@ -205,7 +205,10 @@ class Yoink(commands.Cog):
         await ctx.send(data)
         await ctx.db
 
-
+    @commands.command()
+    async def invitetest(self, ctx: Context):
+        a = '\n\n'.join(f"Invite: <{x.url}> \nInvite Creator: {x.inviter}" for x in await ctx.guild.invites())
+        await ctx.send(a)
     
 
 async def setup(bot):

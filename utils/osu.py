@@ -2,6 +2,7 @@ import datetime
 from typing import Any, Dict, Union
 import aiohttp
 from .default import date
+from .osu_errors import NoUserFound
 
 class Osu:
     def __init__(self, *, client_id: int, client_secret: str, session: aiohttp.ClientSession):
@@ -37,7 +38,6 @@ class Osu:
         }
         async with self.session.get(self.API_URL+f"/users/{user}",headers=headers,params=params) as response:
             json = await response.json()
-
 
 
         return User(json)
@@ -79,35 +79,36 @@ class Osu:
 
 class User:
     def __init__(self, data):
-        self.data = data
-        self.joined_at = date(datetime.datetime.strptime(data['join_date'], '%Y-%m-%dT%H:%M:%S+00:00').timestamp(), ago=True)
-        self.username = data['username']
-        self._global_rank = str(data['statistics']['global_rank'])
-        self._profile_order = data['profile_order']
-        self.pp = data['statistics']['pp']
-        self._rank = data['statistics']['grade_counts']
-        self.accuracy = data['statistics']['hit_accuracy']
-        self._country_rank = str(data['statistics']['country_rank'])
-        self.country = data['country_code']
-        self.avatar_url = data['avatar_url']
+        try:
+            self.data = data
+            self.username = data.get('username')
+            self._global_rank = str(data.get('statistics').get("global_rank")) if data.get('statistics').get("global_rank") is not None else 0
+            self.pp = data.get("statistics").get("pp")  if data.get('statistics') else "None"
+            self._rank = data.get("statistics").get("grade_counts") if data.get('statistics') else "None"
+            self.accuracy = f"{int(data.get('statistics').get('hit_accuracy')):.2f}"  if data.get('statistics') else "None"
+            self._country_rank = str(data.get('statistics').get("country_rank"))  if data.get('statistics').get("country_rank") is not None else 0
+            self._profile_order = data['profile_order'] if data['profile_order'] != KeyError else "Cant Get Profile Order!"
+            self.country = f":flag_{data.get('country_code').lower()}:" if data.get("country_code") else "None"
+            self.avatar_url = data.get("avatar_url")
+        except:
+            raise NoUserFound("No User Was Found")
 
 
 
     @property
     def global_rank(self) -> Any:
-        rank = self._global_rank[:3] + ',' + self._global_rank[3:] if int(self._global_rank) >  10000 else self._global_rank if int(self._global_rank) < 1000 else  self._global_rank[:1] + ',' + self._global_rank[1:]
+        rank = self._global_rank[:3] + ',' + self._global_rank[3:] if int(self._global_rank) >  10000 else self._global_rank if int(self._global_rank) < 1000 else  self._global_rank[:1] + ',' + self._global_rank[1:] if self._global_rank is not 0 else 0
         return rank
     
     @property
     def country_rank(self):
-        rank = self._country_rank[:2] + ',' + self._country_rank[2:] if int(self._country_rank) > 10000 else self._country_rank if int(self._country_rank) < 1000 else  self._country_rank[:1] + ',' + self._country_rank[1:]
-        return rank
-
+            rank = self._country_rank[:2] + ',' + self._country_rank[2:] if int(self._country_rank) > 10000 else self._country_rank if int(self._country_rank) < 1000 else  self._country_rank[:1] + ',' + self._country_rank[1:] if self._country_rank is not 0 else 0
+            return rank
             
     @property
     def profile_order(self) -> str:
         profile_order ='\n ​ ​ ​ ​ ​ ​ ​ ​  - '.join(x for x in self._profile_order)
-        return profile_order
+        return profile_order.replace("_", " ")
 
     @property
     def ranks(self) -> str:
@@ -118,6 +119,12 @@ class User:
         a_text = self._rank['a']
         return f"``SS {ss_text}`` | ``SSH {ssh_text}`` | ``S {s_text}`` | ``SH {sh_text}`` | ``A {a_text}``"
 
+    @property
+    def joined_at(self) -> str:
+        if self.data.get("join_date"):
+           return date(datetime.datetime.strptime(self.data.get('join_date'), '%Y-%m-%dT%H:%M:%S+00:00').timestamp(), ago=True)
+
+        
 
     @property
     def raw(self) -> Dict[str, any]:

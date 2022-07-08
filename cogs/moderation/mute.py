@@ -72,7 +72,6 @@ class Mute(commands.Cog):
             await member.send(f"you have unmuted from {interaction.guild.name}!")        
 
 
-
         except Exception as e:
             self.bot.logger.error(e)
                 
