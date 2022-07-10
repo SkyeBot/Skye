@@ -18,8 +18,10 @@ import datetime as dt
 from discord import app_commands
 import roblox
 from  utils.constants  import STARTUP_QUERY
-from utils.osu import Osu
+from utils.osu_utils import Osu
 import asyncpraw
+
+import pkg_resources
 
 from typing_extensions import ParamSpec
 T = TypeVar("T")
@@ -29,6 +31,8 @@ P = ParamSpec("P")
 
 
 class SkyeBot(commands.AutoShardedBot):
+    bot_app_info: discord.AppInfo
+
     def __init__(
         self,*,
         session: aiohttp.ClientSession, 
@@ -54,19 +58,12 @@ class SkyeBot(commands.AutoShardedBot):
         self.osu: Osu = osu
         self.reddit: asyncpraw.Reddit  = reddit
 
-        def get_prefix(bot, message):
-            return bot.prefixes[message.guild.id]
-
-
         super().__init__(
             command_prefix="skyec ",
             intents=discord.Intents.all(),
-            owner_ids=[506899611332509697, 894794517079793704]
+            owner_ids=[506899611332509697, 894794517079793704],
+            activity=discord.Activity(type=discord.ActivityType.playing, name="Hitorigoto -TV MIX-")
         )
-
-
-
-
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
         lookup = {
@@ -80,19 +77,10 @@ class SkyeBot(commands.AutoShardedBot):
         return emoji
 
 
-    async def startup(self):
-        await self.wait_until_ready
 
-        for guild in self.guilds:
-            prefix = await self.pool.fetchval('SELECT prefix FROM prefix WHERE guild_id = $1', guild.id)
-
-            if prefix is None:
-                prefix = "skyec "
-
-            self.prefixes = {
-                guild.id: prefix
-            } 
-
+    @property
+    def owner(self):
+        return self.bot_app_info.owner
 
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
@@ -106,7 +94,7 @@ class SkyeBot(commands.AutoShardedBot):
             self.startup_time = discord.utils.utcnow() - self.start_time
             msg = (
                 f"Successfully logged into {self.user}. ({round(self.latency * 1000)}ms)\n"
-                f"Discord.py Version: {discord.__version__}\n"
+                f"Discord.py Version: {discord.__version__} | {pkg_resources.get_distribution('discord.py').version}\n"
                 f"Python version: {sys.version}\n"
                 f"Created Postgresql Pool!\n"
                 f"Running {self.shard_count} Shards!\n"
@@ -115,7 +103,7 @@ class SkyeBot(commands.AutoShardedBot):
             self.logger.info(f"{msg}")
             
             for extension in self.cogs:
-                self.logger.info(f"Loaded cogs.{extension.lower()}")
+                self.logger.info(f" - Loaded cogs.{extension.lower()}")
 
     async def on_shard_resumed(self, shard_id: int):
         print(f'Shard ID {shard_id} has resumed...')
@@ -130,7 +118,6 @@ class SkyeBot(commands.AutoShardedBot):
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
 
-        self.loop.create_task(self.startup())
 
         exts = ["jishaku"] + [
             f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
@@ -139,6 +126,7 @@ class SkyeBot(commands.AutoShardedBot):
         ]
         for ext in exts:
             await self.load_extension(ext)
+
 
     async def on_error(self, event: str, *args, **kwargs):
         error = sys.exc_info()[1]
@@ -246,3 +234,5 @@ class SkyeBot(commands.AutoShardedBot):
             self.logger.info("Closed Session.")
         finally:
             await super().close()
+
+

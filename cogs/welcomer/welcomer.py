@@ -121,18 +121,6 @@ class welcomer(commands.Cog):
             return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
 
 
-    @commands.command()
-    async def chec(self, ctx: Context):
-            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", ctx.guild.id)
-            channel = self.bot.get_channel(exists.get("channel_id"))
-
-            new_text = string.Template(exists.get("message")).safe_substitute(
-                user=ctx.author.mention,
-                guild=ctx.guild
-            )
-            await ctx.send(new_text)
-
-
 
 
     @commands.Cog.listener()
@@ -155,3 +143,23 @@ class welcomer(commands.Cog):
             await channel.send(embed=embed)    
         except Exception as e:
             print(e)
+    
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        try: 
+            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id)
+            channel = self.bot.get_channel(exists.get("channel_id"))
+            show_roles = ", ".join(
+                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if
+                    x.id != member.guild.default_role.id]
+            ) if len(member.roles) > 1 else "Default Role"
+
+            embed = discord.Embed(title=f"Member: {member} left the server! this server is now at {len(member.guild.members)} Members")
+            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+            embed.timestamp = datetime.datetime.utcnow()
+            embed.set_thumbnail(url=f"{member.avatar}")
+
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(e)
+    

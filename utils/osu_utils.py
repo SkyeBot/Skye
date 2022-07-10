@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Union
 import aiohttp
 from .default import date
 from .osu_errors import NoUserFound
@@ -25,7 +25,7 @@ class Osu:
             return (await response.json()).get("access_token")
     
 
-    async def get_user(self, user: Union[str, int]):
+    async def fetch_user(self, user: Union[str, int]):
         autorization = await self.get_token()
         headers = {
             "Content-Type": "application/json",
@@ -42,7 +42,7 @@ class Osu:
 
         return User(json)
 
-    async def get_user_recent(self, user: Union[str, int]):
+    async def fetch_user_recent(self, user: Union[str, int]):
         autorization = await self.get_token()
         headers = {
             "Content-Type": "application/json",
@@ -75,7 +75,7 @@ class Osu:
         async with self.session.get(self.API_URL+f"/beatmaps/{beatmap}", headers=headers, params=params) as resp:
             json = await resp.json()
 
-        return json
+        return Beatmap(json)
 
 class User:
     def __init__(self, data):
@@ -88,8 +88,11 @@ class User:
             self.accuracy = f"{int(data.get('statistics').get('hit_accuracy')):.2f}"  if data.get('statistics') else "None"
             self._country_rank = str(data.get('statistics').get("country_rank"))  if data.get('statistics').get("country_rank") is not None else 0
             self._profile_order = data['profile_order'] if data['profile_order'] != KeyError else "Cant Get Profile Order!"
-            self.country = f":flag_{data.get('country_code').lower()}:" if data.get("country_code") else "None"
+            self.country_emoji = f":flag_{data.get('country_code').lower()}:" if data.get("country_code") else "None"
+            self.country_code = data.get("country_code") if data.get("country_code") else "None"
+            self._country = data.get("country")
             self.avatar_url = data.get("avatar_url")
+            self.id = data.get("id")
         except:
             raise NoUserFound("No User Was Found")
 
@@ -124,7 +127,9 @@ class User:
         if self.data.get("join_date"):
            return date(datetime.datetime.strptime(self.data.get('join_date'), '%Y-%m-%dT%H:%M:%S+00:00').timestamp(), ago=True)
 
-        
+    @property
+    def country(self):
+        return [self._country['code'], self._country['name']]
 
     @property
     def raw(self) -> Dict[str, any]:
@@ -136,4 +141,15 @@ class UserRecent:
 
 class Beatmap:
     def __init__(self, data):
-        pass
+        self.data = data
+        self.beatmapset = data.get("beatmapset")
+        self.artist = data.get("beatmapset").get("artist")
+        
+    def covers(self, cover: str) -> str:
+        if cover not in self.data.get("cover"):
+            return "Cover not in covers"
+
+        cover_data = self.data.get("cover").get(cover)
+        return cover_data
+
+

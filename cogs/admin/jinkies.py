@@ -124,54 +124,6 @@ class Yoink(commands.Cog):
             
         return bytes
 
-    @commands.command()
-    async def asss(self, ctx: Context):
-        await ctx.send([(f"channel: {channel.name}") for channel in ctx.guild.channels])
-
-    @commands.command()
-    async def pil_test(self, ctx: Context, user: discord.Member=None):
-        user = user.id or ctx.author.id
-        user = await self.bot.fetch_user(user)
-        
-        output_buffer = BytesIO()
-
-        image = Image.new('RGBA',(1000, 500))
-
-        pfp = user.avatar.replace(size=256).with_static_format('jpg')
-        data = BytesIO(await pfp.read())
-
-        pfp = Image.open(data).convert("RGBA")
-        
-
-
-        image_x, image_y = image.size
-
-        banner = Image.open('./ass.jpg')
-
-
-
-        canvas_to_banner_ratio = image_y / banner.height
-        banner = banner.resize((int(banner.width * canvas_to_banner_ratio), image_y ))
-
-        image.paste(banner)
-
-        I1 = ImageDraw.Draw(image)
-
-        image.paste(pfp, (int(image_x / 20), int(image_y / 3)))
-
-
-
-        font = ImageFont.truetype("./Nunito-Regular.ttf",38)
-
-        # Usually, .paste pastes from the top left, so let's an offset of 1/4 the image width, and 1/2 the height
-        I1.text((int(image_x / 2), int(image_y / 2)), text=f"fuck you: {user}", font=font)
-
-        
-
-        image.save(output_buffer, "png")  # or whatever format
-        output_buffer.seek(0)
-
-        await ctx.send(file=discord.File(fp=output_buffer, filename="my_file.png"))
 
     @commands.command()
     async def wel(self, ctx: Context):

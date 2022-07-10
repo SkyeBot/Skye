@@ -15,7 +15,7 @@ from utils import default, time, format
 from utils.context import Context
 
 class Dropdown(discord.ui.Select):
-    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot,member: discord.Member):
+    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot,member:Union[discord.Member, discord.User]):
         self.ctx = ctx
         self.member = member
         self.bot = bot
@@ -51,28 +51,30 @@ class Dropdown(discord.ui.Select):
 
 
         if self.values[0] == "banner":
-            member = await interaction.client.fetch_user(self.member.id)
-
+            member = self.member
             embed = discord.Embed(description=f"{member.mention} Banner",color=0x3867a8)
     
             print(member.banner)
         
-            if member.banner is None:
+            if isinstance(member, discord.User):
+                member = await interaction.client.fetch_user(member.id)
+                banner = member.banner
+            else:
+                banner = (await interaction.client.fetch_user(member.id)).banner
+                member = await interaction.guild.fetch_member(member.id)
+
+
+            if banner is None:
                 embed.description = "User does not have a banner!"
             else:
-                embed.set_image(url=member.banner.url)
+                embed.set_image(url=banner.url)
         
             
             await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "avatar":
             member = self.member
-            if isinstance(member, discord.User):   
-                member = await self.bot.fetch_user(member.id)
 
-            else:
-                member = interaction.guild.get_member(self.member.id)
-            
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
             
             embed = discord.Embed(description=text, color=0x3867a8)
@@ -83,26 +85,29 @@ class Dropdown(discord.ui.Select):
             member = self.member
             embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 
-            member = interaction.guild.get_member(member.id)
-            joined_date = default.date(member.joined_at, ago=True)
-            show_roles = ", ".join(
-                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != interaction.guild.default_role.id]
-                ) if len(member.roles) > 1 else f"User Has No roles"
-            status = str(member.status)
+            roles = [role.name.replace('@', '@\u200b') for role in getattr(member, 'roles', [])]
+
+            joined_date = default.date(getattr(member, "joined_at", None), ago=True)
+
 
             embed.add_field(name="Joined At", value=joined_date)
-            embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
-            embed.add_field(name="Status", value=f"{status}")
+            
+            if roles:
+                embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
+
+            
+        
+        
+            view = DropdownView(interaction,self.bot,member)
 
             created_date = default.date(member.created_at, ago=True)
-
 
             embed.add_field(name="ID", value=member.id)
             embed.add_field(name="Created At", value=created_date,inline=True)
             embed.set_author(name=member, icon_url=member.display_avatar.url)
             embed.set_thumbnail(url=member.display_avatar.url)
 
-            await interaction.message.edit(embed=embed,view=DropdownView(interaction,self.bot,member))
+            await interaction.message.edit(embed=embed,view=view)
 
 
 
@@ -135,28 +140,27 @@ class Misc(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="userinfo")
-    @app_commands.guild_only()
-    async def userinfo_slash(self, itr: discord.Interaction, member: Optional[discord.Member]=None):
+    async def userinfo_slash(self, itr: discord.Interaction, member: Optional[Union[discord.Member, discord.User]]=None):
         member = member or itr.user
 
         embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 
-        member = itr.guild.get_member(member.id)
-        joined_date = default.date(member.joined_at, ago=True)
-        show_roles = ", ".join(
-            [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != itr.guild.default_role.id]
-            ) if len(member.roles) > 1 else f"User Has No roles"
-        status = str(member.status)
+        roles = [role.name.replace('@', '@\u200b') for role in getattr(member, 'roles', [])]
+
+        joined_date = default.date(getattr(member, "joined_at", None), ago=True)
+
 
         embed.add_field(name="Joined At", value=joined_date)
-        embed.add_field(name="Roles", value=f"**{show_roles}**",inline=True)
-        embed.add_field(name="Status", value=f"{status}")
+        
+        if roles:
+            embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
+
+        
     
     
         view = DropdownView(itr,self.bot,member)
 
         created_date = default.date(member.created_at, ago=True)
-
 
         embed.add_field(name="ID", value=member.id)
         embed.add_field(name="Created At", value=created_date,inline=True)
@@ -170,11 +174,12 @@ class Misc(commands.Cog):
         """Shows info about the current server."""
         
         if guild_id is not None and await self.bot.is_owner(interaction.user):
-            guild = self.bot.get_guild(int(guild_id))
+            guild = self.bot.get_guild(guild_id)
             if guild is None:
                 return await interaction.response.send_message(f'Invalid Guild ID given.')
         else:
             guild = interaction.guild
+
 
         roles = [role.name.replace('@', '@\u200b') for role in guild.roles]
 
@@ -280,3 +285,4 @@ class Misc(commands.Cog):
         e.add_field(name='Emoji', value=fmt, inline=False)
         e.set_footer(text='Created').timestamp = guild.created_at
         await interaction.response.send_message(embed=e)
+

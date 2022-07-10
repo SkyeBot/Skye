@@ -21,4 +21,4 @@ async def get_mute(mute_role: Union[int, discord.Role], *, guild: discord.Guild)
         for channel in guild.channels:
             await channel.set_permissions(muted_role, speak=False, send_messages=False, read_message_history=True, read_messages=True,  create_public_threads=False, send_messages_in_threads=False)
 
-    return muted_role
+    return muted_role 

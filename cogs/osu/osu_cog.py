@@ -14,30 +14,29 @@ class osu(base_cog):
     async def user(self, interaction: discord.Interaction, username: Optional[str]):
         try:
             user_query = await self.bot.pool.fetchrow("SELECT osu_username FROM osu_user WHERE user_id = $1", interaction.user.id) 
-
+        
             
             if user_query is None and username is None:
-                user = await self.bot.osu.get_user(interaction.user.display_name)
+                user = await self.bot.osu.fetch_user(interaction.user.display_name)
             elif user_query is not None and username is None:
-                user = await self.bot.osu.get_user(user_query.get("osu_username"))
+                user = await self.bot.osu.fetch_user(user_query.get("osu_username"))
             else:
-                user = await self.bot.osu.get_user(username)
+                user = await self.bot.osu.fetch_user(username)
 
-
+            
             self.bot.logger.info(user.username)
+            self.bot.logger.info(user.avatar_url)
 
-            embed = discord.Embed(title=f"{user.country} | Profile for {user.username}",description=f"▹ **Bancho Rank**: #{user.global_rank} ({user.country}#{user.country_rank})\n▹ **Join Date**: {user.joined_at}\n▹ **PP**: {user.pp} **Acc**: {user.accuracy}%\n▹ **Ranks**: {user.ranks}\n▹ **Profile Order**: \n** ​ ​ ​ ​ ​ ​ ​ ​  - {user.profile_order}**")
+            embed = discord.Embed(description=f"**{user.country_emoji} | Profile for [{user.username}](https://osu.ppy.sh/users/{user.id})**\n\n▹ **Bancho Rank**: #{user.global_rank} ({user.country_code}#{user.country_rank})\n▹ **Join Date**: {user.joined_at}\n▹ **PP**: {user.pp} **Acc**: {user.accuracy}%\n▹ **Ranks**: {user.ranks}\n▹ **Profile Order**: \n** ​ ​ ​ ​ ​ ​ ​ ​  - {user.profile_order}**")
             embed.set_thumbnail(url=user.avatar_url)
             await interaction.response.send_message(embed=embed)
+            
         except osu_errors.NoUserFound:
             await interaction.response.send_message("No User Was Found Sadly!")
 
-    @osu.command()
-    async def get_username(self, interaction: discord.Interaction):
-        await interaction.response.send_message(interaction.user.name)
-
     @set.command()
-    async def user(self, interaction: discord.Interaction, username: str):  
+    async def user(self, interaction: discord.Interaction, username: str): 
+        """Allows you to set your username""" 
         try:
             query = """
                 INSERT INTO osu_user (osu_username, user_id) VALUES($1, $2)
@@ -45,13 +44,12 @@ class osu(base_cog):
                 UPDATE SET osu_username = excluded.osu_username
 
             """
-
+        
             await self.bot.pool.execute(query, username, interaction.user.id)
 
             await interaction.response.send_message(f"Sucessfullly set your osu username to: {username}")
         except Exception as e:
             return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
-
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

@@ -10,13 +10,11 @@ from discord.ext import commands
 from discord import Interaction, app_commands
 
 from core.bot import SkyeBot
-
 from utils.context import Context
 from utils import default
 
-# This example requires the 'message_content' privileged intent to function.
 
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import discord
 
@@ -25,6 +23,7 @@ import discord
 class owner(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
+
 
     async def is_owner(interaction: discord.Interaction) -> bool:
         
@@ -50,6 +49,8 @@ class owner(commands.Cog):
     async def status(self, ctx: Context, *, status: str):
 
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=status))
+
+        await ctx.reply("Changed Status", mention_author=False)
 
 
     @commands.command()

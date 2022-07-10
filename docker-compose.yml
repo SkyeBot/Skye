@@ -16,7 +16,6 @@ services:
     container_name: postgres_container
     image: postgres:13
     restart: always
-    user: root
     volumes:
       - ./postgres:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql

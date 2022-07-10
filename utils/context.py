@@ -46,4 +46,8 @@ class Context(commands.Context):
         return self.thino if self.thino else self.bot.thino
 
 
-    
+    async def reply(self,*args, **kwargs):
+        if not kwargs.get("mention_author"):
+            kwargs["mention_author"] = False
+        
+        return await super().reply(*args, **kwargs)

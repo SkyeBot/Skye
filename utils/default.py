@@ -34,6 +34,9 @@ def date(target, clock: bool = True, seconds: bool = False, ago: bool = False, o
     if isinstance(target, int) or isinstance(target, float):
         target = datetime.datetime.utcfromtimestamp(target)
 
+    if target is None:
+        return 'N/A'
+
     if raw:
         if clock:
             timestamp = target.strftime("%d %B %Y, %H:%M")

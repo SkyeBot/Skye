@@ -7,7 +7,7 @@ import thino
 from core.bot import SkyeBot
 import asyncpg
 from utils import blacklist
-from utils.osu import Osu
+from utils.osu_utils import Osu
 import asyncpraw
 dotenv.load_dotenv()
 
@@ -31,6 +31,7 @@ async def main():
                 return False
             else:
                 return True
+        
         bot.tree.interaction_check = blacklist_check
         await bot.start(os.environ["TOKEN"])
 
