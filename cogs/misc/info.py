@@ -174,7 +174,7 @@ class Misc(commands.Cog):
         """Shows info about the current server."""
         
         if guild_id is not None and await self.bot.is_owner(interaction.user):
-            guild = self.bot.get_guild(guild_id)
+            guild = self.bot.get_guild(int(guild_id))
             if guild is None:
                 return await interaction.response.send_message(f'Invalid Guild ID given.')
         else:

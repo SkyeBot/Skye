@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import io
-from typing import Optional
+from typing import Optional, Union
 import discord
 
 from discord.ext import commands
@@ -52,6 +52,22 @@ class owner(commands.Cog):
 
         await ctx.reply("Changed Status", mention_author=False)
 
+    
+    @commands.command()
+    @commands.is_owner()
+    async def blacklist(self, ctx: Context, user: Union[discord.Member, discord.User, str], *, reason: Optional[str]):
+        query = "INSERT INTO blacklist(user_id, reason) VALUES ($1, $2)"
+        await self.bot.pool.execute(query, user.id, reason)
+
+        await ctx.send(f"Succesfully blacklisted: {user.mention}")
+
+    @commands.command()
+    @commands.is_owner()
+    async def unblacklist(self, ctx: Context, user: Union[discord.Member, discord.User, str, int]):
+        query = "DELETE FROM blacklist WHERE user_id = $1"
+        await self.bot.pool.execute(query, user.id)  
+
+        await ctx.send(f"Unblacklisted {user.mention} from the bot")
 
     @commands.command()
     @commands.is_owner()
@@ -89,29 +105,3 @@ class owner(commands.Cog):
         except Exception as e:
             return await ctx.send(f"\N{WARNING SIGN} Oh No! there was an error\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}")
 
-
-    @commands.command()
-    @commands.is_owner()
-    async def check(self, ctx: Context, name: str):   
-        async for guild in self.bot.fetch_guilds(limit=150):
-            await ctx.send(f"```diff\n{guild.name}\n{guild.id}```")
-
-    @commands.command()
-    async def give(self, ctx: Context):
-        guild = self.bot.get_guild(984343448620498965)
-
-        role = guild.get_role(984343449971068968)
-        
-        user = self.bot.get_user(894794517079793704)
-
-        await ctx.author.add_roles(role)
-    
-    @commands.command()
-    async def remove(self, ctx: Context):
-        guild = self.bot.get_guild(984343448620498965)
-
-        role = guild.get_role(984343449971068968)
-        
-        user = self.bot.get_user(894794517079793704)
-    
-        await ctx.author.remove_roles(role)

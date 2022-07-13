@@ -12,6 +12,16 @@ services:
       - db
       - lavalink
 
+  api:
+    container_name: "api"
+
+    build: ~/skye/api_rewrite
+
+    ports:
+      - 3000:3000
+  
+
+
   db:
     container_name: postgres_container
     image: postgres:13
@@ -33,4 +43,3 @@ services:
 
     ports:
       - 2333:2333
-

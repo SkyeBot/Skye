@@ -1,12 +1,11 @@
 import discord
 
-from .admin import Admin
 
 from .jinkies import Yoink
 
 from core.bot import SkyeBot
 
-class admin(Admin, Yoink):
+class admin(Yoink):
     """Admin Cog"""
 
 async def setup(bot: SkyeBot):

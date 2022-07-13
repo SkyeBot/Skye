@@ -1,6 +1,6 @@
 import itertools
 import os
-from typing import Optional, Union
+from typing import List, Optional, Union
 import discord
 
 from discord.ext import commands
@@ -12,6 +12,7 @@ import datetime
 import logging
 import pkg_resources
 import psutil
+import pygit2
 import inspect
 
 
@@ -36,6 +37,12 @@ def format_commit(commit):
 
 
 
+def get_latest_commits(limit: int = 5):
+    repo = pygit2.Repository("./.git")
+    commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), limit))
+    return "\n".join(format_commit(c) for c in commits)
+
+
 
 class info_view(discord.ui.View):
     def __init__(self):
@@ -57,6 +64,24 @@ class bot_info(commands.Cog):
         """Tells you how long the bot has been up for."""
         await ctx.send(f'I have been running since: **{self.get_bot_uptime()}** ago')
 
+    async def help_autocomplete(self,interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+        commands = [i for i in self.bot.tree.walk_commands()]
+
+        return [
+            app_commands.Choice(name=command.qualified_name, value=command.qualified_name)
+            for command in commands if current.lower() in command.qualified_name.lower()
+        ]
+
+    @app_commands.command()
+    @app_commands.autocomplete(q=help_autocomplete)
+    async def help_command(self,interaction: discord.Interaction, *, q: str):
+        commands = [i for i in self.bot.tree.walk_commands()]
+        qualified_names = [i.qualified_name for i in commands]
+
+        if q in qualified_names:
+        
+            self.bot.logger.info([x.description for x in commands if q.lower in qualified_names])
+
     @app_commands.command()
     async def botinfo(self, itr: discord.Interaction):
         """Provides info about the bot"""
@@ -75,7 +100,7 @@ class bot_info(commands.Cog):
         )
         
 
-        embed.add_field(name="Latest updates:", value="not available", inline=False)
+        embed.add_field(name="Latest updates:", value=get_latest_commits(limit=5), inline=False)
 
         embed.set_author(name="I was made by: Sawsha#0598!", icon_url="https://cdn.discordapp.com/avatars/894794517079793704/02fc9ee15032b33756ba9829f00449d9.png?size=1024")
 

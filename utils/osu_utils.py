@@ -60,7 +60,7 @@ class Osu:
 
     
     
-    async def get_beatmap(self, beatmap: Union[str, int]) -> Dict[str, Any]: 
+    async def get_beatmap(self, beatmap: Union[str, int]): 
         authorization = await self.get_token()
         headers = {
             "Content-Type": "application/json",

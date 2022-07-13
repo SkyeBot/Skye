@@ -20,6 +20,8 @@ class Mods(commands.Cog):
 
     @app_commands.command(name="ban", description="Bans a specified user")
     @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.describe(member="The member you choose ban")
+    @app_commands.describe(reason="The reason for banning member")
     async def ban_slash(self, interaction: discord.Interaction, member: discord.Member, reason: Optional[str] = None):
         if reason is None:
             reason = "No Reason Provided"
@@ -54,6 +56,7 @@ class Mods(commands.Cog):
     @app_commands.command(name="unban", description="Unbans a user")
     @app_commands.describe(member="Takes in a Full Member Name or id")
     @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.describe(member="The member you choose unban")
     async def unban_slash(self, interaction: discord.Interaction, member:str):
         ctx = await commands.Context.from_interaction(interaction)
         try:    
@@ -77,6 +80,8 @@ class Mods(commands.Cog):
 
     @app_commands.command(name="hackban", description="A ban cmd that can ban users outside guild")
     @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.describe(member="The member you choose hackban")
+    @app_commands.describe(reason="The reason for banning member")
     async def hackban_slash(self, interaction: discord.Interaction, member: str, reason: str = None):
         guild = interaction.guild
 
@@ -101,7 +106,6 @@ class Mods(commands.Cog):
             timestamp=datetime.datetime.utcnow()
         )
         embed.set_author(name=user, icon_url=user.display_avatar.url)
-
 
 
         await guild.ban(discord.Object(id=user.id))

@@ -59,7 +59,8 @@ class osu(base_cog):
             if re.match(beatmap_regex, str(message.content)):
                 numbers = re.findall(r'\d+', message.content)
                 numbers = ''.join(x for x in numbers)
-                await message.channel.send(numbers)
+                beatmap = await self.bot.osu.get_beatmap(numbers)
+                await message.channel.send(beatmap.artist)
         except Exception as e:
             print(e)
 

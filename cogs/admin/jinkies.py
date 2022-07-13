@@ -14,66 +14,11 @@ from utils.context import Context
 
 from core.bot import SkyeBot
 
-from PIL import Image, ImageDraw, ImageFont, ImageChops
-from discord import app_commands
-
-class TestView(discord.ui.View):
-    def __init__(self, ctx: Union[Context, discord.Interaction], member: discord.Member):
-        self.member = member
-        self.ctx = ctx
-
-    async def on_timeout(self) -> None:
-        for child in self.children:
-            child.disabled = True
-        await self.message.edit(view=self)
-
-    
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user and interaction.user.id == self.ctx.author.id:
-            return True
-        await interaction.response.defer()
-        return False
-
-    async def start(self):
-        self.message = await self.ctx.send(view=self)
-
-class MyModal(discord.ui.Modal, title='Cock'):
-    def __init__(self, channels: discord.TextChannel):
-        super().__init__()
-        self.channels: discord.TextChannel = channels
-        self.foo = discord.ui.Select(options=[discord.SelectOption(label=f"#{x.name}") for x in channels])
-        self.add_item(self.foo)
-
-
-
-
-    async def on_submit(self, interaction):
-        a = ''.join(x.mention for x in interaction.guild.channels if f"#{x.name}" == self.foo.values[0])
-        
-        await interaction.response.send_message(f'The Channel You Picked: {a} ', ephemeral=True)
-    
 
 class Yoink(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
 
-    def circle(self,pfp,size = (215,215)):
-    
-        pfp = pfp.resize(size, Image.ANTIALIAS).convert("RGBA")
-
-        bigsize = (pfp.size[0] * 3, pfp.size[1] * 3)
-        mask = Image.new('L', bigsize, 0)
-        draw = ImageDraw.Draw(mask) 
-        draw.ellipse((0, 0) + bigsize, fill=255)
-        mask = mask.resize(pfp.size, Image.ANTIALIAS)
-        mask = ImageChops.darker(mask, pfp.split()[-1])
-        pfp.putalpha(mask)
-        return pfp
-
-    @app_commands.command()
-    async def hithere(self, itr:discord.Interaction):
-        
-        await itr.response.send_modal(MyModal([x for x in itr.guild.channels if type(x) is discord.TextChannel]))
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
@@ -145,23 +90,6 @@ class Yoink(commands.Cog):
 
         await message.edit(attachments=discord.File(image, filename="vYyj0P8.png"))
 
-    async def idkfunctionnameig(self, api_url: str):
-        async with self.bot.session.get(api_url) as response:
-            json = await response.json()
-        
-        return json
-
-    @commands.command()
-    async def helper_func(self, ctx: Context):
-        data = await self.idkfunctionnameig("https://users.roblox.com/v1/users/36178192")
-        await ctx.send(data)
-        await ctx.db
-
-    @commands.command()
-    async def invitetest(self, ctx: Context):
-        a = '\n\n'.join(f"Invite: <{x.url}> \nInvite Creator: {x.inviter}" for x in await ctx.guild.invites())
-        await ctx.send(a)
-    
 
 async def setup(bot):
     await bot.add_cog(Yoink(bot))

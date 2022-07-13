@@ -270,23 +270,23 @@ class Logging(commands.Cog):
                 [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if
                  x.id != member.guild.default_role.id]
             ) if len(member.roles) > 1 else "None"
-
+ 
             embed = discord.Embed(title=f"A Member Left!\nThis server is now at {len(member.guild.members)} Members!", description=f"Member username: {member}", timestamp=datetime.datetime.utcnow(), color=discord.Color.brand_red())
-            embed.add_field(name=f"left server date: ",value=default.date(datetime.datetime.utcnow(), ago=True), inline=False)
+            embed.add_field(name=f"Left Server: ",value=default.date(datetime.datetime.utcnow(), ago=True), inline=False)
             embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.add_field(name="User ID", value=member.id, inline=False)
             embed.add_field(name="Roles", value=show_roles, inline=False)
             embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.set_thumbnail(url=f"{member.avatar.url}")
             embed.set_footer(text=member.id)
-
+            discord.member
             await channel.send(embed=embed)
         except Exception as e:
             self.bot.logger.info(e)
 
     @commands.Cog.listener()
     async def on_guild_emojis_update(self,guild: discord.Guild, before: discord.Emoji, after: discord.Emoji):
-        if before == after:
+        if before == after: 
             return
 
         if before != after and after is not None:
