@@ -12,7 +12,10 @@ class Warns(commands.Cog):
 
     @app_commands.command(name="warn")
     async def warn(self, interaction: discord.Interaction):
+<<<<<<< HEAD
         """Doesn't work as of right now"""
 
+=======
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         pass
         

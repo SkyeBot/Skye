@@ -69,5 +69,30 @@ class Yoink(commands.Cog):
             
         return bytes
 
+<<<<<<< HEAD
+=======
+
+    @commands.command()
+    async def wel(self, ctx: Context):
+        text_db = str(await self.bot.pool.fetchval("SELECT message FROM welcome_config WHERE guild_id = $1", ctx.guild.id))
+        
+        new_text = string.Template(text_db).safe_substitute(
+            user=ctx.author.mention,
+            guild=ctx.guild
+        )
+
+        await ctx.send(new_text)
+
+    @commands.command()
+    async def api_check(self, ctx: Context):
+        message = await ctx.send("a")
+
+        async with self.bot.session.get("https://sawsha-is.gay/vYyj0P8.png") as resp:
+            image = BytesIO.read(resp.read())
+
+        await message.edit(attachments=discord.File(image, filename="vYyj0P8.png"))
+
+
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
 async def setup(bot):
     await bot.add_cog(Yoink(bot))

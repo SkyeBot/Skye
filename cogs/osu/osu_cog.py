@@ -12,8 +12,11 @@ class osu(base_cog):
 
     @osu.command()
     async def user(self, interaction: discord.Interaction, username: Optional[str]):
+<<<<<<< HEAD
         """Gets info on osu account"""
 
+=======
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         try:
             user_query = await self.bot.pool.fetchrow("SELECT osu_username FROM osu_user WHERE user_id = $1", interaction.user.id) 
         

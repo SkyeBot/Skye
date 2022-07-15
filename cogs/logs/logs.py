@@ -29,8 +29,11 @@ class Logging(commands.Cog):
     @logging.command(name="enable")
     @commands.has_permissions(administrator=True)
     async def _enable(self, interaction: discord.Interaction,  channel: Optional[discord.TextChannel]):
+<<<<<<< HEAD
         """Enables logging for guild"""
 
+=======
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         exists = await self.bot.pool.fetchrow("SELECT channel_id FROM LOGS WHERE guild_id = $1", interaction.guild.id)
         try:
             channel = channel or interaction.channel
@@ -52,7 +55,10 @@ class Logging(commands.Cog):
     @logging.command(name="disable")
     @commands.has_permissions(administrator=True)
     async def _disable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel]):
+<<<<<<< HEAD
         """Disables logging for guilld"""
+=======
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         try:
             channel = channel or interaction.channel
 
@@ -160,9 +166,15 @@ class Logging(commands.Cog):
                  x.id != user.guild.default_role.id]
             ) if len(user.roles) > 1 else "None"
 
+<<<<<<< HEAD
             embed = discord.Embed(
                 description = f"Member {user.mention} was banned!"
             )
+=======
+            embed =discord.Embed(
+                description = f"Member {user.mention} was banned!"
+                    )
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
             
             embed.set_author(name=user, icon_url=user.avatar)
             embed.add_field(name="ID:", value=f"```User = {user.id} \n```", inline=False)
@@ -181,7 +193,11 @@ class Logging(commands.Cog):
             channel = self.bot.get_channel(exists.get("channel_id"))
 
             embed = discord.Embed(
+<<<<<<< HEAD
                 description=f"User: {user.mention} was unbanned!"
+=======
+                title=f"User: {user.mention} was unbanned!"
+>>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
                     )
             
             embed.set_author(name=user, icon_url=user.avatar)
