@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 from typing import Optional
-=======
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
 import discord
 
 from discord.ext import commands
@@ -9,17 +6,13 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.bot import SkyeBot
-<<<<<<< HEAD
 from utils import default
 
-=======
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
 
 
 class autorole(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
-<<<<<<< HEAD
     
 
     
@@ -75,6 +68,3 @@ class autorole(commands.Cog):
 
 
         
-=======
-    
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1

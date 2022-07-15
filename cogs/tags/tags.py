@@ -110,14 +110,6 @@ class Tags(commands.Cog):
         else:
             await interaction.response.send_message(f"Created tag {name}", ephemeral=True)
 
-<<<<<<< HEAD
-=======
-    @commands.command()
-    async def osu_showcase(self, ctx: Context):
-        embed = discord.Embed(title="Osu Command Showcase", description="I made an osu command that shows info about a osu profile")
-        embed.set_author(name="Made By Sawsha#0598", icon_url=ctx.author.display_avatar.url)
-        await ctx.send(embed=embed)
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
 
     async def tags_autocomplete(self, interaction: discord.Interaction, current: Dict[str, Union[int, float, str]]) -> List[app_commands.Choice[str]]:
         if current == '':

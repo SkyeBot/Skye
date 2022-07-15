@@ -12,11 +12,7 @@ import randfacts
 class fun(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
-<<<<<<< HEAD
         
-=======
-
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
     @app_commands.command(description="Get a random fact")
     async def facts(self,interaction: discord.Interaction):
         loop = self.bot.loop

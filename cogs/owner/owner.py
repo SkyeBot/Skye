@@ -33,19 +33,6 @@ class owner(commands.Cog):
         await interaction.response.send_message("You Cannot Use This Command!", ephemeral=True)
         return False
 
-<<<<<<< HEAD
-=======
-    @app_commands.command(name="shards")
-    @app_commands.check(is_owner)
-    async def get_shards(self, itr: discord.Interaction):
-        """Checks all """
-        shard_id = itr.guild.shard_id
-        shard = self.bot.get_shard(shard_id)
-        shard_ping = shard.latency
-        shard_servers = ", ".join(guild.name for guild in self.bot.guilds if guild.shard_id == shard_id)
-
-        await itr.response.send_message(f"All shard servers on the shard *{shard.id}*: **{shard_servers}**\n\nShard {shard.id}'s Latency: {shard_ping}")
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
     
     @commands.command()
     @commands.is_owner()

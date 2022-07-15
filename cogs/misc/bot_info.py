@@ -59,37 +59,12 @@ class bot_info(commands.Cog):
     def get_bot_uptime(self, *, brief: bool = False) -> str:
         return time.human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)
 
-<<<<<<< HEAD
     @app_commands.command()
     async def uptime(self,interaction: discord.Interaction):
         """Tells you how long the bot has been up for."""
         await interaction.response.send_message(f'I have been running since: **{self.get_bot_uptime()}** ago')
 
             
-=======
-    @commands.command()
-    async def uptime(self, ctx: Context):
-        """Tells you how long the bot has been up for."""
-        await ctx.send(f'I have been running since: **{self.get_bot_uptime()}** ago')
-
-    async def help_autocomplete(self,interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        commands = [i for i in self.bot.tree.walk_commands()]
-
-        return [
-            app_commands.Choice(name=command.qualified_name, value=command.qualified_name)
-            for command in commands if current.lower() in command.qualified_name.lower()
-        ]
-
-    @app_commands.command()
-    @app_commands.autocomplete(q=help_autocomplete)
-    async def help_command(self,interaction: discord.Interaction, *, q: str):
-        commands = [i for i in self.bot.tree.walk_commands()]
-        qualified_names = [i.qualified_name for i in commands]
-
-        if q in qualified_names:
-        
-            self.bot.logger.info([x.description for x in commands if q.lower in qualified_names])
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
 
     @app_commands.command()
     async def botinfo(self, itr: discord.Interaction):
@@ -158,11 +133,7 @@ class bot_info(commands.Cog):
 
 
     @commands.command()
-<<<<<<< HEAD
     async def source(self, ctx: Context, *, command: Optional[str]):
-=======
-    async def sauce(self, ctx: Context, *, command: Optional[str]):
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         """Displays my full source code or for a specific command.
         Parameters
         ----------
@@ -179,17 +150,10 @@ class bot_info(commands.Cog):
             module = src.__module__
             filename = inspect.getsourcefile(src)
         else:
-<<<<<<< HEAD
             obj = self.bot.tree.get_command(command.replace('.', ' '))
             if obj is None:
                 return await ctx.send('Could not find command.')
             elif obj.module.__class__.__name__ in ('Jishaku'):
-=======
-            obj = self.bot.get_command(command.replace('.', ' '))
-            if obj is None:
-                return await ctx.send('Could not find command.')
-            elif obj.cog.__class__.__name__ in ('Jishaku'):
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
                 return await ctx.send(
                     '<:jsk:984549118129111060> Jishaku, a debugging and utility extension for discord.py bots:'
                     '\nSee the full source here: <https://github.com/Gorialis/jishaku>'

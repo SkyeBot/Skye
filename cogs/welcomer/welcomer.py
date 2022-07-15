@@ -109,11 +109,8 @@ class welcomer(commands.Cog):
 
     @welcomer.command()
     async def disable(self, interaction: discord.Interaction):
-<<<<<<< HEAD
         """Disables welcomer for the guilld"""
 
-=======
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         try: 
             exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)  
             if exists is None:

@@ -141,11 +141,8 @@ class Misc(commands.Cog):
 
     @app_commands.command(name="userinfo")
     async def userinfo_slash(self, itr: discord.Interaction, member: Optional[Union[discord.Member, discord.User]]=None):
-<<<<<<< HEAD
         """Get's info about a user"""
 
-=======
->>>>>>> c57e8ae748fd320ceaefb4a0c756110dbe396dc1
         member = member or itr.user
 
         embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
