@@ -121,3 +121,15 @@ class Mods(commands.Cog):
         
         
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command()
+    @app_commands.checks.has_permissions(manage_messages=True)
+    async def purge(self, interaction: discord.Interaction, amount: int):
+        """purges messages based off of amount"""
+        try:
+            await interaction.channel.purge(limit=amount)
+        except discord.Forbidden:
+            return await interaction.response.send_message("I do not have enough perms to delete these messages!")
+
+        embed=discord.Embed(description=f"**Succesfully purged ``{amount} Messages``**", color=self.bot.error_color)
+        return await interaction.response.send_message(embed=embed)

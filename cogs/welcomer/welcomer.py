@@ -9,79 +9,79 @@ from utils.context import Context
 
 from discord import app_commands
 
-class WelcomerModal1(discord.ui.Modal):
-    def __init__(self , bot: SkyeBot=None, interaction: discord.Interaction=None, channel: discord.TextChannel=None):
-        self.bot: SkyeBot = bot
-        self.interaction = interaction
-        self.channel: discord.TextChannel = channel 
+# class WelcomerModal1(discord.ui.Modal):
+#     def __init__(self , bot: SkyeBot=None, interaction: discord.Interaction=None, channel: discord.TextChannel=None):
+#         self.bot: SkyeBot = bot
+#         self.interaction = interaction
+#         self.channel: discord.TextChannel = channel 
         
-        super().__init__(title='Welcome Message')
-        channels = [c.name for c in self.interaction.guild.text_channels]
-        # When creating item:
-        self.foo = discord.ui.Select(options=[discord.SelectOption(label=f"#{x.name}" if channels.count(x.name) == 1 else f'{x.name} - {x.category or "No Category"}' ,value=x.id) for x in channel])
-        self.add_item(self.foo)
+#         super().__init__(title='Welcome Message')
+#         channels = [c.name for c in self.interaction.guild.text_channels]
+#         # When creating item:
+#         self.foo = discord.ui.Select(options=[discord.SelectOption(label=f"#{x.name}" if channels.count(x.name) == 1 else f'{x.name} - {x.category or "No Category"}' ,value=x.id) for x in channel])
+#         self.add_item(self.foo)
 
 
 
-    message = discord.ui.TextInput(placeholder="Variables: $user and $guild",label="Message ",style=discord.TextStyle.paragraph)
+#     message = discord.ui.TextInput(placeholder="Variables: $user and $guild",label="Message ",style=discord.TextStyle.paragraph)
 
 
-    async def on_submit(self, interaction: discord.Interaction):
+#     async def on_submit(self, interaction: discord.Interaction):
         
-        try:
-            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
-            if exists is None:
-                await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',int(self.foo.values[0]), self.message.value,interaction.guild.id)
-                new_text = string.Template(self.message.value).safe_substitute(
-                    user=interaction.user.mention,
-                    guild=interaction.guild
-                )
+#         try:
+#             exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
+#             if exists is None:
+#                 await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',int(self.foo.values[0]), self.message.value,interaction.guild.id)
+#                 new_text = string.Template(self.message.value).safe_substitute(
+#                     user=interaction.user.mention,
+#                     guild=interaction.guild
+#                 )
 
-                return await interaction.response.send_message(f"Welcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
-        except Exception as e:
-            self.bot.logger.info(e)
+#                 return await interaction.response.send_message(f"Welcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+#         except Exception as e:
+#             self.bot.logger.info(e)
 
 
-class WelcomerModal2(discord.ui.Modal):
-    def __init__(self , bot: SkyeBot=None, interaction: discord.Interaction=None, channel: discord.TextChannel=None):
-        self.bot: SkyeBot = bot
-        self.interaction = interaction
-        self.channel = channel 
-        super().__init__(title='Welcome Message')
+# class WelcomerModal2(discord.ui.Modal):
+#     def __init__(self , bot: SkyeBot=None, interaction: discord.Interaction=None, channel: discord.TextChannel=None):
+#         self.bot: SkyeBot = bot
+#         self.interaction = interaction
+#         self.channel = channel 
+#         super().__init__(title='Welcome Message')
    
-    message = discord.ui.TextInput(placeholder="Variables: $user and $guild",label="Message ",style=discord.TextStyle.short)
+#     message = discord.ui.TextInput(placeholder="Variables: $user and $guild",label="Message ",style=discord.TextStyle.short)
 
-    async def on_submit(self, interaction: discord.Interaction):
-        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
-        await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3', exists.get("channel_id"), self.message.value, interaction.guild.id)
-        new_text = string.Template(self.message.value).safe_substitute(
-                user=interaction.user.mention,
-                guild=interaction.guild
-        )
-        return await interaction.response.send_message(f"Welcome Message Is Now Updated To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+#     async def on_submit(self, interaction: discord.Interaction):
+#         exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
+#         await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3', exists.get("channel_id"), self.message.value, interaction.guild.id)
+#         new_text = string.Template(self.message.value).safe_substitute(
+#                 user=interaction.user.mention,
+#                 guild=interaction.guild
+#         )
+#         return await interaction.response.send_message(f"Welcome Message Is Now Updated To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
-class WelecomerView(discord.ui.View):
-    def __init__(self, ctx: Union[Context, discord.Interaction]):
-        self.ctx = ctx
-        super().__init__(timeout=None)
+# class WelecomerView(discord.ui.View):
+#     def __init__(self, ctx: Union[Context, discord.Interaction]):
+#         self.ctx = ctx
+#         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Custom Message", style=discord.ButtonStyle.grey)
-    async def confirm(self, interaction: discord.Interaction, button: discord.Button):
-        await interaction.response.send_modal(WelcomerModal1(interaction.client, interaction, interaction.channel))
+#     @discord.ui.button(label="Custom Message", style=discord.ButtonStyle.grey)
+#     async def confirm(self, interaction: discord.Interaction, button: discord.Button):
+#         await interaction.response.send_modal(WelcomerModal1(interaction.client, interaction, interaction.channel))
     
 
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if isinstance(self.ctx, discord.Interaction):
-            user = self.ctx.user.id
-        else:
-            user = self.ctx.author.id
+#     async def interaction_check(self, interaction: discord.Interaction) -> bool:
+#         if isinstance(self.ctx, discord.Interaction):
+#             user = self.ctx.user.id
+#         else:
+#             user = self.ctx.author.id
         
-        if interaction.user and interaction.user.id == user:
-            return True
-        await interaction.response.defer()
-        await interaction.followup.send(f"You cant use this as you're not the command invoker, only the author (<@{user}>) Can Do This!", ephemeral=True)
-        return False
+#         if interaction.user and interaction.user.id == user:
+#             return True
+#         await interaction.response.defer()
+#         await interaction.followup.send(f"You cant use this as you're not the command invoker, only the author (<@{user}>) Can Do This!", ephemeral=True)
+#         return False
 
 class welcomer(commands.Cog):
     def __init__(self, bot: SkyeBot):
@@ -91,21 +91,28 @@ class welcomer(commands.Cog):
     welcomer = app_commands.Group(name="welcomer", description="All commands for setting up welcoming",default_permissions=discord.Permissions(administrator=True))
     
     @welcomer.command()
-    async def enable(self, interaction: discord.Interaction):
+    async def enable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel], message: Optional[str]):
         """Enables Welcomer with optional message"""
-        try:
-            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)        
+        message = message or "Welcome $user to $guild!"
+        channel = channel or interaction.channel
+        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
 
+        if exists is None:
+            await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',channel.id, message,interaction.guild.id)
+            new_text = string.Template(message).safe_substitute(
+                user=interaction.user.mention,
+                    guild=interaction.guild
+                )
 
+            return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        else:
+            await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3',  channel.id, message, interaction.guild.id)
+            new_text = string.Template(message).safe_substitute(
+                user=interaction.user.mention,
+                    guild=interaction.guild
+                )
 
-            if exists is None:
-                    return await interaction.response.send_modal(WelcomerModal1(self.bot, interaction, [x for x in interaction.guild.channels if type(x) is discord.TextChannel]))
-            else:
-                return await interaction.response.send_modal(WelcomerModal2(self.bot, interaction, [x for x in interaction.guild.channels if type(x) is discord.TextChannel]))
-        
-        
-        except Exception as e:
-            self.bot.logger.info
+            return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
     @welcomer.command()
     async def disable(self, interaction: discord.Interaction):

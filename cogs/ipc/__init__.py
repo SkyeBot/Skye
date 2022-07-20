@@ -14,7 +14,7 @@ class Routes(commands.Cog):
         self.bot = bot
         if not hasattr(bot, "ipc"):
             bot.ipc = ipc.Server(
-                self.bot, host=" 172.17.0.1", port=2300, secret_key="your_secret_key_here"
+                self.bot, host="172.18.0.2", port=2300, secret_key="your_secret_key_here"
             )
 
             bot.ipc.start()
@@ -33,7 +33,15 @@ class Routes(commands.Cog):
     async def get_user_data(self, data):
         user = await self.bot.fetch_user(data.user_id)
     
-        return user._to_minimal_user_json()
+        data = {    
+            'username': user.name,
+            'id': user.id,
+            'avatar': user.display_avatar.url,
+            'discriminator': user.discriminator,
+            'bot': user.bot,
+        }
+
+        return data
 
     @route()
     async def get_guild_count(self,data):

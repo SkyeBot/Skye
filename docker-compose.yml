@@ -19,16 +19,24 @@ services:
 
     ports:
       - 3000:3000
-  
+
+    depends_on:
+      - bot
+      - db
+
+
 
 
   db:
     container_name: postgres_container
     image: postgres:13
     restart: always
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+
     volumes:
       - ./postgres:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     
     environment:
       POSTGRES_DB: "skyetest"
