@@ -1,5 +1,3 @@
-CREATE ROLE skye LOGIN SUPERUSER PASSWORD 'insertpasswordhere';
-CREATE DATABASE skyetest OWNER skye;
 CREATE EXTENSION pg_trgm;
 
 CREATE TABLE IF NOT EXISTS commands (
@@ -12,6 +10,12 @@ CREATE TABLE IF NOT EXISTS guilds (
     owner_id BIGINT,
     guild_name TEXT
 
+);
+
+CREATE TABLE osu_user (
+    osu_username TEXT,
+    user_id BIGINT PRIMARY KEY
+ 
 );
 
 CREATE TABLE IF NOT EXISTS logs (

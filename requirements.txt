@@ -2,6 +2,7 @@ git+https://github.com/Rapptz/discord.py
 git+https://github.com/PythonistaGuild/Wavelink
 git+https://github.com/MiroslavRosenov/better-ipc
 git+https://github.com/yanp-Discord-Bot/thino-python
+git+https://github.com/Rapptz/discord-ext-menus
 aiohttp
 asyncpg
 python-dotenv

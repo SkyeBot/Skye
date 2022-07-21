@@ -65,24 +65,6 @@ def date(target, clock: bool = True, seconds: bool = False, ago: bool = False, o
         return timestamp
 
 
-def responsible(target, reason):
-    """ Default responsible maker targeted to find user in AuditLogs """
-    responsible = f"[ {target} ]"
-    if not reason:
-        return f"{responsible} no reason given..."
-    return f"{responsible} {reason}"
-
-
-def actionmessage(case, mass=False):
-    """ Default way to present action confirmation in chat """
-    output = f"**{case}** the user"
-
-    if mass:
-        output = f"**{case}** the IDs/Users"
-
-    return f"✅ Successfully {output}"
-
-
 async def prettyResults(ctx, filename: str = "Results", resultmsg: str = "Here's the results:", loop=None):
     """ A prettier way to show loop results """
     if not loop:
