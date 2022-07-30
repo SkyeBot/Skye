@@ -24,4 +24,3 @@ How to self-host with docker is as of follows <br>
 - Enjoy skye running on docker!
 
 if there are any issues with self-hosting with either of these, please open an issue or if you want to fix something in say the docker files, please fork this repo and open a pull request. 
-
