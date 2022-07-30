@@ -12,7 +12,6 @@ import datetime
 import logging
 import pkg_resources
 import psutil
-import pygit2
 import inspect
 
 
@@ -26,21 +25,6 @@ from utils import constants
 start_time = datetime.datetime.utcnow().timestamp()
 
 
-def format_commit(commit):
-    short, _, _ = commit.message.partition("\n")
-    short = short[0:40] + "..." if len(short) > 40 else short
-    short_sha2 = commit.hex[0:6]
-    commit_tz = datetime.timezone(datetime.timedelta(minutes=commit.commit_time_offset))
-    commit_time = datetime.datetime.fromtimestamp(commit.commit_time).astimezone(commit_tz)
-    offset = discord.utils.format_dt(commit_time, style="R")
-    return f"[`{short_sha2}`](https://github.com/SkyeBot/Skye/commit/{commit.hex}) {short} ({offset})"
-
-
-
-def get_latest_commits(limit: int = 5):
-    repo = pygit2.Repository("./.git")
-    commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), limit))
-    return "\n".join(format_commit(c) for c in commits)
 
 
 
@@ -83,8 +67,6 @@ class bot_info(commands.Cog):
 
         )
         
-
-        embed.add_field(name="Latest updates:", value=get_latest_commits(limit=5), inline=False)
 
         embed.set_author(name="I was made by: Sawsha#0598!", icon_url="https://cdn.discordapp.com/avatars/894794517079793704/02fc9ee15032b33756ba9829f00449d9.png?size=1024")
 

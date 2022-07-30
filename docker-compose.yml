@@ -18,7 +18,6 @@ services:
     restart: always
     volumes:
       - ./postgres:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     
     environment:
       POSTGRES_DB: "skyetest"

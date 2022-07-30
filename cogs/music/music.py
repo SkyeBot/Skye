@@ -16,6 +16,7 @@ class Music(commands.Cog):
 
     def __init__(self, bot: SkyeBot):
         self.bot = bot
+        self.muloop = {}
 
         bot.loop.create_task(self.connect_nodes())
 
@@ -35,13 +36,24 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track , reason):
-        ctx = player.channel
+        ctx = player
         vc = wavelink.Player
-        if not player.queue.is_empty:
-            await asyncio.sleep(2)
-            new = player.queue.get()
-            await ctx.send(f"Now playing: **{new}**")
-            await player.play(new)
+
+    
+        if f"{ctx.guild.id}" in self.muloop.keys():
+            last = await wavelink.YouTubeTrack.search(query=f"{self.muloop[f'{ctx.guild.id}']} ", return_first=True) 
+
+            await player.play(last)
+        else:
+            if not player.queue.is_empty: 
+
+    
+                new = await player.queue.get_wait()
+                await ctx.channel.send(f"Now playing: **{new}**")
+                await player.play(new)
+
+
+
         
     @app_commands.command()
     async def play(self, interaction: discord.Interaction, *, track: str):
@@ -57,37 +69,59 @@ class Music(commands.Cog):
         if not interaction.user.voice:
             return await interaction.response.send_message("You are not connected to a voice channel!")
 
-        else:
-            if re.match(url_regex, track):
-                node = wavelink.NodePool.get_node()
-                song = (await node.get_tracks(wavelink.YouTubeTrack, track))[0]
-            else:
-                song = await wavelink.YouTubeTrack.search(query=track, return_first=True)
+        song = await wavelink.YouTubeTrack.search(query=track, return_first=True)
+
+        if re.match(url_regex, track):
+            node = wavelink.NodePool.get_node()
+            song = (await node.get_tracks(wavelink.YouTubeTrack, track))[0]
+        
+
             
-            ctx = await commands.Context.from_interaction(interaction)
         
             try: 
-                if not ctx.voice_client:
-                    vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
-                else:
-                    vc: wavelink.Player = ctx.voice_client
+
+                vc: wavelink.Player = interaction.guild.voice_client
+                if not interaction.guild.voice_client:
+                    vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
                 
-                await interaction.guild.change_voice_state(channel=ctx.author.voice.channel,self_deaf=True)
                 
-                if vc.queue.is_empty and not vc.is_playing():
-                    await vc.play(song)
-                    embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
-                    embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
-                    embed.set_image(url=song.thumbnail)
-                    await interaction.response.send_message(embed=embed)
-                else:
-                    await vc.queue.put_wait(song)
-                    await interaction.response.send_message(f'Added `{song.title}` to the queue...')
+                await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
+                
+                if f"{interaction.guild.id}" not in self.muloop.keys():
+                    if vc.queue.is_empty and not vc.is_playing():
+                        await vc.play(song)
+                        embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
+                        embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+                        embed.set_image(url=song.thumbnail)
+                        return await interaction.response.send_message(embed=embed)    
+                    else:
+                        await vc.queue.put_wait(song)
+                        await interaction.response.send_message(f'Added `{song.title}` to the queue...')
+
+
             except UnboundLocalError: 
                 pass
+
+    @app_commands.command()
+    async def loop(self, interaction: discord.Interaction):
+        if not interaction.guild.voice_client:
+            return await interaction.response.send_message("I am not in a voice channel!")
+
+        vc: wavelink.Player = interaction.guild.voice_client
+
+        if f"{interaction.guild.id}" not in self.muloop.keys():
             
-            except IndexError:
-                print
+            cp = vc.track
+
+            self.muloop[f'{interaction.guild.id}'] = cp.uri
+            print( self.muloop[f'{interaction.guild.id}'])
+            await interaction.response.send_message(f"Now looping: {cp.title}")
+        else:
+            self.muloop.pop(f"{interaction.guild.id}")
+            await interaction.response.send_message("Successfully disabled looping")
+
+        
+
 
     @app_commands.command()
     async def cp(self, interaction: discord.Interaction):
@@ -108,11 +142,17 @@ class Music(commands.Cog):
         else:
             vc: wavelink.Player = interaction.guild.voice_client
         
+
         try:
-            next = vc.queue.get()
-            await asyncio.sleep(3)
-            await vc.play(next)
-            await interaction.response.send_message(f"Skipped Song!\nNow Playing **{next}**")
+            if f"{interaction.guild.id}" in self.muloop.keys():
+                self.muloop[f'{interaction.guild.id}'] = vc.queue[1].uri
+                self.bot.logger.info(self.muloop[f'{interaction.guild.id}'])
+
+
+            if not vc.queue.is_empty:
+                await vc.stop()        
+                self.bot.logger.info(vc.queue)
+                return await interaction.response.send_message(f"Skipped Song!\nNow Playing **{vc.queue[0]}**")
         except wavelink.errors.QueueEmpty:
             await interaction.response.send_message("No song to skip too in the queue!")
 
@@ -124,6 +164,9 @@ class Music(commands.Cog):
         else:
             vc: wavelink.Player = interaction.guild.voice_client
         
+        if f"{interaction.guild.id}"in self.muloop.keys():
+                self.muloop.pop(f"{interaction.guild.id}")
+
         await vc.stop()
         await interaction.response.send_message("Stopped!")
 
@@ -134,6 +177,9 @@ class Music(commands.Cog):
             return await interaction.response.send_message("I am not currently in a voice channel!")
         
         ctx = await commands.Context.from_interaction(interaction)
+
+        if f"{interaction.guild.id}" not in self.muloop.keys():
+                self.muloop.pop(f"{interaction.guild.id}")
         
         await ctx.guild.voice_client.disconnect(force=True)
         
@@ -146,12 +192,16 @@ class Music(commands.Cog):
     
         vc : wavelink.Player = voice_state
         if voice_state is None:
-                # Exiting if the bot it's not connected to a voice channel
             return 
 
         if len(voice_state.channel.members) == 1:
             await voice_state.disconnect()
 
+        if after.channel is None:
+            if f"{vc.guild.id}" in self.muloop.keys():
+                self.muloop.pop(f"{vc.guild.id}")
+            vc.queue.clear()
+            
     queue = app_commands.Group(name="queue", description="The queue group!")
 
     @queue.command()
@@ -188,13 +238,14 @@ class Music(commands.Cog):
 
         if not vc:
             return await itr.response.send_message('No queue as we are not connected', delete_after=5)
-        if itr is None:
-            if not vc.queue:
+        
+        if not vc.queue:
                 return await itr.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
-            else:
-                embed = discord.Embed(title="Current queue")
-                embed.description = "\n".join(str(song) for song in vc.queue)
-                await itr.response.send_message(embed=embed)
+        else:
+            embed = discord.Embed(title="Current queue")
+            
+            embed.description = "\n".join(f"{count+1}: {song} by {song.author}" for count, song in enumerate(vc.queue))
+            await itr.response.send_message(embed=embed)
         
     @app_commands.command()
     async def volume(self, interaction: discord.Interaction, volume: int):

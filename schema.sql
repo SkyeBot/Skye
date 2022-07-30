@@ -80,7 +80,7 @@ CREATE FUNCTION isTagOwner(tagID_ INTEGER, requester BIGINT)
     END
     $$;
 
-CREATE FUNCTION findTag(givenName TEXT, guildid BIGINT)
+CREATE FUNCTION findTag(givenName TEXT, guild_id BIGINT)
     RETURNS TEXT[] -- [name, content]
     LANGUAGE plpgsql
     AS
@@ -97,7 +97,7 @@ CREATE FUNCTION findTag(givenName TEXT, guildid BIGINT)
         SELECT tagId, isAlias
             INTO tagID_, tagAlias
             FROM tag_lookup
-            WHERE name = givenName AND guildid = guildid;
+            WHERE name = givenName AND guildid = guild_id;
 
         IF tagID_ IS NULL
             THEN RETURN NULL;
