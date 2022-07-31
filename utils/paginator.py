@@ -20,7 +20,7 @@ class Pages(ui.View): # Took some of this from the pagination tutorial + robodan
         await interaction.response.edit_message(**kwargs)
 
     
-    async def show_checked_page(self, page_number, interaction):
+    async def show_checked_page(self, page_number, interaction: discord.Interaction):
         max_pages = self._source.get_max_pages()
         try:
             if max_pages is None:
@@ -28,6 +28,10 @@ class Pages(ui.View): # Took some of this from the pagination tutorial + robodan
                 await self.show_page(page_number, interaction)
             elif max_pages > page_number >= 0:
                 await self.show_page(page_number, interaction)
+
+            elif max_pages >= page_number:
+                await interaction.response.send_message("You're at the end of the paginator!", ephemeral=True)
+
         except IndexError:
             # An error happened that can be handled, so ignore it.
             pass

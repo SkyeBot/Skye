@@ -11,7 +11,7 @@ from typing import Union
 
 import re
 
-from utils.pages import SimplePages, SimplePageSource
+from utils.paginator import SimplePages, SimplePageSource
 
 class Music(commands.Cog):
     """Music cog to hold Wavelink related commands and listeners."""
@@ -19,7 +19,6 @@ class Music(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
         self.muloop = {}
-
         bot.loop.create_task(self.connect_nodes())
 
     async def connect_nodes(self):
@@ -35,11 +34,11 @@ class Music(commands.Cog):
     async def on_wavelink_node_ready(self, node: wavelink.Node):
         """Event fired when a node has finished connecting."""
         self.bot.logger.info(f'Node: <{node.identifier}> is ready!')
+        self.node = wavelink.NodePool.get_node()
 
     @commands.Cog.listener()
-    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track , reason):
+    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track, reason):
         ctx = player
-        vc = wavelink.Player
 
     
         if f"{ctx.guild.id}" in self.muloop.keys():
@@ -58,7 +57,7 @@ class Music(commands.Cog):
 
         
     @app_commands.command()
-    async def play(self, interaction: discord.Interaction, *, track: str):
+    async def play(self, interaction: discord.Interaction, *, url: str):
         """Play a song with the given tracl query.
 
         If not connected, connect to our voice channel.
@@ -66,46 +65,58 @@ class Music(commands.Cog):
 
             
         
-        url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+        url_regex = r"https:\/\/www\.youtube\.com\/watch\?v=(.{1,40})"
+        playlist_regex = r"http[s]?://youtube\.com\/playlist\?list=(.{15,40})"
         
         if not interaction.user.voice:
             return await interaction.response.send_message("You are not connected to a voice channel!")
 
-        song = await wavelink.YouTubeTrack.search(query=track, return_first=True)
-
-        if re.match(url_regex, track):
-            node = wavelink.NodePool.get_node()
-            song = (await node.get_tracks(wavelink.YouTubeTrack, track))[0]
+        vc: wavelink.Player = interaction.guild.voice_client
         
+        if not interaction.guild.voice_client:
+            vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
+        
+        await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
+            
+
+        if "https://www.youtube.com/playlist?list=" not in url:
+            if re.match(url_regex, url):
+                node = wavelink.NodePool.get_node()
+                
+                song = (await node.get_tracks(wavelink.YouTubeTrack, url))[0]
+            else:
+                song = await wavelink.YouTubeTrack.search(query=url, return_first=True)    
+                
+            if f"{interaction.guild.id}" not in self.muloop.keys():
+                if vc.queue.is_empty and not vc.is_playing():
+                    await vc.play(song)
+                    embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
+                    embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+                    embed.set_image(url=song.thumbnail)
+                    return await interaction.response.send_message(embed=embed)    
+                
+                await vc.queue.put_wait(song)
+                return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
+                
+            await vc.queue.put_wait(song)
+            return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
 
             
-        
-            try: 
+        if "https://www.youtube.com/playlist?list=" in url:
+            playlist = await self.node.get_playlist(wavelink.YouTubePlaylist, url)
+            await interaction.response.defer()
+            for track in playlist.tracks[:10]:
+                vc.queue.put(track)
 
-                vc: wavelink.Player = interaction.guild.voice_client
-                if not interaction.guild.voice_client:
-                    vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
+            new_track = vc.queue.get()
+            await vc.play(new_track)
+            await interaction.followup.send(f"Added {len(playlist.tracks[:10])} songs to the queue\nNow Playing: {new_track.title}")
                 
-                
-                await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
-                
-                if f"{interaction.guild.id}" not in self.muloop.keys():
-                    if vc.queue.is_empty and not vc.is_playing():
-                        await vc.play(song)
-                        embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
-                        embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
-                        embed.set_image(url=song.thumbnail)
-                        return await interaction.response.send_message(embed=embed)    
-                    else:
-                        await vc.queue.put_wait(song)
-                        await interaction.response.send_message(f'Added `{song.title}` to the queue...')
-
-
-            except UnboundLocalError: 
-                pass
 
     @app_commands.command()
     async def loop(self, interaction: discord.Interaction):
+        """Loops the current song playing!  """
+
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not in a voice channel!")
 
@@ -117,7 +128,7 @@ class Music(commands.Cog):
 
             self.muloop[f'{interaction.guild.id}'] = cp.uri
             print( self.muloop[f'{interaction.guild.id}'])
-            await interaction.response.send_message(f"Now looping: {cp.title}")
+            await interaction.response.send_message(f"Now looping: {cp.title} - {cp.author}")
         else:
             self.muloop.pop(f"{interaction.guild.id}")
             await interaction.response.send_message("Successfully disabled looping")
@@ -154,7 +165,7 @@ class Music(commands.Cog):
             if not vc.queue.is_empty:
                 await vc.stop()        
                 self.bot.logger.info(vc.queue)
-                return await interaction.response.send_message(f"Skipped Song!\nNow Playing **{vc.queue[0]}**")
+                return await interaction.response.send_message(f"Skipped Song!\nNow Playing **{vc.queue[0].title} - {vc.queue[0].author}**")
         except wavelink.errors.QueueEmpty:
             await interaction.response.send_message("No song to skip too in the queue!")
 
@@ -167,7 +178,7 @@ class Music(commands.Cog):
             vc: wavelink.Player = interaction.guild.voice_client
         
         if f"{interaction.guild.id}"in self.muloop.keys():
-                self.muloop.pop(f"{interaction.guild.id}")
+            self.muloop.pop(f"{interaction.guild.id}")
 
         await vc.stop()
         await interaction.response.send_message("Stopped!")
@@ -202,11 +213,12 @@ class Music(commands.Cog):
         if after.channel is None:
             if f"{vc.guild.id}" in self.muloop.keys():
                 self.muloop.pop(f"{vc.guild.id}")
+            
             vc.queue.clear()
             
-    queue = app_commands.Group(name="queue", description="The queue group!")
+    queues = app_commands.Group(name="queue-control", description="The queue group!")
 
-    @queue.command()
+    @queues.command()
     async def clear(self, interaction: discord.Interaction):
         """Clears queue"""
         vc : wavelink.Player = interaction.guild.voice_client
@@ -214,41 +226,39 @@ class Music(commands.Cog):
         await interaction.response.send_message(f"Cleared {len(vc.queue)} songs from the queue.")
         vc.queue.clear()
 
-    @queue.command()
+    @queues.command()
     async def add(self, interaction: discord.Interaction, *, search: str):
         """Adds query to queue"""
         vc: wavelink.Player = interaction.guild.voice_client
 
         url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+        playlist_regex = r"http[s]?://youtube\.com\/playlist\?list=(.{15,40})"
 
-        ctx = await commands.Context.from_interaction(interaction)
-        
         if re.match(url_regex, search):
             node = wavelink.NodePool.get_node()
             song = (await node.get_tracks(wavelink.YouTubeTrack, search))[0]
-        else:
-            song = await wavelink.YouTubeTrack.search(query=search, return_first=True)
+       
+        song = await wavelink.YouTubeTrack.search(query=search, return_first=True)
 
         await vc.queue.put_wait(song)
 
         await interaction.response.send_message(f"Added **{song.title}** To The Queue")
 
-    @queue.command()
-    async def see(self, itr:discord.Interaction):
+    @app_commands.command()
+    async def queue(self, itr: discord.Interaction):
         """Allows you to see the queue"""
         vc: wavelink.Player = itr.guild.voice_client
 
         if not vc:
-            return await itr.response.send_message('No queue as we are not connected', delete_after=5)
+            return await itr.response.send_message('No queue as we are not connected')
         
         if not vc.queue:
-                return await itr.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
-        else:
-            
-            menu = SimplePages(list(vc.queue), ctx=itr, per_page=12, title=f"Queue for {itr.guild.name}")
-            await menu.start(itr)
-            
+            return await itr.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
         
+        menu = SimplePages(list(vc.queue), ctx=itr, per_page=12, title=f"Queue for {itr.guild.name}")
+        await menu.start(itr)
+
+
     @app_commands.command()
     async def volume(self, interaction: discord.Interaction, volume: int):
         """Set a volume"""
@@ -260,9 +270,9 @@ class Music(commands.Cog):
 
         elif volume > 100:
             return await interaction.response.send_message("You cannot put the volume over 100!")
-        else:
-            await vc.set_volume(volume=volume)
-            await interaction.response.send_message(f"The volume is now {volume}%")
+        
+        await vc.set_volume(volume=volume)
+        await interaction.response.send_message(f"The volume is now {volume}%")
 
     @app_commands.command()
     async def pause(self, interaction: discord.Interaction):
@@ -290,16 +300,12 @@ class Music(commands.Cog):
         """Joins a voice channel"""
 
         if not interaction.guild.voice_client:
-            ctx = await commands.Context.from_interaction(interaction)
-        else:
-            ctx = await commands.Context.from_interaction(interaction)
-            vc: wavelink.Player = ctx.voice_client
+            await interaction.user.voice.channel.connect(cls=wavelink.Player)
         
-
-
-        await ctx.author.voice.channel.connect(cls=wavelink.Player)
-        await interaction.guild.change_voice_state(channel=ctx.author.voice.channel,self_deaf=True)
-        await interaction.response.send_message(f"Joined: <#{ctx.author.voice.channel.id}>")
+        vc: wavelink.Player = interaction.guild.voice_client
+        
+        await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
+        await interaction.response.send_message(f"Joined: <#{interaction.user.voice.channel.id}>")
         
 
 async def setup(bot):

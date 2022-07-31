@@ -14,7 +14,7 @@ class fun(commands.Cog):
         self.bot = bot
         
     @app_commands.command(description="Get a random fact")
-    async def facts(self,interaction: discord.Interaction):
+    async def facts(self, interaction: discord.Interaction):
         loop = self.bot.loop
 
         ret = await loop.run_in_executor(None, randfacts.get_fact)

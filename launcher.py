@@ -14,9 +14,6 @@ import asyncio
 dotenv.load_dotenv() 
 
 
-
-
-
 async def main():
     async with aiohttp.ClientSession() as session, asyncpraw.Reddit(client_id=os.environ['REDDIT_CLIENT_ID'], client_secret=os.environ['REDDIT_CLIENT_SECRET'], user_agent=os.environ['REDDIT_USER_AGENT']) as reddit ,asyncpg.create_pool(os.environ["POSTGRES_URI"]) as pool,SkyeBot(session=session, thino_session=thino.Client(), pool=pool, osu= Osu(client_id = os.environ['OSU_CLIENT_ID'], client_secret=os.environ['OSU_CLIENT_SECRET'], session=session), reddit=reddit) as bot:
         
