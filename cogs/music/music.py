@@ -11,6 +11,8 @@ from typing import Union
 
 import re
 
+from utils.pages import SimplePages, SimplePageSource
+
 class Music(commands.Cog):
     """Music cog to hold Wavelink related commands and listeners."""
 
@@ -242,10 +244,10 @@ class Music(commands.Cog):
         if not vc.queue:
                 return await itr.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
         else:
-            embed = discord.Embed(title="Current queue")
             
-            embed.description = "\n".join(f"{count+1}: {song} by {song.author}" for count, song in enumerate(vc.queue))
-            await itr.response.send_message(embed=embed)
+            menu = SimplePages(list(vc.queue), ctx=itr, per_page=12, title=f"Queue for {itr.guild.name}")
+            await menu.start(itr)
+            
         
     @app_commands.command()
     async def volume(self, interaction: discord.Interaction, volume: int):

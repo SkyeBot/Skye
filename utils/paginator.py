@@ -1,15 +1,16 @@
 import typing
-import discord
 from discord import ui
+import discord
 from discord.ext import menus
-from discord.ext import commands
+from utils.context import Context
 
-class MyMenuPages(ui.View, menus.MenuPages):
-    def __init__(self, source):
-        super().__init__(timeout=60)
+
+class Pages(ui.View): # Took some of this from the pagination tutorial + robodanny's paginator <3
+    def __init__(self, source: menus.PageSource,*, ctx: discord.Interaction):
+        super().__init__(timeout=None)
         self._source = source
         self.current_page = 0
-        self.ctx = None
+        self.ctx: Context = ctx
         self.message = None
 
     async def show_page(self, page_number, interaction):
@@ -34,21 +35,27 @@ class MyMenuPages(ui.View, menus.MenuPages):
     async def start(self, ctx, *, channel=None, wait=False):
         # We wont be using wait/channel, you can implement them yourself. This is to match the MenuPages signature.
         await self._source._prepare_once()
-        self.ctx = ctx
-        self.message = await self.send_initial_message(ctx, ctx.channel)
+        self.ctx: discord.Interaction = ctx
+        page = await self._source.get_page(0)
+        kwargs = await self._get_kwargs_from_page(page)
+        self.message = await self.ctx.response.send_message(**kwargs, view=self)
 
-    async def _get_kwargs_from_page(self, page):
-        """This method calls ListPageSource.format_page class"""
-        value = await super()._get_kwargs_from_page(page)
-        if 'view' not in value:
-            value.update({'view': self})
-        return value
+    async def _get_kwargs_from_page(self, page: int) -> typing.Dict[str, typing.Any]:
+        value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
+        if isinstance(value, dict):
+            return value
+        elif isinstance(value, str):
+            return {'content': value, 'embed': None}
+        elif isinstance(value, discord.Embed):
+            return {'embed': value, 'content': None}
+        else:
+            return {}
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id == self.ctx.author.id:
+        if interaction.user.id == self.ctx.user.id:
             return True
         await interaction.response.defer()
-        await interaction.followup.send(f"You cant use this as you're not the command invoker, only the author ({self.ctx.author.mention}) Can Do This!", ephemeral=True)
+        await interaction.followup.send(f"You cant use this as you're not the command invoker, only the author ({self.ctx.user.mention}) Can Do This!", ephemeral=True)
         return False
     # This is extremely similar to Custom MenuPages(I will not explain these)
     @ui.button(emoji='⏮️', style=discord.ButtonStyle.blurple)
@@ -78,27 +85,22 @@ class MyMenuPages(ui.View, menus.MenuPages):
     async def last_page(self, interaction, button):
         await self.show_page(self._source.get_max_pages() - 1, interaction)
 
-class MySource(menus.ListPageSource):
-    async def format_page(self, menu, entries: typing.List):
-        a = ', '.join(f"{x}"for x in entries)
-        embed = discord.Embed(
-            description=a, 
-            color=discord.Colour.random()
-        )
-        embed.set_footer(text=f"Requested by {menu.ctx.author}")
-        return embed
+class SimplePageSource(menus.ListPageSource):
+    async def format_page(self, menu, entries):
+        stuff = []
 
-class aa(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.command()
-    async def test_menus(self,ctx):
-        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        formatter = MySource(data, per_page=5) # MySource came from Custom MenuPages subtopic. [Please refer to that]
-        menu = MyMenuPages(formatter)
-        await menu.start(ctx)
-
+        for count, song in enumerate(entries, start=-0):
         
-async def setup(bot):
-    await bot.add_cog(aa(bot))
+            stuff.append(f"{count+1}: {song} by {song.author}")
+        
+        menu.embed.description = '\n'.join(stuff)
+        return menu.embed
+
+class SimplePages(Pages):
+    """A simple pagination session reminiscent of the old Pages interface.
+    Basically an embed with some normal formatting.
+    """
+
+    def __init__(self, entries, *, ctx: discord.Interaction, per_page: int = 12, title: str):
+        super().__init__(SimplePageSource(entries, per_page=per_page), ctx=ctx)
+        self.embed = discord.Embed(title=title,colour=discord.Colour.blurple())

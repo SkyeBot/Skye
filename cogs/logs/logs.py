@@ -90,6 +90,7 @@ class Logging(commands.Cog):
                         deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```")
 
                         await channel.send(embed=deleted)
+                    
                     if message.attachments:
                         file = message.attachments[0]
                         file_type = file.proxy_url.split(".")
