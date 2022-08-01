@@ -7,7 +7,7 @@ from core.bot import SkyeBot
 
 from discord import app_commands    
 
-from typing import Union
+from typing import Optional, Union
 
 import re
 
@@ -42,7 +42,9 @@ class Music(commands.Cog):
 
     
         if f"{ctx.guild.id}" in self.muloop.keys():
-            last = await wavelink.YouTubeTrack.search(query=f"{self.muloop[f'{ctx.guild.id}']} ", return_first=True) 
+    
+            last = await wavelink.YouTubeTrack.search(query=f"{self.muloop[f'{ctx.guild.id}']} ", return_first=True)         
+
 
             await player.play(last)
         else:
@@ -123,11 +125,13 @@ class Music(commands.Cog):
         vc: wavelink.Player = interaction.guild.voice_client
 
         if f"{interaction.guild.id}" not in self.muloop.keys():
-            
             cp = vc.track
 
             self.muloop[f'{interaction.guild.id}'] = cp.uri
-            print( self.muloop[f'{interaction.guild.id}'])
+            
+                    
+
+            print(self.muloop[f'{interaction.guild.id}'])
             await interaction.response.send_message(f"Now looping: {cp.title} - {cp.author}")
         else:
             self.muloop.pop(f"{interaction.guild.id}")
@@ -254,8 +258,19 @@ class Music(commands.Cog):
         
         if not vc.queue:
             return await itr.response.send_message(f"There is no songs in the queue!\nAdd one using the command ``skye queue add insertsongtitlehereorurl`` or by playing one!")
+
+        stuff = []
+
+
+        for count, song in enumerate(vc.queue, start=-0):
         
-        menu = SimplePages(list(vc.queue), ctx=itr, per_page=12, title=f"Queue for {itr.guild.name}")
+            stuff.append(f"{count+1}: {song} by {song.author}")
+        
+        current_playing = vc.source.title
+
+        embed = discord.Embed(title=f"Current queue for {itr.guild}", description= f"Current Playing: {current_playing} - {vc.source.author}\n\n" + '\n'.join(stuff))
+    
+        menu = SimplePages(stuff, ctx=itr, per_page=12, embed=embed)
         await menu.start(itr)
 
 

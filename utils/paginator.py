@@ -91,13 +91,6 @@ class Pages(ui.View): # Took some of this from the pagination tutorial + robodan
 
 class SimplePageSource(menus.ListPageSource):
     async def format_page(self, menu, entries):
-        stuff = []
-
-        for count, song in enumerate(entries, start=-0):
-        
-            stuff.append(f"{count+1}: {song} by {song.author}")
-        
-        menu.embed.description = '\n'.join(stuff)
         return menu.embed
 
 class SimplePages(Pages):
@@ -105,6 +98,6 @@ class SimplePages(Pages):
     Basically an embed with some normal formatting.
     """
 
-    def __init__(self, entries, *, ctx: discord.Interaction, per_page: int = 12, title: str):
+    def __init__(self, entries, *, ctx: discord.Interaction, embed: discord.Embed, per_page: int = 12):
         super().__init__(SimplePageSource(entries, per_page=per_page), ctx=ctx)
-        self.embed = discord.Embed(title=title,colour=discord.Colour.blurple())
+        self.embed = embed
