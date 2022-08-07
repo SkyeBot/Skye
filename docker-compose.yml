@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  bot:
+    container_name: "skye"
+  
+    build: ./
+    env_file:
+      - ./.env
+
+    depends_on:
+      - db
+      - lavalink
+      
+  db:
+    container_name: postgres_container
+    image: postgres:13
+    restart: always
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    
+    environment:
+      POSTGRES_DB: "skyetest"
+
+    ports:
+      - 3231:3231
+    
+  lavalink:
+    image: fredboat/lavalink:dev
+    volumes : 
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml
+
+    ports:
+      - 2333:2333
