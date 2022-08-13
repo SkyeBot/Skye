@@ -63,7 +63,6 @@ class SkyeBot(commands.AutoShardedBot):
             command_prefix="skye ",
             intents=discord.Intents.all(),
             owner_ids=[506899611332509697, 894794517079793704],
-            activity=discord.Activity(type=discord.ActivityType.playing, name="Hitorigoto -TV MIX-")
         )
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
@@ -109,20 +108,6 @@ class SkyeBot(commands.AutoShardedBot):
         print(f'Shard ID {shard_id} has resumed...')
         self.resumes[shard_id].append(discord.utils.utcnow())
 
-    async def on_message(self, message: discord.Message):
-        if message.author.id == 894794517079793704 or message.author.id == 506899611332509697:
-            pass
-
-        elif message.content.startswith("skye"):
-            await message.reply(
-                "We've switched to slash commands! Message commands may make a return alongside "
-                "slash someday but for now we're slash commands only. \nType `/` and click on my "
-                "profile picture to view what commands I have!"
-            )
-
-    
-
-        await self.process_commands(message)
         
     async def setup_hook(self):
         logging.basicConfig(level=logging.INFO)

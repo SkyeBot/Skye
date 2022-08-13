@@ -42,16 +42,10 @@ CREATE TABLE IF NOT EXISTS tags_new(
 );
 
 CREATE TABLE IF NOT EXISTS autorole (
-    guild BIGINT,
-    role BIGINT
+    guild_id BIGINT PRIMARY KEY,
+    role_id BIGINT
 );
 
-
-
-CREATE TABLE prefix(
-    guild_id BIGINT,
-    prefix TEXT
-);
 
 CREATE TABLE tag_lookup(
     name TEXT PRIMARY KEY CHECK (char_length(name) <= 32),

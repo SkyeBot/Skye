@@ -19,6 +19,7 @@ class Dropdown(discord.ui.Select):
         self.ctx = ctx
         self.member = member
         self.bot = bot
+        self.embed = discord.Embed()
 
         # Set the options that will be presented inside the dropdown
         options = [
@@ -53,7 +54,6 @@ class Dropdown(discord.ui.Select):
 
         if self.values[0] == "banner":
             member = self.member
-            embed = discord.Embed(description=f"{member.mention} Banner",color=0x3867a8)
     
             print(member.banner)
         
@@ -64,59 +64,65 @@ class Dropdown(discord.ui.Select):
                 banner = (await interaction.client.fetch_user(member.id)).banner
                 member = await interaction.guild.fetch_member(member.id)
 
+            self.embed.description=f"{member.mention} Banner"
+            self.embed.color =0x3867a8
 
             if banner is None:
-                embed.description = "User does not have a banner!"
+                self.embed.description = "User does not have a banner!"
             else:
-                embed.set_image(url=banner.url)
+                self.embed.set_image(url=banner.url)
         
             
-            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
+            await interaction.message.edit(embed=self.embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "avatar":
             member = self.member
 
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
             
-            embed = discord.Embed(description=text, color=0x3867a8)
-            embed.set_image(url=member.display_avatar.url)
-            await interaction.message.edit(embed=embed, view=DropdownView(interaction,self.bot,member))
+            self.embed.description = text
+            self.embed.color = 0x3867a8
+            self.embed.set_image(url=member.display_avatar.url)
+            await interaction.message.edit(embed=self.embed, view=DropdownView(interaction,self.bot,member))
 
         if self.values[0] == "info":
             member = self.member
-            embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 
+            self.embed.description = f"**Info About {member.mention}**"
+            self.embed.color = self.bot.color
             roles = [role.mention for role in getattr(member, 'roles', [])]
 
             joined_date = default.date(getattr(member, "joined_at", None), ago=True)
 
 
-            embed.add_field(name="Joined At", value=joined_date)
+            self.embed.add_field(name="Joined At", value=joined_date)
             
             if roles:
-                embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
+                self.embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
     
             view = DropdownView(interaction,self.bot,member)
 
             created_date = default.date(member.created_at, ago=True)
 
-            embed.add_field(name="ID", value=member.id)
-            embed.add_field(name="Created At", value=created_date,inline=True)
-            embed.set_author(name=member, icon_url=member.display_avatar.url)
-            embed.set_thumbnail(url=member.display_avatar.url)
+            self.embed.add_field(name="ID", value=member.id)
+            self.embed.add_field(name="Created At", value=created_date,inline=True)
+            self.embed.set_author(name=member, icon_url=member.display_avatar.url)
+            self.embed.set_thumbnail(url=member.display_avatar.url)
 
-            await interaction.message.edit(embed=embed,view=view)
+            await interaction.message.edit(embed=self.embed,view=view)
 
         if self.values[0] == "roles":
             member = self.member
 
             roles = [role.mention for role in getattr(member, 'roles', [])]
 
-            embed = discord.Embed(title=f"{member}'s Roles", description=', '.join(roles) if roles else "Member has no roles or is a User", color=self.bot.color)
-            
+                   
+            self.embed.title = f"{member}'s Roles"
+            self.embed.description = ', '.join(roles) if roles else "Member has no roles or is a User"
+
             view = DropdownView(interaction,self.bot,member)
-            await interaction.message.edit(embed=embed,view=view)
+            await interaction.message.edit(embed=self.embed,view=view)
 
 
 

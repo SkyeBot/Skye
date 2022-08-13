@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import io
+import random
 from typing import Optional, Union
 import discord
 
@@ -23,7 +24,14 @@ import discord
 class owner(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
+        self.ch_pr.start()
 
+    
+    @tasks.loop(minutes=5)
+    async def ch_pr(self):
+        choices = [f'on {len(self.bot.guilds)} servers', "a"]
+        prescense  = random.choice(choices)
+        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=prescense))
 
     async def is_owner(interaction: discord.Interaction) -> bool:
         

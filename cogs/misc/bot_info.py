@@ -32,7 +32,7 @@ class info_view(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=180)
         self.add_item(discord.ui.Button(style=discord.ButtonStyle.link,label="Website", url="https://skyebot.dev/", emoji=constants.WEBSITE))
-        self.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url="https://discord.gg/ERMMtyyQ8D", emoji=constants.INVITE))
+        self.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url="https://discord.gg/Zwn7D78pDw", emoji=constants.INVITE))
 
 
 
