@@ -83,7 +83,6 @@ class Logging(commands.Cog):
                     deleted.set_author(name=message.author, icon_url=message.author.avatar)
                     deleted.timestamp = message.created_at
                     deleted.color = discord.Color.random()
-                    self.bot.logger.info(deleted.color)
 
                     if message.content:
                         deleted.add_field(name="Message:\n", value=message.content, inline=False)
@@ -125,7 +124,7 @@ class Logging(commands.Cog):
                 
 
     @commands.Cog.listener()
-    async def on_message_edit(self,before, after):
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if before.content == after.content:
             return 
 
@@ -134,15 +133,17 @@ class Logging(commands.Cog):
         if exists is None:
             return
 
-        channel = self.bot.get_channel(exists.get("channel_id"))
+        channel = before.guild.get_channel(exists["channel_id"])
         embed = discord.Embed(
             timestamp=after.created_at,
             description = f"<@!{before.author.id}>**'s message was edited in** <#{before.channel.id}>.",
             colour = discord.Colour(0x00FF00)
         )
+    
+
         embed.set_author(name=f'{before.author.name}#{before.author.discriminator}', icon_url=before.author.avatar)
         embed.set_footer(text=f"Author ID:{before.author.id} • Message ID: {before.id}")
-        embed.add_field(name='Before:', value=before.content, inline=False)
+        embed.add_field(name='Before:', value=before.content or "No Content Available", inline=False)
         embed.add_field(name="After:", value=after.content, inline=False)
         embed.add_field(name="ID:", value=f"```User = {before.author.id} \nMessage = {before.id}```", inline=False)
 
@@ -254,7 +255,6 @@ class Logging(commands.Cog):
             embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.add_field(name="User ID", value=member.id, inline=False)
             embed.add_field(name="Roles", value=show_roles, inline=False)
-            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.set_thumbnail(url=f"{member.avatar}")
             embed.set_footer(text=member.id)
             
@@ -279,8 +279,6 @@ class Logging(commands.Cog):
             embed.add_field(name=f"Left Server: ",value=default.date(datetime.datetime.utcnow(), ago=True), inline=False)
             embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.add_field(name="User ID", value=member.id, inline=False)
-            embed.add_field(name="Roles", value=show_roles, inline=False)
-            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
             embed.set_thumbnail(url=f"{member.avatar.url}")
             embed.set_footer(text=member.id)
             discord.member

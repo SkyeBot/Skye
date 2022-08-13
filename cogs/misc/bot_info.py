@@ -62,7 +62,8 @@ class bot_info(commands.Cog):
         embed = discord.Embed(title="Hi! im Skye! I'm a multipurpose open source Discord Bot!",
             description=f"Source Code: {constants.GITHUB} [source](https://github.com/SkyeBot/Skye/tree/rewrite) | "
             f"Invite Link: {constants.INVITE} [invite me](https://discord.com/api/oauth2/authorize?client_id=932462085516968027&permissions=8&scope=bot%20applications.commands) | "
-            f"Top.gg Link: {constants.TOP_GG} [top.gg](https://top.gg/bot/932462085516968027) | ",
+            f"Top.gg Link: {constants.TOP_GG} [top.gg](https://top.gg/bot/932462085516968027) | ", 
+ 
             color=self.bot.color
 
         )
@@ -97,8 +98,9 @@ class bot_info(commands.Cog):
         embed.add_field(name="Date Created", value=default.date(self.bot.user.created_at, ago=True))
         embed.add_field(
             name="Bot servers",
-            value=f"**servers:** {guilds}\n**avg bot/human:** {round(sum(avg) / len(avg), 2)}%",
+            value=f"**servers:** {guilds}\n**avg bot/human:** {round(sum(avg) / len(avg), 2)}%\n**Currently serving over {total_members} People!**",
         )
+    
         embed.add_field(name="Channels", value=f"{total:,} total\n{text:,} text\n{voice:,} voice")
         embed.add_field(name="Cogs loaded", value=len([x for x in self.bot.cogs]),)
         embed.add_field(name="RAM Usage", value=f"{ramUsage:.2f} MB")

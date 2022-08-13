@@ -14,14 +14,14 @@ class NSFW(commands.Cog):
         self.bot = bot
         self.ENDPOINTS = ["tomboy", "neko", "femboy", "porn", "hentai", "thighs", "helltaker"]
 
-    async def fruit_autocomplete(self, interaction: discord.Interaction,current: str,) -> List[app_commands.Choice[str]]:
+    async def nsfw_autocomplete(self, interaction: discord.Interaction,current: str,) -> List[app_commands.Choice[str]]:
         return [
             app_commands.Choice(name=endpoints, value=endpoints)
             for endpoints in self.ENDPOINTS if current.lower() in endpoints.lower()
         ]
 
     @app_commands.command(description="An NSFW command",nsfw=True)
-    @app_commands.autocomplete(endpoints=fruit_autocomplete)
+    @app_commands.autocomplete(endpoints=nsfw_autocomplete)
     async def nsfw(self, interaction: discord.Interaction, *, endpoints: str):
         if endpoints not in self.ENDPOINTS:
             endpoints = ", ".join(x for x in self.ENDPOINTS)

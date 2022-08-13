@@ -43,6 +43,7 @@ class Mods(commands.Cog):
                 title=f"*{member} was banned!*", description=f"Reason: {reason} \nMember banned at <t:{utc_time}:F>",
                 color = self.bot.color
             )
+    
             embed.set_author(name=f"{member}", icon_url=member.display_avatar.url)
             await member.send(f"``You Have Been Banned From {interaction.guild.name} for \n {reason}``")
             await member.ban(reason=reason)
@@ -54,7 +55,6 @@ class Mods(commands.Cog):
             app_commands.Choice(name=f"{n.user}", value=f"{n.user.id}")
             for n in bans
         ]
-        logging.getLogger
         
     
     @app_commands.command(name="unban", description="Unbans a user")
@@ -128,9 +128,7 @@ class Mods(commands.Cog):
         """purges messages based off of amount"""
         await interaction.response.defer(thinking=True)
         try:
-
-              
-            purged = await interaction.channel.purge(limit=amount, after=datetime.timedelta(days=14))
+            purged = await interaction.channel.purge(limit=amount)
             embed = discord.Embed(description=f"**Succesfully purged ``{len(purged)} Messages``**", color=self.bot.error_color)
 
             await interaction.followup.send(embed=embed)

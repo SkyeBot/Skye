@@ -171,13 +171,9 @@ class Docs(commands.Cog, name="Documentation"):
 
             e.description = "\n".join(f"[`{key}`]({url})" for key, url in self.matches)
             return await interaction.followup.send(embed=e)
-    @commands.Cog.listener()
-    async def on_ready(self):
-        self.logger.info("I'm ready!")
-    MY_GUILD = discord.Object(id=875423509768204288)
+    
     
     rtfm = app_commands.Group(name="rtfm", description="all RTFM commands")
-    
 
     @rtfm.command(name='master')
     async def rtfm_master(self, interaction: discord.Interaction, *, query:str):

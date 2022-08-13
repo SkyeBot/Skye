@@ -22,9 +22,10 @@ class Dropdown(discord.ui.Select):
 
         # Set the options that will be presented inside the dropdown
         options = [
-            discord.SelectOption(label='avatar', description='Avatar of the user', emoji='🟥'),
-            discord.SelectOption(label='banner', description='The Banner of the user', emoji='🟩'),
-            discord.SelectOption(label='info', description='Actual userinfo', emoji='🟦'),
+            discord.SelectOption(label='avatar', description='Avatar of the user'),
+            discord.SelectOption(label='banner', description='The Banner of the user'),
+            discord.SelectOption(label='info', description='Actual userinfo'),
+            discord.SelectOption(label="roles", description="Gets roles if user is a member")
         ]
 
         # The placeholder is what will be shown when no option is chosen
@@ -105,6 +106,16 @@ class Dropdown(discord.ui.Select):
             embed.set_author(name=member, icon_url=member.display_avatar.url)
             embed.set_thumbnail(url=member.display_avatar.url)
 
+            await interaction.message.edit(embed=embed,view=view)
+
+        if self.values[0] == "roles":
+            member = self.member
+
+            roles = [role.mention for role in getattr(member, 'roles', [])]
+
+            embed = discord.Embed(title=f"{member}'s Roles", description=', '.join(roles) if roles else "Member has no roles or is a User", color=self.bot.color)
+            
+            view = DropdownView(interaction,self.bot,member)
             await interaction.message.edit(embed=embed,view=view)
 
 

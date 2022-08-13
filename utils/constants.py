@@ -23,5 +23,6 @@ VALID_EDIT_KWARGS: typing.Dict[str, typing.Any] = {
     'view': None,
 }
 
+
 with open("schema.sql", "r") as f:
     STARTUP_QUERY = f.read()

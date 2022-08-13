@@ -15,7 +15,6 @@ class HTTPSession(aiohttp.ClientSession):
 
 session = HTTPSession()
 
-
 @cache.async_cache()
 async def query(url, method="get", res_method="text", *args, **kwargs):
     async with getattr(session, method.lower())(url, *args, **kwargs) as res:

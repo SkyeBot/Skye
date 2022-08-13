@@ -40,14 +40,14 @@ class owner(commands.Cog):
 
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=status))
 
-        await ctx.reply("Changed Status", mention_author=False)
+        await ctx.reply(f"Succesfully changed Status to {status}!", mention_author=False)
 
     
     @commands.command()
     @commands.is_owner()
     async def blacklist(self, ctx: Context, user: Union[discord.Member, discord.User, str], *, reason: Optional[str]):
-        query = "INSERT INTO blacklist(user_id, reason) VALUES ($1, $2)"
-        await self.bot.pool.execute(query, user.id, reason)
+        query = "INSERT INTO blacklist(user_id, reason, time_blacklisted) VALUES ($1, $2, $3)"
+        await self.bot.pool.execute(query, user.id, reason, discord.utils.utcnow())
 
         await ctx.send(f"Succesfully blacklisted: {user.mention}")
 

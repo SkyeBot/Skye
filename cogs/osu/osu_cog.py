@@ -47,7 +47,7 @@ class UserSelect(discord.ui.Select):
         if self.values[0] == "Info":
 
             view = DropdownView(interaction, self.user)
-        
+            
 
             self.embed.description = f"**{self.user.country_emoji} | Profile for [{self.user.username}](https://osu.ppy.sh/users/{self.user.id})**\n\n▹ **Bancho Rank**: #{self.user.global_rank} ({self.user.country_code}#{self.user.country_rank})\n▹ **Join Date**: {self.user.joined_at}\n▹ **PP**: {self.user.pp} **Acc**: {self.user.accuracy}%\n▹ **Ranks**: {self.user.ranks}\n▹ **Profile Order**: \n** ​ ​ ​ ​ ​ ​ ​ ​  - {self.user.profile_order}**"
             self.embed.set_thumbnail(url=self.user.avatar_url)
@@ -60,8 +60,6 @@ class DropdownView(discord.ui.View):
         self.user = user
         # Adds the dropdown to our view object.
         self.add_item(UserSelect(self.ctx,self.user))
-
-
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if isinstance(self.ctx, discord.Interaction):

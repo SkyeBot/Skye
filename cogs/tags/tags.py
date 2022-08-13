@@ -99,12 +99,9 @@ class Tags(commands.Cog):
         content = discord.utils.escape_mentions(content.strip())
         if len(content) > 2000:
             return await interaction.response.send_message("Content must be 2000 characters or less")
-
+        query = "SELECT createTag($1, $2, $3, $4)"
         try:
-            await self.bot.pool.execute(
-                "SELECT createTag($1, $2, $3)",
-                name, content, interaction.user.id
-            )
+            await self.bot.pool.execute(query, name, content, interaction.user.id, interaction.guild.id) # type: ignore
         except asyncpg.UniqueViolationError:
             await interaction.response.send_message("Tag already exists", ephemeral=True)
         else:

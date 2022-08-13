@@ -83,10 +83,8 @@ class Music(commands.Cog):
             
 
         if "https://www.youtube.com/playlist?list=" not in url:
-            if re.match(url_regex, url):
-                node = wavelink.NodePool.get_node()
-                
-                song = (await node.get_tracks(wavelink.YouTubeTrack, url))[0]
+            if re.match(url_regex, url):                
+                song = (await self.node.get_tracks(wavelink.YouTubeTrack, url))[0]
             else:
                 song = await wavelink.YouTubeTrack.search(query=url, return_first=True)    
                 
@@ -142,14 +140,14 @@ class Music(commands.Cog):
 
 
     @app_commands.command()
-    async def current(self, interaction: discord.Interaction):
+    async def cp(self, interaction: discord.Interaction):
         """Returns whats currently playing"""
         if not interaction.guild.voice_client:
             return await interaction.response.send_message("I am not in a voice channel!")
 
         vc: wavelink.Player = interaction.guild.voice_client
 
-        await interaction.response.send_message(f"Currently playing: {vc.source.title} - {vc.source.author} (<{vc.source.uri}>")
+        await interaction.response.send_message(f"Currently playing: {vc.source.uri}\n{vc.source.title}")
 
 
     @app_commands.command()
@@ -311,7 +309,7 @@ class Music(commands.Cog):
         
         await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
         await interaction.response.send_message(f"Joined: <#{interaction.user.voice.channel.id}>")
+        
 
 async def setup(bot):
     await bot.add_cog(Music(bot))
-
