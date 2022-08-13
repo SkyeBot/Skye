@@ -1,6 +1,6 @@
 # Skye
  <b>An all in one open source Multi-Purpose Discord Bot! </b><br>
- ![https://top.gg/bot/932462085516968027](https://top.gg/api/widget/932462085516968027.svg)
+[![DiscordBot](https://top.gg/api/widget/932462085516968027.svg)](https://top.gg/bot/932462085516968027)
 
   
   
