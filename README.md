@@ -1,5 +1,7 @@
 # Skye
- <b>An all in one open source Multi-Purpose Discord Bot! </b>
+ <b>An all in one open source Multi-Purpose Discord Bot! </b><br>
+ [![Discord Bots](https://top.gg/api/widget/932462085516968027.svg)(https://top.gg/bot/932462085516968027)
+
   
   
 # Self-hosting
