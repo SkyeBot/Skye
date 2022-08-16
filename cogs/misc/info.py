@@ -19,7 +19,7 @@ class Dropdown(discord.ui.Select):
         self.ctx = ctx
         self.member = member
         self.bot = bot
-        self.embed = discord.Embed()
+        self.embed: discord.Embed = discord.Embed()
 
         # Set the options that will be presented inside the dropdown
         options = [
@@ -80,6 +80,7 @@ class Dropdown(discord.ui.Select):
 
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
             
+
             self.embed.description = text
             self.embed.color = 0x3867a8
             self.embed.set_image(url=member.display_avatar.url)
@@ -159,7 +160,6 @@ class Misc(commands.Cog):
         """Get's info about a user"""
 
         member = member or itr.user
-
         embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
 
         roles = [role.mention for role in getattr(member, 'roles', [])]
@@ -305,4 +305,3 @@ class Misc(commands.Cog):
         e.add_field(name='Emoji', value=fmt, inline=False)
         e.set_footer(text='Created').timestamp = guild.created_at
         await interaction.response.send_message(embed=e)
-

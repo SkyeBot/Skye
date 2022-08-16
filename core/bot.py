@@ -67,11 +67,11 @@ class SkyeBot(commands.AutoShardedBot):
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
         lookup = {
-            True: '<:greenTick:330090705336664065>',
-            False: '<:redTick:330090723011592193>',
-            None: '<:greyTick:563231201280917524>',
+            True: '<:greenTick:1008953903116722187>',
+            False: '<:redTick:1008954065868296235>>',
+            None: '<:greyTick:1008947195233443881>',
         }
-        emoji = lookup.get(opt, '<:redTick:330090723011592193>')
+        emoji = lookup.get(opt, '<:redTick:1008954065868296235>')
         if label is not None:
             return f'{emoji}: {label}'
         return emoji

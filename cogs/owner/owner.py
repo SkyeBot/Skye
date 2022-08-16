@@ -29,7 +29,7 @@ class owner(commands.Cog):
     
     @tasks.loop(minutes=5)
     async def ch_pr(self):
-        choices = [f'on {len(self.bot.guilds)} servers', "a"]
+        choices = [f'on {len(self.bot.guilds)} servers', f"Serving over {len(self.bot.users)} Users!", "/botinfo for more info on me!"]
         prescense  = random.choice(choices)
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=prescense))
 

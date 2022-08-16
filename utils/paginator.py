@@ -43,7 +43,7 @@ class Pages(ui.View): # Took some of this from the pagination tutorial + robodan
         self.ctx: discord.Interaction = ctx
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        self.message = await self.ctx.response.send_message(**kwargs, view=self)
+        self.message = await self.ctx.message.edit(**kwargs, view=self)
 
     async def _get_kwargs_from_page(self, page: int) -> typing.Dict[str, typing.Any]:
         value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)

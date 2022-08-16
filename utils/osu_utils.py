@@ -28,7 +28,7 @@ class Osu:
             return (await response.json()).get("access_token")
     
 
-    async def fetch_user(self, user: Union[str, int]):
+    async def fetch_user(self, user: Union[str, int]) -> User:
         autorization = await self.get_token()
         headers = {
             "Content-Type": "application/json",
@@ -117,12 +117,22 @@ class User:
             self._country = data.get("country")
             self.avatar_url = data.get("avatar_url")
             self.id = data.get("id")
-        except:
-            raise NoUserFound("No User Was Found")
+            self.playstyle = data.get("playstyle") 
+            self.playmode = data.get("playmode")
+            self.max_combo = data.get("statistics").get("maximum_combo")
+            self.level = data.get("statistics").get("level")
+            self.follower_count = data.get("follower_count")
+            self._total_hits = str(data.get("statistics").get("total_hits"))
+            self.total_score = data.get("statistics").get("total_score")
+            self.play_count = data.get("statistics").get("play_count")
+        except: # These return None if not available so bare except works fine here.
+            raise NoUserFound("No user was found by that name!")
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} username: {self.username!r}, id: {self.id}>"
 
+    def __str__(self) -> str:
+        return self.username
 
     @property
     def global_rank(self) -> Any:
@@ -131,9 +141,15 @@ class User:
     
     @property
     def country_rank(self):
-            rank = self._country_rank[:2] + ',' + self._country_rank[2:] if int(self._country_rank) > 10000 else self._country_rank if int(self._country_rank) < 1000 else  self._country_rank[:1] + ',' + self._country_rank[1:] if self._country_rank != 0 else 0
-            return rank
-            
+        rank = self._country_rank[:2] + ',' + self._country_rank[2:] if int(self._country_rank) > 10000 else self._country_rank if int(self._country_rank) < 1000 else  self._country_rank[:1] + ',' + self._country_rank[1:] if self._country_rank != 0 else 0
+        return rank
+
+    @property
+    def total_hits(self):
+        rank = self._total_hits[:3] + ',' + self._total_hits[3:] if int(self._total_hits) > 10000 else self._total_hits if int(self._total_hits) < 1000 else  self._total_hits[:2] + ',' + self._total_hits[2:] if self._total_hits != 0 else 0
+        return rank
+
+
     @property
     def profile_order(self) -> str:
         profile_order ='\n ​ ​ ​ ​ ​ ​ ​ ​  - '.join(x for x in self._profile_order)
@@ -161,10 +177,6 @@ class User:
     def raw(self) -> Dict[str, any]:
         return self.data
 
-class UserRecent:
-    def __init__(self) -> None:
-        pass
-
 class Beatmap:
     def __init__(self, data):
         self.data = data
@@ -181,31 +193,5 @@ class Beatmap:
         cover_data = self.data.get("cover").get(cover)
         return cover_data
 
-class UserBeatmap:
-    def __init__(self, data):   
-        self.data = data
-        self._titles = []    
-        self._artists = []
-        self._beatmaps = []
-
-    @property
-    def titles(self) -> typing.List:
-        for beatmap in self.data:
-            self._titles.append(beatmap['title'])
-
-        return self._titles
 
 
-    @property
-    def artists(self) -> typing.List:
-        for beatmap in self.data:
-            self._artists.append(beatmap['artist'])
-
-        return self._artists
-
-    @property
-    def beatmap(self) -> Beatmap:
-        return Beatmap(beatmap for beatmap in self.data)
-            
-
-        

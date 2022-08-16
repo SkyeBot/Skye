@@ -82,25 +82,24 @@ class Music(commands.Cog):
         await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
             
 
-        if "https://www.youtube.com/playlist?list=" not in url:
-            if re.match(url_regex, url):                
+        if re.match(url_regex, url):                
                 song = (await self.node.get_tracks(wavelink.YouTubeTrack, url))[0]
-            else:
-                song = await wavelink.YouTubeTrack.search(query=url, return_first=True)    
+        else:
+            song = await wavelink.YouTubeTrack.search(query=url, return_first=True)    
                 
-            if f"{interaction.guild.id}" not in self.muloop.keys():
-                if vc.queue.is_empty and not vc.is_playing():
-                    await vc.play(song)
-                    embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
-                    embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
-                    embed.set_image(url=song.thumbnail)
-                    return await interaction.response.send_message(embed=embed)    
-                
-                await vc.queue.put_wait(song)
-                return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
-                
+        if f"{interaction.guild.id}" not in self.muloop.keys():
+            if vc.queue.is_empty and not vc.is_playing():
+                await vc.play(song)
+                embed = discord.Embed(description=f"Now playing: **[{song.title}]({song.uri}) By {song.author}**")
+                embed.set_author(name=interaction.user, icon_url=interaction.user.display_avatar.url)
+                embed.set_image(url=song.thumbnail)
+                return await interaction.response.send_message(embed=embed)    
+            
             await vc.queue.put_wait(song)
             return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
+            
+        await vc.queue.put_wait(song)
+        return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
 
             
         if "https://www.youtube.com/playlist?list=" in url:
@@ -108,7 +107,8 @@ class Music(commands.Cog):
             await interaction.response.defer()
             for track in playlist.tracks[:10]:
                 vc.queue.put(track)
-
+                
+            
             new_track = vc.queue.get()
             await vc.play(new_track)
             await interaction.followup.send(f"Added {len(playlist.tracks[:10])} songs to the queue\nNow Playing: {new_track.title}")
