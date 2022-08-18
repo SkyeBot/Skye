@@ -1,4 +1,3 @@
-git+https://github.com/Rapptz/discord.py
 git+https://github.com/PythonistaGuild/Wavelink
 git+https://github.com/MiroslavRosenov/better-ipc
 git+https://github.com/yanp-Discord-Bot/thino-python
@@ -19,3 +18,4 @@ randfacts
 asyncpraw
 quart
 parsedatetime
+discord.py
