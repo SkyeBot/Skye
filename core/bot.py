@@ -58,6 +58,10 @@ class SkyeBot(commands.AutoShardedBot):
         self.osu: Osu = osu
         self.reddit: asyncpraw.Reddit  = reddit
         self.config = os.environ
+        os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+        os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
+
+
 
         super().__init__(
             command_prefix="skye ",
@@ -87,7 +91,7 @@ class SkyeBot(commands.AutoShardedBot):
             self.uptime = discord.utils.utcnow()
         if self._connected:
             msg = f"Bot reconnected at {datetime.datetime.now().strftime('%b %d %Y %H:%M:%S')}"
-            print(msg)        
+            self.logger.info(msg)       
         else:
             self._connected = True
             self.startup_time = discord.utils.utcnow() - self.start_time
@@ -105,19 +109,14 @@ class SkyeBot(commands.AutoShardedBot):
                 self.logger.info(f" - Loaded cogs.{extension.lower()}")
 
     async def on_shard_resumed(self, shard_id: int):
-        print(f'Shard ID {shard_id} has resumed...')
+        self.logger.info(f'Shard ID {shard_id} has resumed...')
         self.resumes[shard_id].append(discord.utils.utcnow())
-
         
     async def setup_hook(self):
         logging.basicConfig(level=logging.INFO)
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
-        os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
-        os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
-
-
         exts = ["jishaku"] + [
             f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
             for ext in os.listdir("cogs")
@@ -126,6 +125,7 @@ class SkyeBot(commands.AutoShardedBot):
         for ext in exts:
             await self.load_extension(ext)
 
+    
 
     async def on_error(self, event: str, *args, **kwargs):
         error = sys.exc_info()[1]
@@ -206,6 +206,15 @@ class SkyeBot(commands.AutoShardedBot):
 
             if interaction.namespace:
                 self.logger.info(str(interaction.namespace))
+
+            
+            
+
+            choice = random.choices([234, 675, 1274, 3030, 56589, 2232], cum_weights=[0.9, 5, 11, 14, 8, 13], k=1)
+            self.logger.info(choice)
+
+            if choice[0] == 234:
+                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote>")
 
 
             try:

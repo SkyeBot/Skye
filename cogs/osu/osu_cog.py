@@ -83,7 +83,7 @@ class DropdownView(discord.ui.View):
         for item in self.children:
             item.disabled = True
         
-        await self.ctx.edit_original_message(view=self)
+        await self.ctx.edit_original_response(view=self)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if isinstance(self.ctx, discord.Interaction):
