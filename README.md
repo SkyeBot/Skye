@@ -2,6 +2,8 @@
  <b>An all in one open source Multi-Purpose Discord Bot! </b><br>
 [![DiscordBot](https://top.gg/api/widget/932462085516968027.svg)](https://top.gg/bot/932462085516968027)
 
+# Useful links
+<b>- [invite Link](https://skyebot.dev/invite)<br>- [Support server](https://skyebot.dev/support)</b>
   
   
 # Self-hosting
