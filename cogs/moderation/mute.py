@@ -36,7 +36,7 @@ class Mute(commands.Cog):
             await interaction.response.send_message(e)
 
     @app_commands.command(name="mute", description="Mutes A User")
-    @app_commands.checks.has_permissions(moderate_members=True)
+    @app_commands.default_permissions(moderate_members=True)
     async def mute_slash(self, interaction: discord.Interaction, member: discord.Member, reason: Optional[str]=None):
         try:
 
@@ -60,7 +60,7 @@ class Mute(commands.Cog):
             self.bot.logger.error(e)
 
     @app_commands.command(name="unmute", description="Unmutes A User")
-    @app_commands.checks.has_permissions(moderate_members=True)
+    @app_commands.default_permissions(moderate_members=True)
     async def unmute_slash(self, interaction: discord.Interaction, member: discord.Member):
         try:
             role_query = await self.bot.pool.fetchval("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction.guild.id)

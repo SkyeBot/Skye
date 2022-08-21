@@ -2,6 +2,7 @@ import calendar
 from contextlib import redirect_stdout
 import io
 import logging
+from pickletools import int4
 import re
 import textwrap
 import traceback
@@ -11,7 +12,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-# Local Imports
+# Local Imports@
 from core.bot import SkyeBot
 from utils import default
 
@@ -20,8 +21,9 @@ class Mods(commands.Cog):
         self.bot = bot
         self._last_result: Optional[Any] = None
 
+
     @app_commands.command(name="ban", description="Bans a specified user")
-    @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.default_permissions(ban_members=True)
     @app_commands.describe(member="The member you choose ban")
     @app_commands.describe(reason="The reason for banning member")
     async def ban_slash(self, interaction: discord.Interaction, member: discord.Member, reason: Optional[str] = "No Reason Provided"):
@@ -59,7 +61,7 @@ class Mods(commands.Cog):
     
     @app_commands.command(name="unban", description="Unbans a user")
     @app_commands.describe(member="Takes in a Full Member Name or id")
-    @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.default_permissions(ban_members=True)
     @app_commands.describe(member="The member you choose unban")
     @app_commands.autocomplete(member=tags_autocomplete)
     async def unban_slash(self, interaction: discord.Interaction, member:str):
@@ -80,7 +82,7 @@ class Mods(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="hackban", description="A ban cmd that can ban users outside guild")
-    @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.default_permissions(ban_members=True)
     @app_commands.describe(member="The member you choose hackban")
     @app_commands.describe(reason="The reason for banning member")
     async def hackban_slash(self, interaction: discord.Interaction, member: str, reason: str = None):
@@ -123,7 +125,7 @@ class Mods(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
-    @app_commands.checks.has_permissions(manage_messages=True)
+    @app_commands.default_permissions(manage_messages=True)
     async def purge(self, interaction: discord.Interaction, amount: int):
         """purges messages based off of amount"""
         await interaction.response.defer(thinking=True)
@@ -134,3 +136,5 @@ class Mods(commands.Cog):
             await interaction.followup.send(embed=embed)
         except discord.Forbidden:
             return await interaction.followup.send("I do not have enough perms to delete these messages!")
+
+        

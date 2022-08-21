@@ -54,7 +54,7 @@ class autorole(commands.Cog):
             return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
 
     @group.command(name="disable")
-    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.default_permissions(administrator=True)
     async def _disable(self, interaction: discord.Interaction):
         """Disables autorole for guild"""
 
