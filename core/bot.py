@@ -60,12 +60,15 @@ class SkyeBot(commands.AutoShardedBot):
         self.config = os.environ
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
+        self.intents = discord.Intents.all()
+        self.intents.presences = False
+        self.intents.typing = False
 
 
 
         super().__init__(
             command_prefix="skye ",
-            intents=discord.Intents.all(),
+            intents=self.intents,
             owner_ids=[506899611332509697, 894794517079793704],
         )
 
@@ -186,7 +189,7 @@ class SkyeBot(commands.AutoShardedBot):
 
 
 
-    async def on_interaction(self, interaction: discord.Interaction):
+    async def on_app_command_completion(self, interaction: discord.Interaction, command: Union[discord.app_commands.Command, discord.app_commands.ContextMenu]):
         if (interaction.type == discord.InteractionType.application_command):
             await self.pool.execute(
                 "INSERT INTO commands (user_id, command_name) VALUES ($1, $2)",
