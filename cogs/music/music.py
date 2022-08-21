@@ -69,6 +69,7 @@ class Music(commands.Cog):
             
         
         url_regex = r"https:\/\/www\.youtube\.com\/watch\?v=(.{1,40})"
+        short_regex = r"https:\/\/youtu\.be\/(.{1,40})"
         playlist_regex = r"http[s]?://youtube\.com\/playlist\?list=(.{15,40})"
         
         if not interaction.user.voice:
@@ -82,7 +83,7 @@ class Music(commands.Cog):
         await interaction.guild.change_voice_state(channel=interaction.user.voice.channel,self_deaf=True)
             
 
-        if re.match(url_regex, url):                
+        if re.match(url_regex, url) or re.match(short_regex, url):                
                 song = (await self.node.get_tracks(wavelink.YouTubeTrack, url))[0]
         else:
             song = await wavelink.YouTubeTrack.search(query=url, return_first=True)    
@@ -98,10 +99,6 @@ class Music(commands.Cog):
             await vc.queue.put_wait(song)
             return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
             
-        await vc.queue.put_wait(song)
-        return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
-
-            
         if "https://www.youtube.com/playlist?list=" in url:
             playlist = await self.node.get_playlist(wavelink.YouTubePlaylist, url)
             await interaction.response.defer()
@@ -112,6 +109,10 @@ class Music(commands.Cog):
             new_track = vc.queue.get()
             await vc.play(new_track)
             await interaction.followup.send(f"Added {len(playlist.tracks[:10])} songs to the queue\nNow Playing: {new_track.title}")
+
+        
+        await vc.queue.put_wait(song)
+        return await interaction.response.send_message(f'Added `{song.title} - {song.author}` to the queue...')
                 
 
     @app_commands.command()

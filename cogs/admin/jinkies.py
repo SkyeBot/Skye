@@ -27,8 +27,12 @@ class Yoink(commands.Cog):
         
 
         for member in members:
-            if member.mutual_guilds or member == member.guild.me:
+            if member.mutual_guilds :
                 continue
+        
+            if member == member.guild.me:
+                continue
+
             
             avatar = await member.display_avatar.read()
 

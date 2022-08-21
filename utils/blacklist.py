@@ -3,7 +3,7 @@ import asyncpg
 
 from core.bot import SkyeBot
 
-async def check(bot: SkyeBot,user):
+async def check(bot: SkyeBot,   user):
     """Basic check for blacklisted users"""
 
     query = """

@@ -26,7 +26,7 @@ services:
       - 3231:3231
     
   lavalink:
-    image: fredboat/lavalink:dev
+    image: fredboat/lavalink
     volumes : 
       - ./lavalink/application.yml:/opt/Lavalink/application.yml
 
