@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 import asyncio
 import json
@@ -12,16 +11,23 @@ from utils import date
 
 log = logging.getLogger(__name__)
 
+
 class GatewayHandler(logging.Handler):
     def __init__(self, cog: Stats):
         self.cog: Stats = cog
         super().__init__(logging.INFO)
 
     def filter(self, record: logging.LogRecord) -> bool:
-        return record.name == 'discord.gateway' or 'Shard ID' in record.msg or 'Websocket closed ' in record.msg or 'Ignoring exception in ' in record.msg
+        return (
+            record.name == "discord.gateway"
+            or "Shard ID" in record.msg
+            or "Websocket closed " in record.msg
+            or "Ignoring exception in " in record.msg
+        )
 
     def emit(self, record: logging.LogRecord) -> None:
         self.cog.add_record(record)
+
 
 class Stats(commands.Cog):
     def __init__(self, bot: SkyeBot):
@@ -31,7 +37,9 @@ class Stats(commands.Cog):
 
     def _clear_gateway_data(self):
         one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
-        to_remove = [index for index, dt in enumerate(self._resumes) if dt < one_week_ago]
+        to_remove = [
+            index for index, dt in enumerate(self._resumes) if dt < one_week_ago
+        ]
         for index in reversed(to_remove):
             del self._resumes[index]
 
@@ -47,11 +55,9 @@ class Stats(commands.Cog):
         hook = discord.Webhook.from_url(wh_url, session=self.bot.session)
         return hook
 
-    
     def cog_unload(self):
         self.gateway_worker.cancel()
 
-    
     @commands.Cog.listener()
     async def on_socket_raw_send(self, data: str) -> None:
         # kind of weird way to check if we're sending
@@ -70,7 +76,6 @@ class Stats(commands.Cog):
         # don't want to permanently grow memory
         self._clear_gateway_data()
 
-
     @tasks.loop(seconds=10)
     async def gateway_worker(self):
         record = await self._gateway_queue.get()
@@ -80,12 +85,15 @@ class Stats(commands.Cog):
         self._gateway_queue.put_nowait(record)
 
     async def notify_gateway_status(self, record: logging.LogRecord) -> None:
-        attributes = {'INFO': '\N{INFORMATION SOURCE}', 'WARNING': '\N{WARNING SIGN}'}
+        attributes = {"INFO": "\N{INFORMATION SOURCE}", "WARNING": "\N{WARNING SIGN}"}
 
-        emoji = attributes.get(record.levelname, '\N{CROSS MARK}')
+        emoji = attributes.get(record.levelname, "\N{CROSS MARK}")
         dt = datetime.datetime.utcfromtimestamp(record.created)
-        msg = textwrap.shorten(f'{emoji} [{date(dt)}] `{record.message}`', width=1990)
-        await self.webhook.send(msg, username='Gateway Health', avatar_url='https://i.imgur.com/4PnCKB3.png')
+        msg = textwrap.shorten(f"{emoji} [{date(dt)}] `{record.message}`", width=1990)
+        await self.webhook.send(
+            msg, username="Gateway Health", avatar_url="https://i.imgur.com/4PnCKB3.png"
+        )
+
 
 async def setup(bot: SkyeBot) -> None:
     cog = Stats(bot)

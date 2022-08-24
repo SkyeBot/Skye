@@ -5,7 +5,7 @@ from utils import cache
 
 # Removes the aiohttp ClientSession instance warning.
 class HTTPSession(aiohttp.ClientSession):
-    """ Abstract class for aiohttp. """
+    """Abstract class for aiohttp."""
 
     def __del__(self):
 
@@ -14,6 +14,7 @@ class HTTPSession(aiohttp.ClientSession):
 
 
 session = HTTPSession()
+
 
 @cache.async_cache()
 async def query(url, method="get", res_method="text", *args, **kwargs):

@@ -1,13 +1,6 @@
-
 from __future__ import annotations
 from functools import wraps
 
-
-import sys
-import logging
-
-from typing import (Tuple, Optional, Dict, TYPE_CHECKING, Any)
-from .errors import BotExceptions
 
 
 
@@ -35,7 +28,9 @@ def cache(maxsize=128):
                 cache[key] = res
 
             return res
+
         return inner
+
     return decorator
 
 
@@ -62,5 +57,7 @@ def async_cache(maxsize=128):
                 cache[key] = res
 
             return res
+
         return inner
+
     return decorator

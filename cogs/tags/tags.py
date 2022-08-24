@@ -1,5 +1,4 @@
 from __future__ import annotations
-from io import BytesIO
 from typing import Dict, List, Optional, Union
 import asyncpg
 
@@ -8,37 +7,45 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.bot import SkyeBot
-from utils.context import Context
 
 
 class TagAddModal(discord.ui.Modal):
     def __init__(self, client: SkyeBot):
         self.bot = client
         super().__init__(title="Add Tag")
-    
+
     name = discord.ui.TextInput(
-                label="Name", placeholder="The name of your tag", style=discord.TextStyle.short
+        label="Name", placeholder="The name of your tag", style=discord.TextStyle.short
     )
     content = discord.ui.TextInput(
-            label="Content", placeholder="The content of your tag", style=discord.TextStyle.long
+        label="Content",
+        placeholder="The content of your tag",
+        style=discord.TextStyle.long,
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        name = self.name.value.strip().lower() # type: ignore
-        content = self.content.value.strip() # type: ignore
+        name = self.name.value.strip().lower()  # type: ignore
+        content = self.content.value.strip()  # type: ignore
 
-        if name.isdigit(): # type: ignore
-            return await interaction.response.send_message("Invalid tag name", ephemeral=True)
+        if name.isdigit():  # type: ignore
+            return await interaction.response.send_message(
+                "Invalid tag name", ephemeral=True
+            )
 
         content = discord.utils.escape_mentions(content)
 
         query = "SELECT createTag($1, $2, $3, $4)"
         try:
-            await self.bot.pool.execute(query, name, content, interaction.user.id, interaction.guild.id) # type: ignore
+            await self.bot.pool.execute(query, name, content, interaction.user.id, interaction.guild.id)  # type: ignore
         except asyncpg.UniqueViolationError:
-            return await interaction.response.send_message("Tag already exists", ephemeral=True)
+            return await interaction.response.send_message(
+                "Tag already exists", ephemeral=True
+            )
 
-        return await interaction.response.send_message(f"Tag: {name} succesfully created!", ephemeral=True)
+        return await interaction.response.send_message(
+            f"Tag: {name} succesfully created!", ephemeral=True
+        )
+
 
 class EditModal(discord.ui.Modal):
     def __init__(self, tag_id: int, bot: SkyeBot):
@@ -47,7 +54,11 @@ class EditModal(discord.ui.Modal):
 
         super().__init__(title="Tag Edit Modal")
 
-    content = discord.ui.TextInput(label="Edit Content", placeholder="Edit The Content Of Your Tag", style=discord.TextStyle.short)
+    content = discord.ui.TextInput(
+        label="Edit Content",
+        placeholder="Edit The Content Of Your Tag",
+        style=discord.TextStyle.short,
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         query = """
@@ -71,7 +82,9 @@ class EditModal(discord.ui.Modal):
 
         lookup = await self.bot.pool.fetchval(tag, self.tag)
         tag_name = lookup
-        await interaction.response.send_message(f"Updated Tag: **{tag_name}** Succesfully", ephemeral=True)
+        await interaction.response.send_message(
+            f"Updated Tag: **{tag_name}** Succesfully", ephemeral=True
+        )
 
 
 class Tags(commands.Cog):
@@ -80,36 +93,50 @@ class Tags(commands.Cog):
         self.options: Dict[str, Union[int, float, str]]
 
     tags = app_commands.Group(name="tags", description="Tag commands")
-    
+
     @tags.command()
-    async def add(self, interaction: discord.Interaction, name: Optional[str], content: Optional[str]):
+    async def add(
+        self,
+        interaction: discord.Interaction,
+        name: Optional[str],
+        content: Optional[str],
+    ):
 
         """Adds a tag with specified name and content"""
 
         if name is None:
             return await interaction.response.send_modal(TagAddModal(self.bot))
-            
-        name = name.strip()
-        
-        
-        if not name or 3 > len(name) > 32 or name.isdigit():
-            return await interaction.response.send_message("Invalid tag name", ephemeral=True)
 
+        name = name.strip()
+
+        if not name or 3 > len(name) > 32 or name.isdigit():
+            return await interaction.response.send_message(
+                "Invalid tag name", ephemeral=True
+            )
 
         content = discord.utils.escape_mentions(content.strip())
         if len(content) > 2000:
-            return await interaction.response.send_message("Content must be 2000 characters or less")
+            return await interaction.response.send_message(
+                "Content must be 2000 characters or less"
+            )
         query = "SELECT createTag($1, $2, $3, $4)"
         try:
-            await self.bot.pool.execute(query, name, content, interaction.user.id, interaction.guild.id) # type: ignore
+            await self.bot.pool.execute(query, name, content, interaction.user.id, interaction.guild.id)  # type: ignore
         except asyncpg.UniqueViolationError:
-            await interaction.response.send_message("Tag already exists", ephemeral=True)
+            await interaction.response.send_message(
+                "Tag already exists", ephemeral=True
+            )
         else:
-            await interaction.response.send_message(f"Created tag {name}", ephemeral=True)
+            await interaction.response.send_message(
+                f"Created tag {name}", ephemeral=True
+            )
 
-
-    async def tags_autocomplete(self, interaction: discord.Interaction, current: Dict[str, Union[int, float, str]]) -> List[app_commands.Choice[str]]:
-        if current == '':
+    async def tags_autocomplete(
+        self,
+        interaction: discord.Interaction,
+        current: Dict[str, Union[int, float, str]],
+    ) -> List[app_commands.Choice[str]]:
+        if current == "":
             query = """
             SELECT
                 name
@@ -121,12 +148,8 @@ class Tags(commands.Cog):
             """
             tags = await self.bot.pool.fetch(query, interaction.guild.id)
 
+            return [app_commands.Choice(name=n["name"], value=n["name"]) for n in tags]
 
-            return [
-                app_commands.Choice(name=n["name"], value=n["name"])
-                for n in tags 
-            ]
-        
         query = """
         SELECT
             name
@@ -142,14 +165,11 @@ class Tags(commands.Cog):
 
         tags = await self.bot.pool.fetch(query, current, interaction.guild.id)
 
-
         return [
             app_commands.Choice(name=n["name"], value=n["name"])
-             for n in tags if current.lower()
+            for n in tags
+            if current.lower()
         ]
-
-
-    
 
     @tags.command()
     @app_commands.autocomplete(tag=tags_autocomplete)
@@ -166,7 +186,9 @@ class Tags(commands.Cog):
 
         lookup = await self.bot.pool.fetchrow(query, name)
         if not lookup:
-            return await interaction.response.send_message("Tag not found", ephemeral=True)
+            return await interaction.response.send_message(
+                "Tag not found", ephemeral=True
+            )
 
         tag_id, is_alias, tag_name, owner_id, uses, created_timestamp = lookup
         e = discord.Embed()
@@ -180,11 +202,12 @@ class Tags(commands.Cog):
         if owner:
             e.set_author(name=str(owner), icon_url=owner.display_avatar.url)
 
-        e.description = \
-            f"ID: {tag_id}\n" \
-            f"Owned by <@{owner_id}> ({owner or 'Owner not found'} {(owner and owner.id) or ''})\n" \
-            f"Used {uses} time{'s' if uses != 1 else ''}\n" \
+        e.description = (
+            f"ID: {tag_id}\n"
+            f"Owned by <@{owner_id}> ({owner or 'Owner not found'} {(owner and owner.id) or ''})\n"
+            f"Used {uses} time{'s' if uses != 1 else ''}\n"
             f"Created <t:{round(created_timestamp.timestamp())}:F>\n"
+        )
 
         await interaction.response.send_message(embed=e)
 
@@ -195,18 +218,25 @@ class Tags(commands.Cog):
 
         alias = alias.strip().lower()
         if not alias or len(alias) > 32 or alias.isdigit():
-            return await interaction.response.send_message("Invalid alias name", ephemeral=True)
+            return await interaction.response.send_message(
+                "Invalid alias name", ephemeral=True
+            )
 
         try:
-            resp = await self.bot.pool.fetchrow("SELECT createAlias($1, $2)", tag, alias)
-            await interaction.response.send_message(resp['createalias'])
+            resp = await self.bot.pool.fetchrow(
+                "SELECT createAlias($1, $2)", tag, alias
+            )
+            await interaction.response.send_message(resp["createalias"])
         except asyncpg.UniqueViolationError:
-            await interaction.response.send_message("A tag/alias with that name already exists")
-        
+            await interaction.response.send_message(
+                "A tag/alias with that name already exists"
+            )
 
     @tags.command()
     @app_commands.autocomplete(name=tags_autocomplete)
-    async def edit(self, interaction: discord.Interaction, name: str, content: Optional[str]=None):
+    async def edit(
+        self, interaction: discord.Interaction, name: str, content: Optional[str] = None
+    ):
 
         """Allows user to edit a specified tag"""
 
@@ -221,13 +251,19 @@ class Tags(commands.Cog):
 
         lookup = await self.bot.pool.fetchrow(query, name)
         if not lookup:
-            return await interaction.response.send_message("Tag not found", ephemeral=True)
+            return await interaction.response.send_message(
+                "Tag not found", ephemeral=True
+            )
 
-        if lookup['owner'] != interaction.user.id:
-            return await interaction.response.send_message("You do not own this tag", ephemeral=True)
+        if lookup["owner"] != interaction.user.id:
+            return await interaction.response.send_message(
+                "You do not own this tag", ephemeral=True
+            )
 
         if not content:
-            return await interaction.response.send_modal(EditModal(lookup['tagid'], self.bot))
+            return await interaction.response.send_modal(
+                EditModal(lookup["tagid"], self.bot)
+            )
 
         query = """
         UPDATE tags_new
@@ -236,21 +272,23 @@ class Tags(commands.Cog):
         WHERE
             id = $2
         """
-        await self.bot.pool.execute(query, self.content, lookup['tagid']) # type: ignore
+        await self.bot.pool.execute(query, self.content, lookup["tagid"])  # type: ignore
         await interaction.response.send_message("Updated tag", ephemeral=True)
-
-
 
     @app_commands.command()
     @app_commands.autocomplete(name=tags_autocomplete)
     async def tag(self, interaction: discord.Interaction, name: str):
         """Shows specified tag"""
 
-        data = await self.bot.pool.fetchrow("SELECT findTag($1, $2)", name, interaction.guild.id)
-        
+        data = await self.bot.pool.fetchrow(
+            "SELECT findTag($1, $2)", name, interaction.guild.id
+        )
+
         print(data)
 
-        if not data['findtag']:
-            return await interaction.response.send_message("That tag does not exist", ephemeral=True)
+        if not data["findtag"]:
+            return await interaction.response.send_message(
+                "That tag does not exist", ephemeral=True
+            )
 
-        await interaction.response.send_message(data['findtag'][1])
+        await interaction.response.send_message(data["findtag"][1])

@@ -4,14 +4,13 @@ import re
 import zlib
 import logging
 
-import aiohttp
 import discord
 from discord.ext import commands
 from discord import app_commands
 
 
 class SphinxObjectFileReader:
-   
+
     BUFSIZE = 16 * 1024
 
     def __init__(self, buffer):
@@ -45,6 +44,7 @@ class SphinxObjectFileReader:
 
 class Docs(commands.Cog, name="Documentation"):
     """RTFM commands"""
+
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger(__name__)
@@ -52,8 +52,8 @@ class Docs(commands.Cog, name="Documentation"):
         self.page_types = {
             "discord.py": "https://discordpy.readthedocs.io/en/stable",
             "levelling": "https://discord-ext-levelling.readthedocs.io/en/latest/",
-            'master': 'https://discordpy.readthedocs.io/en/latest',
-            'python': 'https://docs.python.org/3',
+            "master": "https://discordpy.readthedocs.io/en/latest",
+            "python": "https://docs.python.org/3",
         }
 
     def finder(self, text, collection, *, key=None, lazy=True):
@@ -78,10 +78,9 @@ class Docs(commands.Cog, name="Documentation"):
             return [z for _, _, z in sorted(suggestions, key=sort_key)]
 
     def parse_object_inv(self, stream, url):
-    
+
         result = {}
 
-     
         inv_version = stream.readline().rstrip()
 
         if inv_version != "# Sphinx inventory version 2":
@@ -89,7 +88,6 @@ class Docs(commands.Cog, name="Documentation"):
 
         stream.readline().rstrip()[11:]
         stream.readline().rstrip()[11:]
-
 
         line = stream.readline()
         if "zlib" not in line:
@@ -125,23 +123,23 @@ class Docs(commands.Cog, name="Documentation"):
         if ctx.guild is not None:
             #                             日本語 category
             if ctx.channel.category_id == 490287576670928914:
-                return prefix + '-jp'
+                return prefix + "-jp"
             #                    d.py unofficial JP   Discord Bot Portal JP
             elif ctx.guild.id in (463986890190749698, 494911447420108820):
-                return prefix + '-jp'
+                return prefix + "-jp"
         return prefix
 
     async def build_rtfm_lookup_table(self, page_types):
         cache = {}
         for key, page in page_types.items():
-                async with self.bot.session.get(page + "/objects.inv") as resp:
-                    if resp.status != 200:
-                        raise RuntimeError(
-                            "Cannot build rtfm lookup table, try again later."
-                        )
+            async with self.bot.session.get(page + "/objects.inv") as resp:
+                if resp.status != 200:
+                    raise RuntimeError(
+                        "Cannot build rtfm lookup table, try again later."
+                    )
 
-                    stream = SphinxObjectFileReader(await resp.read())
-                    cache[key] = self.parse_object_inv(stream, page)
+                stream = SphinxObjectFileReader(await resp.read())
+                cache[key] = self.parse_object_inv(stream, page)
 
         self._rtfm_cache = cache
 
@@ -153,7 +151,6 @@ class Docs(commands.Cog, name="Documentation"):
             await interaction.response.send_message(page_types[key])
             return
 
-
         if not hasattr(self, "_rtfm_cache"):
             await self.build_rtfm_lookup_table(page_types)
 
@@ -162,32 +159,38 @@ class Docs(commands.Cog, name="Documentation"):
         self.matches = self.finder(obj, cache, key=lambda t: t[0], lazy=False)[:8]
         if len(self.matches) == 0:
             e = discord.Embed(description=f"**Could not find anything. Sorry.!**")
-            e.set_footer(text=f"Read The Fucking Manual :)", icon_url=interaction.user.display_avatar.url)
+            e.set_footer(
+                text=f"Read The Fucking Manual :)",
+                icon_url=interaction.user.display_avatar.url,
+            )
             return await interaction.followup.send(embed=e)
         else:
-            e = discord.Embed(title=f"Make sure to read the fucking docs! (hence the name)")
-            e.set_footer(text=f'Requested By {interaction.user}', icon_url=f'{interaction.user.display_avatar.url}')
+            e = discord.Embed(
+                title=f"Make sure to read the fucking docs! (hence the name)"
+            )
+            e.set_footer(
+                text=f"Requested By {interaction.user}",
+                icon_url=f"{interaction.user.display_avatar.url}",
+            )
             e.set_thumbnail(url=interaction.user.display_avatar.url)
 
             e.description = "\n".join(f"[`{key}`]({url})" for key, url in self.matches)
             return await interaction.followup.send(embed=e)
-    
-    
+
     rtfm = app_commands.Group(name="rtfm", description="all RTFM commands")
 
-    @rtfm.command(name='master')
-    async def rtfm_master(self, interaction: discord.Interaction, *, query:str):
+    @rtfm.command(name="master")
+    async def rtfm_master(self, interaction: discord.Interaction, *, query: str):
         """Gives you a documentation link for a discord.py entity (master branch)"""
-        await self.do_rtfm(interaction, 'master', query)
+        await self.do_rtfm(interaction, "master", query)
 
     @rtfm.command(name="stable")
     async def rtfm_stable(self, interaction: discord.Interaction, query: str):
         """Giveds you a documentation link for a discord.py entity (stable/1.7.3)"""
-        await self.do_rtfm(interaction, 'discord.py', query)
-    
-    @rtfm.command(name='python')
-    async def rtfm_py(self, interaction: discord.Interaction, *, query: str):
-        """Gives you a documentation link for a python entity """
-        key = self.transform_rtfm_language_key(interaction, 'python')
-        await self.do_rtfm(interaction, key, query)
+        await self.do_rtfm(interaction, "discord.py", query)
 
+    @rtfm.command(name="python")
+    async def rtfm_py(self, interaction: discord.Interaction, *, query: str):
+        """Gives you a documentation link for a python entity"""
+        key = self.transform_rtfm_language_key(interaction, "python")
+        await self.do_rtfm(interaction, key, query)
