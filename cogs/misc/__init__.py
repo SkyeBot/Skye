@@ -1,3 +1,5 @@
+import discord
+from discord.ext import commands
 
 # Local Imports
 from core.bot import SkyeBot
