@@ -31,9 +31,7 @@ class plural:
         v = self.value
         singular, _, plural = format_spec.partition("|")
         plural = plural or f"{singular}s"
-        if abs(v) != 1:
-            return f"{v} {plural}"
-        return f"{v} {singular}"
+        return f"{v} {plural}" if abs(v) != 1 else f"{v} {singular}"
 
 
 def cleanup_code(content: str):
@@ -71,37 +69,25 @@ class SQLCommands(commands.Cog):
         """
         query.value = cleanup_code(query.value)
         is_multistatement = query.value.count(";") > 1
-        if is_multistatement:
-            # fetch does not support multiple statements
-            strategy = ctx.bot.pool.execute
-        else:
-            strategy = ctx.bot.pool.fetch
-
+        strategy = ctx.bot.pool.execute if is_multistatement else ctx.bot.pool.fetch
         try:
             start = time.perf_counter()
             results = await strategy(query.value, *query.flags.args)
             dt = (time.perf_counter() - start) * 1000.0
         except Exception as e:
             return await ctx.send(f"{type(e).__name__}: {e}")
-
         rows = len(results)
         if rows == 0 or isinstance(results, str):
             result = "Query returned o rows\n" if rows == 0 else str(results)
-            await ctx.send(result + f"*Ran in {dt:.2f}ms*")
-
+            await ctx.send(f"{result}*Ran in {dt:.2f}ms*")
         else:
             try:
                 table = tabulate(results, headers="keys", tablefmt="orgtbl")
-
-                fmt = (
-                    f"```\n{table}\n```*Returned {plural(rows):row} in {dt:.2f}ms :D!*"
-                )
+                fmt = f"```\n{table}\n```*Returned {plural(rows):row} in {dt:.2f}ms :D!*"
                 if len(fmt) > 2000:
                     fp = io.BytesIO(table.encode("utf-8"))
-                    await ctx.send(
-                        f"*Too many results...\nReturned {plural(rows):row} in {dt:.2f}ms*",
-                        file=File(fp, "output.txt"),
-                    )
+                    await ctx.send(f"*Too many results...\nReturned {plural(rows):row} in {dt:.2f}ms*", file=File(fp, "output.txt"))
+
                 else:
                     await ctx.send(fmt)
             except Exception as e:

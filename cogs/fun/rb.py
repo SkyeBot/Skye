@@ -46,9 +46,7 @@ class Dropdown(discord.ui.Select):
         else:
             original = self.ctx.author.id
 
-        if interaction.user.id != original:
-            pass
-        else:
+        if interaction.user.id == original:
             await interaction.response.defer()
 
         if self.values[0] == "Account Avatar":
@@ -77,16 +75,12 @@ class Dropdown(discord.ui.Select):
         if self.values[0] == "Account Information":
             user = await self.bot.roblox.get_user_by_username(self.member, expand=True)
             async with self.bot.session.get(
-                url=f"https://api.roblox.com/users/get-by-username?username={self.member}"
-            ) as r:
+                        url=f"https://api.roblox.com/users/get-by-username?username={self.member}"
+                    ) as r:
                 res = await r.json()
                 isOnline = res["IsOnline"]
 
-                if isOnline is False:
-                    isOnline = "Offline"
-                else:
-                    isOnline = "Online"
-
+                isOnline = "Offline" if isOnline is False else "Online"
             user_thumbnails = (
                 await self.bot.roblox.thumbnails.get_user_avatar_thumbnails(
                     users=[user],
@@ -168,59 +162,29 @@ class roblx(commands.Cog):
     @app_commands.command()
     async def robloxui(self, interaction: discord.Interaction, username: str):
         """Get info about a roblox user"""
-
-        async with self.bot.session.get(
-            f"https://api.roblox.com/users/get-by-username?username={username}"
-        ) as r:
+        async with self.bot.session.get(f"https://api.roblox.com/users/get-by-username?username={username}") as r:
             res = await r.json()
             isOnline = res["IsOnline"]
-
-            if isOnline is False:
-                isOnline = "Offline"
-            else:
-                isOnline = "Online"
-
+            isOnline = "Offline" if isOnline is False else "Online"
         user = await self.bot.roblox.get_user_by_username(username, expand=True)
-
         badges = ", ".join(x.name for x in await user.get_roblox_badges())
-
-        user_thumbnails = await self.bot.roblox.thumbnails.get_user_avatar_thumbnails(
-            users=[user],
-            type=roblox.thumbnails.AvatarThumbnailType.full_body,
-            size=(420, 420),
-        )
+        user_thumbnails = await self.bot.roblox.thumbnails.get_user_avatar_thumbnails(users=[user], type=roblox.thumbnails.AvatarThumbnailType.full_body, size=(420, 420))
 
         if len(user_thumbnails) > 0:
             user_thumbnail = user_thumbnails[0]
-
         description = user.description
-
         if len(description) < 1:
             description = "None"
-
-        embed = discord.Embed(
-            description=f"**Info About: [{user.name}](https://www.roblox.com/users/{user.id}/profile)**",
-            color=self.bot.color,
-        )
+        embed = discord.Embed(description=f"**Info About: [{user.name}](https://www.roblox.com/users/{user.id}/profile)**", color=self.bot.color)
 
         embed.set_thumbnail(url=user_thumbnail.image_url)
+        embed.add_field(name="Information", value=f"Display Name: {user.display_name}\nID: {user.id}\nBanned: {user.is_banned}\nStatus: {isOnline}")
 
-        embed.add_field(
-            name="Information",
-            value=f"Display Name: {user.display_name}\nID: {user.id}\nBanned: {user.is_banned}\nStatus: {isOnline}",
-        )
-        embed.add_field(
-            name="Social",
-            value=f"Followers: {await user.get_follower_count()}\nFollowing: {await user.get_following_count()}\nFriends: {await user.get_friend_count()}\nGroups: {len(await user.get_group_roles())}",
-        )
-        embed.add_field(
-            name="Creation Date",
-            value=f"{default.date(user.created, ago=True)}",
-            inline=False,
-        )
+        embed.add_field(name="Social", value=f"Followers: {await user.get_follower_count()}\nFollowing: {await user.get_following_count()}\nFriends: {await user.get_friend_count()}\nGroups: {len(await user.get_group_roles())}")
+
+        embed.add_field(name="Creation Date", value=f"{default.date(user.created, ago=True)}", inline=False)
+
         embed.add_field(name="Badges", value=f"{badges}", inline=False)
         embed.add_field(name="Description", value=f"**{description!r}**", inline=False)
-
         view = DropdownView(interaction, self.bot, user.name)
-
         await interaction.response.send_message(embed=embed, view=view)

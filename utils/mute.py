@@ -5,11 +5,7 @@ import discord
 async def get_mute(
     mute_role: Union[int, discord.Role], *, guild: discord.Guild
 ) -> Union[str, int, discord.Role]:
-    if isinstance(mute_role, discord.Role):
-        muted_role = mute_role.id
-    else:
-        muted_role = mute_role
-
+    muted_role = mute_role.id if isinstance(mute_role, discord.Role) else mute_role
     muted_role = guild.get_role(muted_role)
 
     if muted_role is None:

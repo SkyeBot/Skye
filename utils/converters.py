@@ -72,7 +72,7 @@ class UntilFlag(Generic[FCT]):
         """
         stripped = argument.strip()
         if not stripped or stripped.startswith(self._start):
-            raise commands.BadArgument(f"No body has been specified before the flags.")
+            raise commands.BadArgument("No body has been specified before the flags.")
         return True
 
     async def convert(self, ctx: Context, argument: str) -> UntilFlag:

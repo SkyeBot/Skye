@@ -36,7 +36,8 @@ class Stats(commands.Cog):
         self.gateway_worker.start()
 
     def _clear_gateway_data(self):
-        one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+        one_week_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
+
         to_remove = [
             index for index, dt in enumerate(self._resumes) if dt < one_week_ago
         ]
@@ -52,28 +53,23 @@ class Stats(commands.Cog):
     def webhook(self) -> discord.Webhook:
         wh_url = self.bot.config.get("LOGGING_WEBHOOK")
         self.bot.logger.info(wh_url)
-        hook = discord.Webhook.from_url(wh_url, session=self.bot.session)
-        return hook
+        return discord.Webhook.from_url(wh_url, session=self.bot.session)
 
     def cog_unload(self):
         self.gateway_worker.cancel()
 
     @commands.Cog.listener()
     async def on_socket_raw_send(self, data: str) -> None:
-        # kind of weird way to check if we're sending
-        # IDENTIFY or RESUME
         if '"op":2' not in data and '"op":6' not in data:
             return
-
         back_to_json = json.loads(data)
         if back_to_json["op"] == 2:
             payload = back_to_json["d"]
             inner_shard = payload.get("shard", [0])
-            self._identifies[inner_shard[0]].append(datetime.datetime.utcnow())
-        else:
-            self._resumes.append(datetime.datetime.utcnow())
+            self._identifies[inner_shard[0]].append(datetime.datetime.now(datetime.timezone.utc))
 
-        # don't want to permanently grow memory
+        else:
+            self._resumes.append(datetime.datetime.now(datetime.timezone.utc))
         self._clear_gateway_data()
 
     @tasks.loop(seconds=10)

@@ -16,9 +16,8 @@ class Yoink(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        members: List[discord.Member] = (
-            await guild.chunk(cache=True) if not guild.chunked else guild.members
-        )
+        members: List[discord.Member] = guild.members if guild.chunked else await guild.chunk(cache=True)
+
 
         for member in members:
             if member.mutual_guilds:

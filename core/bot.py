@@ -69,15 +69,10 @@ class SkyeBot(commands.AutoShardedBot):
         )
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
-        lookup = {
-            True: "<:greenTick:1008953903116722187>",
-            False: "<:redTick:1008954065868296235>>",
-            None: "<:greyTick:1008947195233443881>",
-        }
+        lookup = {True: "<:greenTick:1008953903116722187>", False: "<:redTick:1008954065868296235>>", None: "<:greyTick:1008947195233443881>"}
+
         emoji = lookup.get(opt, "<:redTick:1008954065868296235>")
-        if label is not None:
-            return f"{emoji}: {label}"
-        return emoji
+        return f"{emoji}: {label}" if label is not None else emoji
 
     @property
     def owner(self):
@@ -111,18 +106,13 @@ class SkyeBot(commands.AutoShardedBot):
 
     async def setup_hook(self):
         logging.basicConfig(level=logging.INFO)
-        handler = logging.FileHandler(
-            filename="logs/discord.log", encoding="utf-8", mode="w"
-        )
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-        )
+        handler = logging.FileHandler(filename="logs/discord.log", encoding="utf-8", mode="w")
+
+        handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+
         self.logger.addHandler(handler)
-        exts = ["jishaku"] + [
-            f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
-            for ext in os.listdir("cogs")
-            if not ext.startswith("_")
-        ]
+        exts = ["jishaku"] + [f"cogs.{ext[:-3] if ext.endswith('.py') else ext}" for ext in os.listdir("cogs") if not ext.startswith("_")]
+
         for ext in exts:
             await self.load_extension(ext)
 
@@ -182,49 +172,35 @@ class SkyeBot(commands.AutoShardedBot):
             text = f" `{waktu}` | **{ctx.author}** used `{ctx.command.name}` command on **{loc}**"
             self.logger.info(text.replace("*", "").replace("`", ""))
 
-    async def on_app_command_completion(
-        self,
-        interaction: discord.Interaction,
-        command: Union[discord.app_commands.Command, discord.app_commands.ContextMenu],
-    ):
-        if interaction.type == discord.InteractionType.application_command:
-            await self.pool.execute(
-                "INSERT INTO commands (user_id, command_name) VALUES ($1, $2)",
-                interaction.user.id,
-                interaction.command.name,
-            )
+    async def on_app_command_completion(self, interaction: discord.Interaction, command: Union[discord.app_commands.Command, discord.app_commands.ContextMenu]):
+        if interaction.type != discord.InteractionType.application_command:
+            return
+        await self.pool.execute("INSERT INTO commands (user_id, command_name) VALUES ($1, $2)", interaction.user.id, interaction.command.name)
 
-            try:
-                loc = interaction.guild
-            except:
-                loc = interaction.user
-            else:
-                loc = interaction.guild
+        try:
+            loc = interaction.guild
+        except:
+            loc = interaction.user
+        else:
+            loc = interaction.guild
+        date = dt.datetime.now()
+        waktu = date.strftime("%d/%m/%y %I:%M %p")
+        if interaction.namespace:
+            self.logger.info(str(interaction.namespace))
+        choice = random.choices([234, 675, 1274, 3030, 56589, 2232], cum_weights=[0.9, 5, 11, 14, 8, 13], k=1)
 
-            date = dt.datetime.now()
-            waktu = date.strftime("%d/%m/%y %I:%M %p")
+        self.logger.info(choice)
+        if choice[0] == 234:
+            await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote>")
 
-            if interaction.namespace:
-                self.logger.info(str(interaction.namespace))
+        try:
+            text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
 
-            choice = random.choices(
-                [234, 675, 1274, 3030, 56589, 2232],
-                cum_weights=[0.9, 5, 11, 14, 8, 13],
-                k=1,
-            )
-            self.logger.info(choice)
+            self.logger.info(text.replace("*", "").replace("`", ""))
+        except:
+            text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on **{loc}**"
 
-            if choice[0] == 234:
-                await interaction.channel.send(
-                    "If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote>"
-                )
-
-            try:
-                text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
-                self.logger.info(text.replace("*", "").replace("`", ""))
-            except:
-                text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on **{loc}**"
-                self.logger.info(text.replace("*", "").replace("`", ""))
+            self.logger.info(text.replace("*", "").replace("`", ""))
 
     async def on_guild_join(self, guild: discord.Guild):
         try:

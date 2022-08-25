@@ -34,14 +34,11 @@ class owner(commands.Cog):
             activity=discord.Activity(type=discord.ActivityType.playing, name=prescense)
         )
 
-    async def is_owner(interaction: discord.Interaction) -> bool:
-
-        if interaction.user.id == 894794517079793704:
+    async def is_owner(self) -> bool:
+        if self.user.id == 894794517079793704:
             return True
+        await self.response.send_message("You Cannot Use This Command!", ephemeral=True)
 
-        await interaction.response.send_message(
-            "You Cannot Use This Command!", ephemeral=True
-        )
         return False
 
     @commands.command()

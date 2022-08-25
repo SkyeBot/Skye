@@ -15,7 +15,7 @@ class ping(commands.Cog):
 
     def format_ping(self, ping: int) -> str:
         p = f"```diff\n{'-' if ping > 150 else '+'} {round(ping)}ms"
-        return p.ljust(30) + "```"
+        return f"{p.ljust(30)}```"
 
     @commands.command()
     async def ping(self, ctx: Context):

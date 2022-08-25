@@ -68,9 +68,7 @@ class Docs(commands.Cog, name="Documentation"):
                 suggestions.append((len(r.group()), r.start(), item))
 
         def sort_key(tup):
-            if key:
-                return tup[0], tup[1], key(tup[2])
-            return tup
+            return (tup[0], tup[1], key(tup[2])) if key else tup
 
         if lazy:
             return (z for _, _, z in sorted(suggestions, key=sort_key))
@@ -123,59 +121,43 @@ class Docs(commands.Cog, name="Documentation"):
         if ctx.guild is not None:
             #                             日本語 category
             if ctx.channel.category_id == 490287576670928914:
-                return prefix + "-jp"
+                return f"{prefix}-jp"
             #                    d.py unofficial JP   Discord Bot Portal JP
             elif ctx.guild.id in (463986890190749698, 494911447420108820):
-                return prefix + "-jp"
+                return f"{prefix}-jp"
         return prefix
 
     async def build_rtfm_lookup_table(self, page_types):
         cache = {}
         for key, page in page_types.items():
-            async with self.bot.session.get(page + "/objects.inv") as resp:
+            async with self.bot.session.get(f"{page}/objects.inv") as resp:
                 if resp.status != 200:
-                    raise RuntimeError(
-                        "Cannot build rtfm lookup table, try again later."
-                    )
-
+                    raise RuntimeError("Cannot build rtfm lookup table, try again later.")
                 stream = SphinxObjectFileReader(await resp.read())
                 cache[key] = self.parse_object_inv(stream, page)
-
         self._rtfm_cache = cache
 
     async def do_rtfm(self, interaction: discord.Interaction, key, obj):
         await interaction.response.defer()
         page_types = self.page_types
-
         if obj is None:
             await interaction.response.send_message(page_types[key])
             return
-
         if not hasattr(self, "_rtfm_cache"):
             await self.build_rtfm_lookup_table(page_types)
-
         cache = list(self._rtfm_cache[key].items())
-
         self.matches = self.finder(obj, cache, key=lambda t: t[0], lazy=False)[:8]
         if len(self.matches) == 0:
-            e = discord.Embed(description=f"**Could not find anything. Sorry.!**")
-            e.set_footer(
-                text=f"Read The Fucking Manual :)",
-                icon_url=interaction.user.display_avatar.url,
-            )
-            return await interaction.followup.send(embed=e)
-        else:
-            e = discord.Embed(
-                title=f"Make sure to read the fucking docs! (hence the name)"
-            )
-            e.set_footer(
-                text=f"Requested By {interaction.user}",
-                icon_url=f"{interaction.user.display_avatar.url}",
-            )
-            e.set_thumbnail(url=interaction.user.display_avatar.url)
+            e = discord.Embed(description="**Could not find anything. Sorry.!**")
+            e.set_footer(text="Read The Fucking Manual :)", icon_url=interaction.user.display_avatar.url)
 
+        else:
+            e = discord.Embed(title="Make sure to read the fucking docs! (hence the name)")
+            e.set_footer(text=f"Requested By {interaction.user}", icon_url=f"{interaction.user.display_avatar.url}")
+
+            e.set_thumbnail(url=interaction.user.display_avatar.url)
             e.description = "\n".join(f"[`{key}`]({url})" for key, url in self.matches)
-            return await interaction.followup.send(embed=e)
+        return await interaction.followup.send(embed=e)
 
     rtfm = app_commands.Group(name="rtfm", description="all RTFM commands")
 

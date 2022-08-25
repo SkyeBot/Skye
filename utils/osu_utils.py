@@ -44,68 +44,39 @@ class Osu:
         }
 
         params = {"limit": 5}
-        async with self.session.get(
-            self.API_URL + f"/users/{user}", headers=headers, params=params
-        ) as response:
+        async with self.session.get(f"{self.API_URL}/users/{user}", headers=headers, params=params) as response:
             json = await response.json()
 
         return User(json)
 
     async def fetch_user_recent(self, user: Union[str, int]):
         autorization = await self.get_token()
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {autorization}",
-        }
+        headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": f"Bearer {autorization}"}
 
         params = {"limit": 5}
-        async with self.session.get(
-            self.API_URL + f"/users/{user}/scores/recent",
-            headers=headers,
-            params=params,
-        ) as response:
+        async with self.session.get(f"{self.API_URL}/users/{user}/scores/recent", headers=headers, params=params) as response:
             json = await response.json()
-
         return json
 
     async def fetch_user_beatmaps(self, user: str, type: str, limit: int) -> Beatmap:
         autorization = await self.get_token()
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {autorization}",
-        }
+        headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": f"Bearer {autorization}"}
 
         params = {"limit": limit}
         if type not in self.beatmap_types:
             types = ", ".join(self.beatmap_types)
             return f"Beatmap type must be in {types}"
-
-        async with self.session.get(
-            self.API_URL + f"/users/{user}/beatmapsets/{type}",
-            headers=headers,
-            params=params,
-        ) as response:
+        async with self.session.get(f"{self.API_URL}/users/{user}/beatmapsets/{type}", headers=headers, params=params) as response:
             json = await response.json()
-
         return json
 
     async def get_beatmap(self, beatmap: Union[str, int]):
         authorization = await self.get_token()
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {authorization}",
-        }
+        headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": f"Bearer {authorization}"}
 
         params = {}
-
-        async with self.session.get(
-            self.API_URL + f"/beatmaps/{beatmap}", headers=headers, params=params
-        ) as resp:
+        async with self.session.get(f"{self.API_URL}/beatmaps/{beatmap}", headers=headers, params=params) as resp:
             json = await resp.json()
-
         return Beatmap(json)
 
 
@@ -114,42 +85,21 @@ class User:
         try:
             self.data = data
             self.username = data.get("username")
-            self._global_rank = (
-                str(data.get("statistics").get("global_rank"))
-                if data.get("statistics").get("global_rank") is not None
-                else 0
-            )
-            self.pp = (
-                data.get("statistics").get("pp") if data.get("statistics") else "None"
-            )
-            self._rank = (
-                data.get("statistics").get("grade_counts")
-                if data.get("statistics")
-                else "None"
-            )
-            self.accuracy = (
-                f"{int(data.get('statistics').get('hit_accuracy')):.2f}"
-                if data.get("statistics")
-                else "None"
-            )
-            self._country_rank = (
-                str(data.get("statistics").get("country_rank"))
-                if data.get("statistics").get("country_rank") is not None
-                else 0
-            )
-            self._profile_order = (
-                data["profile_order"]
-                if data["profile_order"] != KeyError
-                else "Cant Get Profile Order!"
-            )
-            self.country_emoji = (
-                f":flag_{data.get('country_code').lower()}:"
-                if data.get("country_code")
-                else "None"
-            )
-            self.country_code = (
-                data.get("country_code") if data.get("country_code") else "None"
-            )
+            self._global_rank = str(data.get("statistics").get("global_rank")) if data.get("statistics").get("global_rank") is not None else 0
+
+            self.pp = data.get("statistics").get("pp") if data.get("statistics") else "None"
+
+            self._rank = data.get("statistics").get("grade_counts") if data.get("statistics") else "None"
+
+            self.accuracy = f"{int(data.get('statistics').get('hit_accuracy')):.2f}" if data.get("statistics") else "None"
+
+            self._country_rank = str(data.get("statistics").get("country_rank")) if data.get("statistics").get("country_rank") is not None else 0
+
+            self._profile_order = data["profile_order"] if data["profile_order"] != KeyError else "Cant Get Profile Order!"
+
+            self.country_emoji = f":flag_{data.get('country_code').lower()}:" if data.get("country_code") else "None"
+
+            self.country_code = data.get("country_code") or "None"
             self._country = data.get("country")
             self.avatar_url = data.get("avatar_url")
             self.id = data.get("id")
@@ -161,7 +111,7 @@ class User:
             self._total_hits = str(data.get("statistics").get("total_hits"))
             self.total_score = data.get("statistics").get("total_score")
             self.play_count = data.get("statistics").get("play_count")
-        except:  # These return None if not available so bare except works fine here.
+        except:
             raise NoUserFound("No user was found by that name!")
 
     def __repr__(self) -> str:
@@ -172,46 +122,19 @@ class User:
 
     @property
     def global_rank(self) -> Any:
-        rank = (
-            self._global_rank[:3] + "," + self._global_rank[3:]
-            if int(self._global_rank) > 10000
-            else self._global_rank
-            if int(self._global_rank) < 1000
-            else self._global_rank[:1] + "," + self._global_rank[1:]
-            if self._global_rank != 0
-            else 0
-        )
-        return rank
+        return f"{self._global_rank[:3]},{self._global_rank[3:]}" if int(self._global_rank) > 10000 else self._global_rank if int(self._global_rank) < 1000 else f"{self._global_rank[:1]},{self._global_rank[1:]}" if self._global_rank != 0 else 0
 
     @property
     def country_rank(self):
-        rank = (
-            self._country_rank[:2] + "," + self._country_rank[2:]
-            if int(self._country_rank) > 10000
-            else self._country_rank
-            if int(self._country_rank) < 1000
-            else self._country_rank[:1] + "," + self._country_rank[1:]
-            if self._country_rank != 0
-            else 0
-        )
-        return rank
+        return f"{self._country_rank[:2]},{self._country_rank[2:]}" if int(self._country_rank) > 10000 else self._country_rank if int(self._country_rank) < 1000 else f"{self._country_rank[:1]},{self._country_rank[1:]}" if self._country_rank != 0 else 0
 
     @property
     def total_hits(self):
-        rank = (
-            self._total_hits[:3] + "," + self._total_hits[3:]
-            if int(self._total_hits) > 10000
-            else self._total_hits
-            if int(self._total_hits) < 1000
-            else self._total_hits[:2] + "," + self._total_hits[2:]
-            if self._total_hits != 0
-            else 0
-        )
-        return rank
+        return f"{self._total_hits[:3]},{self._total_hits[3:]}" if int(self._total_hits) > 10000 else self._total_hits if int(self._total_hits) < 1000 else f"{self._total_hits[:2]},{self._total_hits[2:]}" if self._total_hits != 0 else 0
 
     @property
     def profile_order(self) -> str:
-        profile_order = "\n ​ ​ ​ ​ ​ ​ ​ ​  - ".join(x for x in self._profile_order)
+        profile_order = "\n ​ ​ ​ ​ ​ ​ ​ ​  - ".join(self._profile_order)
         return profile_order.replace("_", " ")
 
     @property
@@ -254,6 +177,4 @@ class Beatmap:
     def covers(self, cover: str) -> str:
         if cover not in self.data.get("cover"):
             return "Cover not in covers"
-
-        cover_data = self.data.get("cover").get(cover)
-        return cover_data
+        return self.data.get("cover").get(cover)

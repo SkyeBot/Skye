@@ -34,24 +34,16 @@ class Music(commands.Cog):
         self.node = wavelink.NodePool.get_node()
 
     @commands.Cog.listener()
-    async def on_wavelink_track_end(
-        self, player: wavelink.Player, track: wavelink.Track, reason
-    ):
+    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track, reason):
         ctx = player
-
         if f"{ctx.guild.id}" in self.muloop.keys():
-
-            last = await wavelink.YouTubeTrack.search(
-                query=f"{self.muloop[f'{ctx.guild.id}']} ", return_first=True
-            )
+            last = await wavelink.YouTubeTrack.search(query=f"{self.muloop[f'{ctx.guild.id}']} ", return_first=True)
 
             await player.play(last)
-        else:
-            if not player.queue.is_empty:
-
-                new = await player.queue.get_wait()
-                await ctx.channel.send(f"Now playing: **{new}**")
-                await player.play(new)
+        elif not player.queue.is_empty:
+            new = await player.queue.get_wait()
+            await ctx.channel.send(f"Now playing: **{new}**")
+            await player.play(new)
 
     @app_commands.command()
     async def play(self, interaction: discord.Interaction, *, url: str):
@@ -217,18 +209,14 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         voice_state = member.guild.voice_client
-
         vc: wavelink.Player = voice_state
-        if voice_state is None:
+        if vc is None:
             return
-
-        if len(voice_state.channel.members) == 1:
-            await voice_state.disconnect()
-
+        if len(vc.channel.members) == 1:
+            await vc.disconnect()
         if after.channel is None:
             if f"{vc.guild.id}" in self.muloop.keys():
                 self.muloop.pop(f"{vc.guild.id}")
-
             vc.queue.clear()
 
     queues = app_commands.Group(name="queue-control", description="The queue group!")

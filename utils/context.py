@@ -39,11 +39,11 @@ class Context(commands.Context):
 
     @property
     def db(self) -> Union[Pool, Connection]:
-        return self._db if self._db else self.pool
+        return self._db or self.pool
 
     @property
     def thino(self) -> Client:
-        return self.thino if self.thino else self.bot.thino
+        return self.thino or self.bot.thino
 
     async def reply(self, *args, **kwargs):
         if not kwargs.get("mention_author"):

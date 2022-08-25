@@ -63,14 +63,13 @@ class autorole(commands.Cog):
             "SELECT autorole FROM AUTOROLE WHERE guild_id = $1", interaction.guild.id
         )
 
-        if exists is not None:
-            await self.bot.pool.execute(
-                "DELETE FROM autorole WHERE guild_id = $1", interaction.guild.id
-            )
-            await interaction.response.send_message(
-                "Autorole sucessfully disabled", ephemeral=True
-            )
-        else:
+        if exists is None:
             return await interaction.response.send_message(
                 "This server's autorole is not enabled!", ephemeral=True
             )
+        await self.bot.pool.execute(
+            "DELETE FROM autorole WHERE guild_id = $1", interaction.guild.id
+        )
+        await interaction.response.send_message(
+            "Autorole sucessfully disabled", ephemeral=True
+        )

@@ -40,64 +40,37 @@ class UserSelect(discord.ui.Select):
             original = self.ctx.user.id
         else:
             original = self.ctx.author.id
-
-        if interaction.user.id != original:
-            pass
-
         await interaction.response.defer()
-
         if self.values[0] == "Account Avatar":
             embed = discord.Embed()
             avatar_url = self.user.avatar_url
-
             embed.title = f"{self.user.username}'s Osu avatar"
             embed.set_image(url=avatar_url)
-
             await interaction.message.edit(embed=embed)
-
         if self.values[0] == "Statistics":
             embed = discord.Embed(title=f"{self.user.username}'s Statistics")
             max_combo = self.user.max_combo
-            play_style = (
-                ", ".join(self.user.playstyle)
-                if type(self.user.playstyle) is list
-                else f"{self.user.username} has no playstyles selected"
-            )
-            embed.add_field(
-                name="Total Statistics",
-                value=f"Total Hits: {self.user.total_hits}\nTotal Score: {self.user.total_score}\nMaximum Combo: {max_combo}\nPlay Count: {self.user.play_count}",
-                inline=True,
-            )
-            embed.add_field(
-                name="Play Styles",
-                value=f"Play Styles: {play_style}\nFavorite Play Mode: {self.user.playmode}",
-                inline=True,
-            )
-            await interaction.message.edit(embed=embed)
+            play_style = ", ".join(self.user.playstyle) if type(self.user.playstyle) is list else f"{self.user.username} has no playstyles selected"
 
+            embed.add_field(name="Total Statistics", value=f"Total Hits: {self.user.total_hits}\nTotal Score: {self.user.total_score}\nMaximum Combo: {max_combo}\nPlay Count: {self.user.play_count}", inline=True)
+
+            embed.add_field(name="Play Styles", value=f"Play Styles: {play_style}\nFavorite Play Mode: {self.user.playmode}", inline=True)
+
+            await interaction.message.edit(embed=embed)
         if self.values[0] == "bea":
             embed = discord.Embed()
-            fav = await interaction.client.osu.fetch_user_beatmaps(
-                self.user.id, "favourite", 5
-            )
+            fav = await interaction.client.osu.fetch_user_beatmaps(self.user.id, "favourite", 5)
+
             favorite_beatmaps = [Beatmap(a) for a in fav]
             embed.title = f"{self.user.username}'s favourite beatmaps"
-            embed.add_field(
-                name="Favorite Beatmaps",
-                value="\n".join(
-                    f"{beatmap.title} - {beatmap.artist}"
-                    for beatmap in favorite_beatmaps
-                ),
-                inline=True,
-            )
+            embed.add_field(name="Favorite Beatmaps", value="\n".join(f"{beatmap.title} - {beatmap.artist}" for beatmap in favorite_beatmaps), inline=True)
 
             await interaction.message.edit(embed=embed)
-
         if self.values[0] == "Info":
             embed = discord.Embed()
             view = DropdownView(interaction, self.user)
-
             embed.description = f"**{self.user.country_emoji} | Profile for [{self.user.username}](https://osu.ppy.sh/users/{self.user.id})**\n\n▹ **Bancho Rank**: #{self.user.global_rank} ({self.user.country_code}#{self.user.country_rank})\n▹ **Join Date**: {self.user.joined_at}\n▹ **PP**: {self.user.pp} **Acc**: {self.user.accuracy}%\n▹ **Ranks**: {self.user.ranks}\n▹ **Profile Order**: \n** ​ ​ ​ ​ ​ ​ ​ ​  - {self.user.profile_order}**"
+
             embed.set_thumbnail(url=self.user.avatar_url)
             await interaction.message.edit(embed=embed, view=view)
 
@@ -195,12 +168,11 @@ class osu(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        beatmap_regex = re.compile(r"http[s]?://osu\.ppy\.sh/b/[0-9]{1,12}")
-
+        beatmap_regex = re.compile("http[s]?://osu\.ppy\.sh/b/[0-9]{1,12}")
         try:
             if re.match(beatmap_regex, str(message.content)):
-                numbers = re.findall(r"\d+", message.content)
-                numbers = "".join(x for x in numbers)
+                numbers = re.findall("\d+", message.content)
+                numbers = "".join(numbers)
                 beatmap = await self.bot.osu.get_beatmap(numbers)
                 await message.channel.send(beatmap.artist)
         except Exception as e:

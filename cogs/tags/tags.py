@@ -193,11 +193,7 @@ class Tags(commands.Cog):
         tag_id, is_alias, tag_name, owner_id, uses, created_timestamp = lookup
         e = discord.Embed()
 
-        if is_alias:
-            e.title = f"Tag {name} -> {tag_name}"
-        else:
-            e.title = f"Tag {tag_name}"
-
+        e.title = f"Tag {name} -> {tag_name}" if is_alias else f"Tag {tag_name}"
         owner = self.bot.get_user(owner_id)
         if owner:
             e.set_author(name=str(owner), icon_url=owner.display_avatar.url)

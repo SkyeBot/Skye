@@ -50,21 +50,13 @@ class HumanTime:
     calendar = pdt.Calendar(version=pdt.VERSION_CONTEXT_STYLE)
 
     def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
-        now = now or datetime.datetime.utcnow()
+        now = now or datetime.datetime.now(datetime.timezone.utc)
         dt, status = self.calendar.parseDT(argument, sourceTime=now)
         if not status.hasDateOrTime:
-            raise commands.BadArgument(
-                'invalid time provided, try e.g. "tomorrow" or "3 days"'
-            )
+            raise commands.BadArgument('invalid time provided, try e.g. "tomorrow" or "3 days"')
 
         if not status.hasTime:
-            # replace it with the current time
-            dt = dt.replace(
-                hour=now.hour,
-                minute=now.minute,
-                second=now.second,
-                microsecond=now.microsecond,
-            )
+            dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
 
         self.dt: datetime.datetime = dt
         self._past: bool = dt < now
@@ -161,10 +153,8 @@ class UserFriendlyTime(commands.Converter):
             if argument.endswith("from now"):
                 argument = argument[:-8].strip()
 
-            if argument[0:2] == "me":
-                # starts with "me to", "me in", or "me at "
-                if argument[0:6] in ("me to ", "me in ", "me at "):
-                    argument = argument[6:]
+            if argument[:2] == "me" and argument[:6] in ("me to ", "me in ", "me at "):
+                argument = argument[6:]
 
             elements = calendar.nlp(argument, sourceTime=now)
             if elements is None or len(elements) == 0:
@@ -216,7 +206,7 @@ class UserFriendlyTime(commands.Converter):
                             "Expected quote before time input..."
                         )
 
-                    if not (end < len(argument) and argument[end] == '"'):
+                    if end >= len(argument) or argument[end] != '"':
                         raise commands.BadArgument(
                             "If the time is quoted, you must unquote it."
                         )
@@ -236,79 +226,46 @@ class UserFriendlyTime(commands.Converter):
             raise
 
 
-def human_timedelta(
-    dt: datetime.datetime,
-    *,
-    source: Optional[datetime.datetime] = None,
-    accuracy: Optional[int] = 3,
-    brief: bool = False,
-    suffix: bool = True,
-) -> str:
+def human_timedelta(dt: datetime.datetime, *, source: Optional[datetime.datetime] = None, accuracy: Optional[int] = 3, brief: bool = False, suffix: bool = True) -> str:
     now = source or datetime.datetime.now(datetime.timezone.utc)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
-
     if now.tzinfo is None:
         now = now.replace(tzinfo=datetime.timezone.utc)
-
-    # Microsecond free zone
     now = now.replace(microsecond=0)
     dt = dt.replace(microsecond=0)
-
-    # This implementation uses relativedelta instead of the much more obvious
-    # divmod approach with seconds because the seconds approach is not entirely
-    # accurate once you go over 1 week in terms of accuracy since you have to
-    # hardcode a month as 30 or 31 days.
-    # A query like "11 months" can be interpreted as "!1 months and 6 days"
     if dt > now:
         delta = relativedelta(dt, now)
         output_suffix = ""
     else:
         delta = relativedelta(now, dt)
         output_suffix = " ago" if suffix else ""
-
-    attrs = [
-        ("year", "y"),
-        ("month", "mo"),
-        ("day", "d"),
-        ("hour", "h"),
-        ("minute", "m"),
-        ("second", "s"),
-    ]
+    attrs = [("year", "y"), ("month", "mo"), ("day", "d"), ("hour", "h"), ("minute", "m"), ("second", "s")]
 
     output = []
     for attr, brief_attr in attrs:
-        elem = getattr(delta, attr + "s")
+        elem = getattr(delta, f"{attr}s")
         if not elem:
             continue
-
         if attr == "day":
-            weeks = delta.weeks
-            if weeks:
+            if weeks := delta.weeks:
                 elem -= weeks * 7
                 if not brief:
                     output.append(format(plural(weeks), "week"))
                 else:
                     output.append(f"{weeks}w")
-
         if elem <= 0:
             continue
-
         if brief:
             output.append(f"{elem}{brief_attr}")
         else:
             output.append(format(plural(elem), attr))
-
     if accuracy is not None:
         output = output[:accuracy]
-
     if len(output) == 0:
         return "now"
     else:
-        if not brief:
-            return human_join(output, final="and") + output_suffix
-        else:
-            return " ".join(output) + output_suffix
+        return " ".join(output) + output_suffix if brief else human_join(output, final="and") + output_suffix
 
 
 def format_relative(dt: datetime.datetime) -> str:

@@ -1,3 +1,4 @@
+import contextlib
 import typing
 from discord import ui
 import discord
@@ -24,21 +25,14 @@ class Pages(
 
     async def show_checked_page(self, page_number, interaction: discord.Interaction):
         max_pages = self._source.get_max_pages()
-        try:
-            if max_pages is None:
+        with contextlib.suppress(IndexError):
+            if max_pages is None or max_pages > page_number >= 0:
                 # If it doesn't give maximum pages, it cannot be checked
                 await self.show_page(page_number, interaction)
-            elif max_pages > page_number >= 0:
-                await self.show_page(page_number, interaction)
-
             elif max_pages >= page_number:
                 await interaction.response.send_message(
                     "You're at the end of the paginator!", ephemeral=True
                 )
-
-        except IndexError:
-            # An error happened that can be handled, so ignore it.
-            pass
 
     async def start(self, ctx, *, channel=None, wait=False):
         # We wont be using wait/channel, you can implement them yourself. This is to match the MenuPages signature.
@@ -101,10 +95,7 @@ class Pages(
 
 class MusicPageSource(menus.ListPageSource):
     async def format_page(self, menu, entries):
-        stuff = []
-        for count, song in enumerate(entries, start=-0):
-
-            stuff.append(f"{count+1}: {song} by {song.author}")
+        stuff = [f"{count + 1}: {song} by {song.author}" for count, song in enumerate(entries, start=-0)]
 
         current_playing = menu.vc.source.title
 

@@ -113,15 +113,6 @@ class welcomer(commands.Cog):
                 message,
                 interaction.guild.id,
             )
-            new_text = string.Template(message).safe_substitute(
-                user=interaction.user.mention, guild=interaction.guild
-            )
-
-            return await interaction.response.send_message(
-                f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**",
-                ephemeral=True,
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
         else:
             await self.bot.pool.execute(
                 "UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3",
@@ -129,15 +120,16 @@ class welcomer(commands.Cog):
                 message,
                 interaction.guild.id,
             )
-            new_text = string.Template(message).safe_substitute(
-                user=interaction.user.mention, guild=interaction.guild
-            )
 
-            return await interaction.response.send_message(
-                f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**",
-                ephemeral=True,
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
+        new_text = string.Template(message).safe_substitute(
+            user=interaction.user.mention, guild=interaction.guild
+        )
+
+        return await interaction.response.send_message(
+            f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**",
+            ephemeral=True,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
     @welcomer.command()
     async def disable(self, interaction: discord.Interaction):
@@ -167,22 +159,15 @@ class welcomer(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         try:
-            exists = await self.bot.pool.fetchrow(
-                "SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id
-            )
+            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id)
+
             channel = self.bot.get_channel(exists.get("channel_id"))
+            new_text = string.Template(exists.get("message")).safe_substitute(user=member.mention, guild=member.guild)
 
-            new_text = string.Template(exists.get("message")).safe_substitute(
-                user=member.mention, guild=member.guild
-            )
+            embed = discord.Embed(title=f"Welcome {member} to {member.guild}!", description=f"{new_text}")
 
-            embed = discord.Embed(
-                title=f"Welcome {member} to {member.guild}!", description=f"{new_text}"
-            )
-
-            embed.timestamp = datetime.datetime.utcnow()
+            embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             embed.set_thumbnail(url=f"{member.avatar}")
-
             await channel.send(embed=embed)
         except Exception as e:
             print(e)
@@ -190,35 +175,17 @@ class welcomer(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         try:
-            exists = await self.bot.pool.fetchrow(
-                "SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id
-            )
+            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id)
+
             channel = self.bot.get_channel(exists.get("channel_id"))
-            show_roles = (
-                ", ".join(
-                    [
-                        f"<@&{x.id}>"
-                        for x in sorted(
-                            member.roles, key=lambda x: x.position, reverse=True
-                        )
-                        if x.id != member.guild.default_role.id
-                    ]
-                )
-                if len(member.roles) > 1
-                else "Default Role"
-            )
+            show_roles = ", ".join([f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if x.id != member.guild.default_role.id]) if len(member.roles) > 1 else "Default Role"
 
-            embed = discord.Embed(
-                title=f"Member: {member} left the server! this server is now at {len(member.guild.members)} Members"
-            )
-            embed.add_field(
-                name="Account created",
-                value=default.date(member.created_at, ago=True),
-                inline=False,
-            )
-            embed.timestamp = datetime.datetime.utcnow()
+            embed = discord.Embed(title=f"Member: {member} left the server! this server is now at {len(member.guild.members)} Members")
+
+            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+
+            embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             embed.set_thumbnail(url=f"{member.avatar}")
-
             await channel.send(embed=embed)
         except Exception as e:
             print(e)
