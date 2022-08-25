@@ -6,7 +6,6 @@ from core.bot import SkyeBot
 
 from discord import app_commands
 
-
 class Warns(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
@@ -15,3 +14,5 @@ class Warns(commands.Cog):
     async def warn(self, interaction: discord.Interaction):
         """Doesn't work as of right now"""
 
+        pass
+        
