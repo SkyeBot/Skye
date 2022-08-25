@@ -1,12 +1,10 @@
 from __future__ import annotations
-from copy import deepcopy
 
 import discord
 from discord.ext import commands
 
-from typing import TYPE_CHECKING,Union, Any, Optional
+from typing import TYPE_CHECKING, Union, Any, Optional
 
-from .constants import VALID_EDIT_KWARGS
 
 if TYPE_CHECKING:
     from core.bot import SkyeBot
@@ -14,12 +12,14 @@ if TYPE_CHECKING:
     from aiohttp import ClientSession
     from thino import Client
 
-    
+
 class Context(commands.Context):
 
     """An custom context class that might not be used much since rewrite is for slash commands (it's good to have though) ;-;"""
-    
-    channel: Union[discord.VoiceChannel, discord.TextChannel, discord.Thread, discord.DMChannel]
+
+    channel: Union[
+        discord.VoiceChannel, discord.TextChannel, discord.Thread, discord.DMChannel
+    ]
     prefix: str
     command: commands.Command[Any, ..., Any]
     bot: SkyeBot
@@ -31,7 +31,7 @@ class Context(commands.Context):
         self.thino: Optional[Client]
 
     def __repr__(self) -> str:
-        return '<Context>'
+        return "<Context>"
 
     @property
     def session(self) -> ClientSession:
@@ -39,15 +39,14 @@ class Context(commands.Context):
 
     @property
     def db(self) -> Union[Pool, Connection]:
-        return self._db if self._db else self.pool
+        return self._db or self.pool
 
     @property
     def thino(self) -> Client:
-        return self.thino if self.thino else self.bot.thino
+        return self.thino or self.bot.thino
 
-
-    async def reply(self,*args, **kwargs):
+    async def reply(self, *args, **kwargs):
         if not kwargs.get("mention_author"):
             kwargs["mention_author"] = False
-        
+
         return await super().reply(*args, **kwargs)

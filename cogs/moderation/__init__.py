@@ -1,6 +1,4 @@
-import discord
 
-from discord.ext import commands
 
 
 # Local Imports

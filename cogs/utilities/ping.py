@@ -9,15 +9,13 @@ import time
 from utils import constants
 
 
-
 class ping(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
 
-
     def format_ping(self, ping: int) -> str:
         p = f"```diff\n{'-' if ping > 150 else '+'} {round(ping)}ms"
-        return p.ljust(30) + "```"
+        return f"{p.ljust(30)}```"
 
     @commands.command()
     async def ping(self, ctx: Context):
@@ -38,7 +36,6 @@ class ping(commands.Cog):
         await self.bot.pool.fetch("SELECT 1")
         end = time.perf_counter()
 
-        
         postgres_ping = self.format_ping((end - start) * 1000)
 
         start = time.perf_counter()
@@ -47,11 +44,21 @@ class ping(commands.Cog):
         end = time.perf_counter()
         aiohttp_ms = self.format_ping((end - start) * 1000)
 
-        em = discord.Embed(color=self.bot.color) \
-                    .add_field(name=f"{constants.WEBSOCKET} Websocket", value=websocket, inline=True) \
-                        .add_field(name=f"{constants.CHAT_BOX} Message", value=message_ping, inline=True) \
-                            .add_field(name=f"{constants.POSTGRES} Database", value=postgres_ping, inline=True) \
-                                .add_field(name=f"{constants.AIOHTTP} HTTP request", value=aiohttp_ms, inline=True) \
-                                    .set_footer(text="Credit to le ducki3#4987 for the original code!")
-        
+        em = (
+            discord.Embed(color=self.bot.color)
+            .add_field(
+                name=f"{constants.WEBSOCKET} Websocket", value=websocket, inline=True
+            )
+            .add_field(
+                name=f"{constants.CHAT_BOX} Message", value=message_ping, inline=True
+            )
+            .add_field(
+                name=f"{constants.POSTGRES} Database", value=postgres_ping, inline=True
+            )
+            .add_field(
+                name=f"{constants.AIOHTTP} HTTP request", value=aiohttp_ms, inline=True
+            )
+            .set_footer(text="Credit to le ducki3#4987 for the original code!")
+        )
+
         await message.edit(content=None, embed=em)

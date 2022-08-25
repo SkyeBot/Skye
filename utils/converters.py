@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-import typing
 from typing import (
     Type,
-    Union,
     Tuple,
-    Dict,
     TypeVar,
-    overload,
     Generic,
 )
 
@@ -17,15 +13,13 @@ from discord.ext.commands import FlagConverter
 
 from .context import Context
 
-BET = TypeVar('BET', bound='discord.guild.BanEntry')
-FCT = TypeVar('FCT', bound='FlagConverter')
-T = TypeVar('T')
+BET = TypeVar("BET", bound="discord.guild.BanEntry")
+FCT = TypeVar("FCT", bound="FlagConverter")
+T = TypeVar("T")
 
 
+__all__: Tuple[str, ...] = ("UntilFlag",)
 
-__all__: Tuple[str, ...] = (
-    'UntilFlag',
-)
 
 class UntilFlag(Generic[FCT]):
     """A converter that will convert until a flag is reached.
@@ -56,7 +50,7 @@ class UntilFlag(Generic[FCT]):
         self._start = self.flags.__commands_flag_prefix__  # type: ignore
 
     def __class_getitem__(cls, item: Type[FlagConverter]) -> UntilFlag:
-        return cls(value='...', flags=item())
+        return cls(value="...", flags=item())
 
     def validate_value(self, argument: str) -> bool:
         """Used to validate the parsed value without flags.
@@ -78,7 +72,7 @@ class UntilFlag(Generic[FCT]):
         """
         stripped = argument.strip()
         if not stripped or stripped.startswith(self._start):
-            raise commands.BadArgument(f'No body has been specified before the flags.')
+            raise commands.BadArgument("No body has been specified before the flags.")
         return True
 
     async def convert(self, ctx: Context, argument: str) -> UntilFlag:
@@ -98,6 +92,6 @@ class UntilFlag(Generic[FCT]):
         """
         value = self._regex.split(argument, maxsplit=1)[0]
         if not await discord.utils.maybe_coroutine(self.validate_value, argument):
-            raise commands.BadArgument('Failed to validate argument preceding flags.')
+            raise commands.BadArgument("Failed to validate argument preceding flags.")
         flags = await self.flags.convert(ctx, argument=argument[len(value) :])
         return UntilFlag(value=value, flags=flags)
