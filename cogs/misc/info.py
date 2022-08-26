@@ -15,7 +15,7 @@ from utils import default, time, format
 from utils.context import Context
 
 class Dropdown(discord.ui.Select):
-    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot, user: int, is_member: bool):
+    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot, user: Union[discord.Member, discord.User]):
         self.ctx = ctx
         self.member = member
         self.bot = bot
