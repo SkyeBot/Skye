@@ -9,9 +9,10 @@ from core.bot import SkyeBot
 from .mods import Mods
 from .mute import Mute
 from .warn import Warns
+from .roles import Roles
 
 
-class Moderation(Mods, Mute, Warns):
+class Moderation(Mods, Mute, Warns, Roles):
     """Moderation Cog"""
 
 

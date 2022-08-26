@@ -25,12 +25,37 @@ from utils import constants
 start_time = datetime.datetime.utcnow().timestamp()
 
 
+class InfoSelect(discord.ui.Select):
+    def __init__(self, og_embed: discord.Embed):
+        # Set the options that will be presented inside the dropdown
+        options = [
+            discord.SelectOption(label='avatar', description='Avatar of the user'),
+            discord.SelectOption(label='Bot info', value=f"info",description="Actual Bot Info"),
+            discord.SelectOption(label="statistics", description="Bot Statistics")
+        ]
+
+        # The placeholder is what will be shown when no option is chosen
+        # The min and max values indicate we can only pick one of the three options
+        # The options parameter defines the dropdown options. We defined this above
+        super().__init__(min_values=1, max_values=1, options=options)
+        self.og_embed = og_embed
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        if self.values[0] == "info":
+            return await interaction.edit_original_response(embed=self.og_embed)
+            
+        
+        if self.values[0] == "avatar":
+            embed = discord.Embed(description="Here's my current avatar!")
+            embed.set_image(url=interaction.client.user.display_avatar.url)
+            return await interaction.message.edit(embed=embed)
 
 
-
-class info_view(discord.ui.View):
-    def __init__(self):
+class InfoView(discord.ui.View):
+    def __init__(self, og_embed):
         super().__init__(timeout=180)
+        self.add_item(InfoSelect(og_embed))
         self.add_item(discord.ui.Button(style=discord.ButtonStyle.link,label="Website", url="https://skyebot.dev/", emoji=constants.WEBSITE))
         self.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url="https://discord.gg/Zwn7D78pDw", emoji=constants.INVITE))
 
@@ -53,7 +78,6 @@ class bot_info(commands.Cog):
     @app_commands.command()
     async def botinfo(self, itr: discord.Interaction):
         """Provides info about the bot"""
-
         process = psutil.Process(os.getpid())
         ramUsage = process.memory_full_info().rss / 1024**2    
     
@@ -113,7 +137,7 @@ class bot_info(commands.Cog):
         )
         embed.timestamp = discord.utils.utcnow()
 
-        await itr.response.send_message(embed=embed, view=info_view())
+        await itr.response.send_message(embed=embed, view=InfoView(embed))
 
 
     @commands.command()

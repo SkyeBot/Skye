@@ -15,7 +15,7 @@ from utils import default, time, format
 from utils.context import Context
 
 class Dropdown(discord.ui.Select):
-    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot,member:Union[discord.Member, discord.User]):
+    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot, user: int, is_member: bool):
         self.ctx = ctx
         self.member = member
         self.bot = bot
@@ -79,7 +79,6 @@ class Dropdown(discord.ui.Select):
             member = self.member
 
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
-            
 
             self.embed.description = text
             self.embed.color = 0x3867a8
@@ -173,9 +172,10 @@ class Misc(commands.Cog):
             embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
         
-    
+
     
         view = DropdownView(itr,self.bot,member)
+        
 
         created_date = default.date(member.created_at, ago=True)
 
@@ -185,7 +185,8 @@ class Misc(commands.Cog):
         embed.set_thumbnail(url=member.display_avatar.url)
     
         await itr.response.send_message(embed=embed, view=view)
-    
+
+
     @app_commands.command(name="serverinfo")
     async def serverinfo(self, interaction: discord.Interaction, *, guild_id: str  = None):
         """Shows info about the current server."""

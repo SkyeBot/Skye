@@ -149,17 +149,5 @@ class osu(commands.Cog):
         except Exception as e:
             return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        beatmap_regex =  re.compile(r"http[s]?://osu\.ppy\.sh/b/[0-9]{1,12}")
-
-        try:
-            if re.match(beatmap_regex, str(message.content)):
-                numbers = re.findall(r'\d+', message.content)
-                numbers = ''.join(x for x in numbers)
-                beatmap = await self.bot.osu.get_beatmap(numbers)
-                await message.channel.send(beatmap.artist)
-        except Exception as e:
-            print(e)
 
         

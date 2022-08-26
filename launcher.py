@@ -28,6 +28,14 @@ async def main():
             else:
                 return True
         
+        exts = ["jishaku"] + [
+            f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
+            for ext in os.listdir("cogs")
+            if not ext.startswith("_")
+        ]
+        for ext in exts:
+            await bot.load_extension(ext)
+
 
         bot.tree.interaction_check = blacklist_check
         await bot.start(os.environ["TOKEN"])

@@ -60,15 +60,15 @@ class SkyeBot(commands.AutoShardedBot):
         self.config = os.environ
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
-        self.intents = discord.Intents.all()
-        self.intents.presences = False
-        self.intents.typing = False
+        self.botintents = discord.Intents.all()
+        self.botintents.presences = False
+        self.botintents.typing = False
 
 
 
         super().__init__(
             command_prefix="skye ",
-            intents=self.intents,
+            intents=self.botintents,
             owner_ids=[506899611332509697, 894794517079793704],
         )
 
@@ -111,6 +111,8 @@ class SkyeBot(commands.AutoShardedBot):
             for extension in self.cogs:
                 self.logger.info(f" - Loaded cogs.{extension.lower()}")
 
+    
+
     async def on_shard_resumed(self, shard_id: int):
         self.logger.info(f'Shard ID {shard_id} has resumed...')
         self.resumes[shard_id].append(discord.utils.utcnow())
@@ -120,14 +122,6 @@ class SkyeBot(commands.AutoShardedBot):
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
-        exts = ["jishaku"] + [
-            f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
-            for ext in os.listdir("cogs")
-            if not ext.startswith("_")
-        ]
-        for ext in exts:
-            await self.load_extension(ext)
-
     
 
     async def on_error(self, event: str, *args, **kwargs):

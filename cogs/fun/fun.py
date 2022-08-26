@@ -1,4 +1,5 @@
 import json
+import pathlib
 from typing import Union
 import discord
 from discord.ext import commands
@@ -28,6 +29,7 @@ class fun(commands.Cog):
             nicknames = json.load(fp)
 
             nickname = random.choice(nicknames.get('nicks'))
+            
         
         try:
             await itr.user.edit(nick=nickname)
