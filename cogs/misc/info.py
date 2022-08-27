@@ -67,7 +67,7 @@ class Dropdown(discord.ui.Select):
         if self.values[0] == "avatar":
             member = guild.get_member(self.member)
             if member is None:
-                member = await interaction.client.fetch_user(self.member) 
+                member = interaction.client.get_userr(self.member) 
 
            
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
@@ -82,7 +82,7 @@ class Dropdown(discord.ui.Select):
             logger.info(guild)
             logger.info(member)
             if member is None:
-                member = await interaction.client.fetch_user(self.member)
+                member = interaction.client.get_userr(self.member)
 
             self.embed.description = f"**Info About {member.mention}**"
             self.embed.color = interaction.client.color
@@ -93,8 +93,6 @@ class Dropdown(discord.ui.Select):
 
             self.embed.add_field(name="Joined At", value=joined_date)
             
-            if roles:
-                self.embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
     
             view = DropdownView(member.id, guild.id)
@@ -103,6 +101,8 @@ class Dropdown(discord.ui.Select):
 
             self.embed.add_field(name="ID", value=member.id)
             self.embed.add_field(name="Created At", value=created_date,inline=True)
+            if roles:
+                self.embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
             self.embed.set_author(name=member, icon_url=member.display_avatar.url)
             self.embed.set_thumbnail(url=member.display_avatar.url)
 
@@ -111,7 +111,7 @@ class Dropdown(discord.ui.Select):
         if self.values[0] == "roles":
             member = guild.get_member(self.member)
             if member is None:
-                member = await interaction.client.fetch_user(self.member) 
+                member = interaction.client.get_userr(self.member) 
 
             roles = [role.mention for role in getattr(member, 'roles', [])]
                    
@@ -156,9 +156,6 @@ class Misc(commands.Cog):
 
 
         embed.add_field(name="Joined At", value=joined_date)
-        
-        if roles:
-            embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
 
         persistent_query = "INSERT INTO persistent_view (user_id, message_id, guild_id) VALUES ($1, $2, $3)"
@@ -170,6 +167,8 @@ class Misc(commands.Cog):
 
         embed.add_field(name="ID", value=user.id)
         embed.add_field(name="Created At", value=created_date,inline=True)
+        if roles:
+            embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
         embed.set_author(name=user, icon_url=user.display_avatar.url)
         embed.set_thumbnail(url=user.display_avatar.url)
     
