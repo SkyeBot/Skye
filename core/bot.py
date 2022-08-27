@@ -69,7 +69,7 @@ class SkyeBot(commands.AutoShardedBot):
         super().__init__(
             command_prefix="skye ",
             intents=self.botintents,
-            owner_ids=[506899611332509697, 894794517079793704],
+            owner_ids=[506899611332509697, 894794517079793704, 921662807848669204],
         )
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
@@ -204,15 +204,12 @@ class SkyeBot(commands.AutoShardedBot):
             if interaction.namespace:
                 self.logger.info(str(interaction.namespace))
 
-            
-            
-
             choice = random.choices([234, 675, 1274, 3030, 56589, 2232], cum_weights=[0.9, 5, 11, 14, 8, 13], k=1)
             self.logger.info(choice)
 
             if choice[0] == 234:
-                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote>")
-
+                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote> or vote for us on discordbotlist\n<https://discordbotlist.com/bots/skye-7292>")
+            self.get_messagge
 
             try:
                 text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"

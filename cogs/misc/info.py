@@ -1,24 +1,20 @@
-from code import interact
 from collections import Counter
 import discord
 
 from discord.ext import commands
 
 from discord import app_commands
-from discord.app_commands import Choice
 
 from typing import Union, Optional
 
 #Local imports
 from core.bot import SkyeBot
 from utils import default, time, format
-from utils.context import Context
 
 class Dropdown(discord.ui.Select):
-    def __init__(self, ctx: Union[Context, discord.Interaction], bot: SkyeBot, user: Union[discord.Member, discord.User]):
+    def __init__(self, ctx: discord.Interaction, user: Union[discord.Member, discord.User]):
         self.ctx = ctx
-        self.member = member
-        self.bot = bot
+        self.member =  user
         self.embed: discord.Embed = discord.Embed()
 
         # Set the options that will be presented inside the dropdown
@@ -29,26 +25,17 @@ class Dropdown(discord.ui.Select):
             discord.SelectOption(label="roles", description="Gets roles if user is a member")
         ]
 
-        # The placeholder is what will be shown when no option is chosen
-        # The min and max values indicate we can only pick one of the three options
-        # The options parameter defines the dropdown options. We defined this above
+
         super().__init__(min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        # Use the interaction object to send a response message containing
-        # the user's favourite colour or choice. The self object refers to the
-        # Select object, and the values attribute gets a list of the user's
-        # selected options. We only want the first one.
+        original = self.ctx.user.id
 
-        if isinstance(self.ctx, discord.Interaction):
-            original = self.ctx.user.id
-        else:
-            original = self.ctx.author.id
 
         if interaction.user.id != original:
             pass
-        else:
-            await interaction.response.defer()
+        
+        await interaction.response.defer()
    
 
 
@@ -73,8 +60,8 @@ class Dropdown(discord.ui.Select):
                 self.embed.set_image(url=banner.url)
         
             
-            await interaction.message.edit(embed=self.embed, view=DropdownView(interaction,self.bot,member))
-
+            await interaction.  message.edit(embed=self.embed, view=DropdownView(interaction,member))
+        interaction.client.get_user
         if self.values[0] == "avatar":
             member = self.member
 
@@ -83,13 +70,13 @@ class Dropdown(discord.ui.Select):
             self.embed.description = text
             self.embed.color = 0x3867a8
             self.embed.set_image(url=member.display_avatar.url)
-            await interaction.message.edit(embed=self.embed, view=DropdownView(interaction,self.bot,member))
+            await interaction.message.edit(embed=self.embed, view=DropdownView(interaction,member))
 
         if self.values[0] == "info":
             member = self.member
 
             self.embed.description = f"**Info About {member.mention}**"
-            self.embed.color = self.bot.color
+            self.embed.color = interaction.client.color
             roles = [role.mention for role in getattr(member, 'roles', [])]
 
             joined_date = default.date(getattr(member, "joined_at", None), ago=True)
@@ -101,7 +88,7 @@ class Dropdown(discord.ui.Select):
                 self.embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
     
-            view = DropdownView(interaction,self.bot,member)
+            view = DropdownView(interaction,member)
 
             created_date = default.date(member.created_at, ago=True)
 
@@ -121,19 +108,18 @@ class Dropdown(discord.ui.Select):
             self.embed.title = f"{member}'s Roles"
             self.embed.description = ', '.join(roles) if roles else "Member has no roles or is a User"
 
-            view = DropdownView(interaction,self.bot,member)
+            view = DropdownView(interaction,member)
             await interaction.message.edit(embed=self.embed,view=view)
 
 
 
 class DropdownView(discord.ui.View):
-    def __init__(self, ctx: Union[Context, discord.Interaction],bot: SkyeBot, member: discord.Member=None):
+    def __init__(self, ctx: discord.Interaction, member: discord.Member=None):
         super().__init__()
         self.ctx = ctx
-        self.bot = bot
         self.member = member
         # Adds the dropdown to our view object.
-        self.add_item(Dropdown(self.ctx,self.bot,self.member))
+        self.add_item(Dropdown(self.ctx, self.member))
 
 
 
