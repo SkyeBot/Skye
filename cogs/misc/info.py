@@ -1,4 +1,5 @@
 from collections import Counter
+import logging
 import discord
 
 from discord.ext import commands
@@ -8,15 +9,16 @@ from discord import app_commands
 from typing import Union, Optional
 
 #Local imports
-from core.bot import SkyeBot
 from utils import default, time, format
 
+
+logger = logging.getLogger(__name__)
+
 class Dropdown(discord.ui.Select):
-    def __init__(self, ctx: discord.Interaction, user: Union[discord.Member, discord.User]):
-        self.ctx = ctx
+    def __init__(self, user: int, guild_id: int=None):
         self.member =  user
         self.embed: discord.Embed = discord.Embed()
-
+        self.guild_id = guild_id
         # Set the options that will be presented inside the dropdown
         options = [
             discord.SelectOption(label='avatar', description='Avatar of the user'),
@@ -26,30 +28,30 @@ class Dropdown(discord.ui.Select):
         ]
 
 
-        super().__init__(min_values=1, max_values=1, options=options)
+        super().__init__(min_values=1, max_values=1, options=options, custom_id="MYVEERYCOOLUSERSELECT")
 
     async def callback(self, interaction: discord.Interaction):
-        original = self.ctx.user.id
-
+        original = interaction.user.id
+        guild = interaction.client.get_guild(self.guild_id) 
+        if guild is None:
+            guild = interaction.guild
 
         if interaction.user.id != original:
             pass
-        
-        await interaction.response.defer()
+        else:
+            await interaction.response.defer()
    
 
 
         if self.values[0] == "banner":
-            member = self.member
-    
-            print(member.banner)
-        
-            if isinstance(member, discord.User):
-                member = await interaction.client.fetch_user(member.id)
-                banner = member.banner
+            member = guild.get_member(self.member)
+
+            if member is None:
+                member = await interaction.client.fetch_user(self.member) 
+                banner = member.banner  
             else:
-                banner = (await interaction.client.fetch_user(member.id)).banner
-                member = await interaction.guild.fetch_member(member.id)
+                banner = (await interaction.client.fetch_user(self.member)).banner
+    
 
             self.embed.description=f"{member.mention} Banner"
             self.embed.color =0x3867a8
@@ -60,20 +62,27 @@ class Dropdown(discord.ui.Select):
                 self.embed.set_image(url=banner.url)
         
             
-            await interaction.  message.edit(embed=self.embed, view=DropdownView(interaction,member))
-        interaction.client.get_user
-        if self.values[0] == "avatar":
-            member = self.member
+            await interaction.message.edit(embed=self.embed, view=DropdownView(member.id, guild.id))
 
+        if self.values[0] == "avatar":
+            member = guild.get_member(self.member)
+            if member is None:
+                member = await interaction.client.fetch_user(self.member) 
+
+           
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
 
             self.embed.description = text
             self.embed.color = 0x3867a8
             self.embed.set_image(url=member.display_avatar.url)
-            await interaction.message.edit(embed=self.embed, view=DropdownView(interaction,member))
+            await interaction.message.edit(embed=self.embed, view=DropdownView(member.id, guild.id))
 
         if self.values[0] == "info":
-            member = self.member
+            member = guild.get_member(self.member)
+            logger.info(guild)
+            logger.info(member)
+            if member is None:
+                member = await interaction.client.fetch_user(self.member)
 
             self.embed.description = f"**Info About {member.mention}**"
             self.embed.color = interaction.client.color
@@ -88,7 +97,7 @@ class Dropdown(discord.ui.Select):
                 self.embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
     
-            view = DropdownView(interaction,member)
+            view = DropdownView(member.id, guild.id)
 
             created_date = default.date(member.created_at, ago=True)
 
@@ -100,34 +109,29 @@ class Dropdown(discord.ui.Select):
             await interaction.message.edit(embed=self.embed,view=view)
 
         if self.values[0] == "roles":
-            member = self.member
+            member = guild.get_member(self.member)
+            if member is None:
+                member = await interaction.client.fetch_user(self.member) 
 
             roles = [role.mention for role in getattr(member, 'roles', [])]
-
                    
             self.embed.title = f"{member}'s Roles"
             self.embed.description = ', '.join(roles) if roles else "Member has no roles or is a User"
 
-            view = DropdownView(interaction,member)
+            view = DropdownView(member.id, guild.id)
             await interaction.message.edit(embed=self.embed,view=view)
 
-
-
 class DropdownView(discord.ui.View):
-    def __init__(self, ctx: discord.Interaction, member: discord.Member=None):
-        super().__init__()
-        self.ctx = ctx
+    def __init__(self, member: int , guild_id: int=None):
+        super().__init__(timeout=None)
         self.member = member
         # Adds the dropdown to our view object.
-        self.add_item(Dropdown(self.ctx, self.member))
+        self.add_item(Dropdown(self.member, guild_id))
 
 
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if isinstance(self.ctx, discord.Interaction):
-            user = self.ctx.user.id
-        else:
-            user = self.ctx.author.id
+        user = interaction.user.id
 
 
         if interaction.user.id == user:
@@ -137,19 +141,18 @@ class DropdownView(discord.ui.View):
             return False
 
 class Misc(commands.Cog):
-    def __init__(self, bot: SkyeBot):
+    def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(name="userinfo")
     async def userinfo_slash(self, itr: discord.Interaction, member: Optional[Union[discord.Member, discord.User]]=None):
         """Get's info about a user"""
+        user = itr.user if member is None else member
+        embed = discord.Embed(description=f"**Info About {user.mention}**", color=self.bot.color)
 
-        member = member or itr.user
-        embed = discord.Embed(description=f"**Info About {member.mention}**", color=self.bot.color)
+        roles = [role.mention for role in getattr(user, 'roles', [])]
 
-        roles = [role.mention for role in getattr(member, 'roles', [])]
-
-        joined_date = default.date(getattr(member, "joined_at", None), ago=True)
+        joined_date = default.date(getattr(user, "joined_at", None), ago=True)
 
 
         embed.add_field(name="Joined At", value=joined_date)
@@ -157,22 +160,22 @@ class Misc(commands.Cog):
         if roles:
             embed.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles')
 
+
+        persistent_query = "INSERT INTO persistent_view (user_id, message_id, guild_id) VALUES ($1, $2, $3)"
+ 
+        view = DropdownView(user.id, itr.guild.id)
         
 
-    
-        view = DropdownView(itr,self.bot,member)
-        
+        created_date = default.date(user.created_at, ago=True)
 
-        created_date = default.date(member.created_at, ago=True)
-
-        embed.add_field(name="ID", value=member.id)
+        embed.add_field(name="ID", value=user.id)
         embed.add_field(name="Created At", value=created_date,inline=True)
-        embed.set_author(name=member, icon_url=member.display_avatar.url)
-        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_author(name=user, icon_url=user.display_avatar.url)
+        embed.set_thumbnail(url=user.display_avatar.url)
     
         await itr.response.send_message(embed=embed, view=view)
-
-
+        await self.bot.pool.execute(persistent_query, user.id, (await itr.original_response()).id, itr.guild.id)
+    
     @app_commands.command(name="serverinfo")
     async def serverinfo(self, interaction: discord.Interaction, *, guild_id: str  = None):
         """Shows info about the current server."""

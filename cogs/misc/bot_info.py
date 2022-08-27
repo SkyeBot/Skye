@@ -16,7 +16,6 @@ import inspect
 
 
 #local imports
-from core.bot import SkyeBot
 from utils.context import Context
 from utils import default, time
 from utils import constants
@@ -62,7 +61,7 @@ class InfoView(discord.ui.View):
 
 
 class bot_info(commands.Cog):
-    def __init__(self, bot: SkyeBot):
+    def __init__(self, bot):
         self.bot = bot
 
     def get_bot_uptime(self, *, brief: bool = False) -> str:

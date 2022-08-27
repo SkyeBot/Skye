@@ -12,6 +12,7 @@ import asyncpraw
 import asyncio
 
 dotenv.load_dotenv() 
+discord.utils.setup_logging()
 
 
 async def main():

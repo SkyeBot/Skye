@@ -20,6 +20,7 @@ import roblox
 from  utils.constants  import STARTUP_QUERY
 from utils.osu_utils import Osu
 import asyncpraw
+from cogs.misc.info import DropdownView
 
 import pkg_resources
 
@@ -69,7 +70,7 @@ class SkyeBot(commands.AutoShardedBot):
         super().__init__(
             command_prefix="skye ",
             intents=self.botintents,
-            owner_ids=[506899611332509697, 894794517079793704, 921662807848669204],
+            owner_ids=[506899611332509697, 894794517079793704],
         )
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
@@ -111,6 +112,7 @@ class SkyeBot(commands.AutoShardedBot):
             for extension in self.cogs:
                 self.logger.info(f" - Loaded cogs.{extension.lower()}")
 
+
     
 
     async def on_shard_resumed(self, shard_id: int):
@@ -122,6 +124,10 @@ class SkyeBot(commands.AutoShardedBot):
         handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
         handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
         self.logger.addHandler(handler)
+        persistent_query = "SELECT * FROM persistent_view"
+        
+        for row in await self.pool.fetch(persistent_query):
+            self.add_view(DropdownView(row['user_id'], row['guild_id']), message_id=row['message_id'])
     
 
     async def on_error(self, event: str, *args, **kwargs):
@@ -204,12 +210,15 @@ class SkyeBot(commands.AutoShardedBot):
             if interaction.namespace:
                 self.logger.info(str(interaction.namespace))
 
+            
+            
+
             choice = random.choices([234, 675, 1274, 3030, 56589, 2232], cum_weights=[0.9, 5, 11, 14, 8, 13], k=1)
             self.logger.info(choice)
 
             if choice[0] == 234:
-                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote> or vote for us on discordbotlist\n<https://discordbotlist.com/bots/skye-7292>")
-            self.get_messagge
+                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote> or vote for us on discordbotlist\n<https://discordbotlist.com/bots/skye-7292")
+
 
             try:
                 text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
@@ -222,11 +231,52 @@ class SkyeBot(commands.AutoShardedBot):
 
 
     async def on_guild_join(self, guild: discord.Guild):
+        channel = self.get_channel(1013028282159091752)
+        embed = discord.Embed(title=f"Joined Server", description=f"Name: {guild.name} ({guild.id})\nOwner: {guild.owner} ({guild.owner.id})")
+        people = 0
+        bots = 0
+        total = 0
+        for user in guild.members:
+            total += 1
+            if not user.bot:
+                people += 1
+            
+            if user.bot:
+                bots += 1
+            
+
+        embed.add_field(name="Members", value=f"\N{PEOPLE HUGGING} {people} / \N{ROBOT FACE} {bots}\nTotal: {total}")
+        embed.timestamp = guild.me.joined_at
+        embed.color = discord.Color.green()
+        await channel.send(embed=embed)
+        
+
         try:
             await self.pool.execute('INSERT INTO guilds(guild_id, guild_name, owner_id) VALUES ($1, $2, $3)',guild.id, guild.name, guild.owner_id)
             self.logger.info(f"! Added {guild.id} To The Database !")
         except asyncpg.exceptions.UniqueViolationError:
             self.logger.info(f"Guild: {guild.id} is already in the database, passing")
+
+    async def on_guild_remove(self, guild: discord.Guild):
+        channel = self.get_channel(1013028282159091752)
+        embed = discord.Embed(title=f"Left server!", description=f"Name: {guild.name} ({guild.id})\nOwner: {guild.owner} ({guild.owner.id})")
+        people = 0
+        bots = 0
+        total = 0
+        for user in guild.members:
+            total += 1
+            if not user.bot:
+                people += 1
+            
+            if user.bot:
+                bots += 1
+            
+
+        embed.add_field(name="Members", value=f"\N{PEOPLE HUGGING} {people} / \N{ROBOT FACE} {bots}\nTotal: {total}")
+        embed.timestamp = guild.me.joined_at
+        embed.color = discord.Color.red()
+        await channel.send(embed=embed)
+        
 
     async def close(self):
         try:
