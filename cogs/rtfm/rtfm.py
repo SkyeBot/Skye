@@ -167,7 +167,7 @@ class Docs(commands.Cog, name="Documentation"):
         else:
             e = discord.Embed(title=f"Make sure to read the fucking docs! (hence the name)")
             e.set_footer(text=f'Requested By {interaction.user}', icon_url=f'{interaction.user.display_avatar.url}')
-            e.set_thumbnail(url=interaction.user.display_avatar.url)
+
 
             e.description = "\n".join(f"[`{key}`]({url})" for key, url in self.matches)
             return await interaction.followup.send(embed=e)
@@ -182,7 +182,8 @@ class Docs(commands.Cog, name="Documentation"):
 
     @rtfm.command(name="stable")
     async def rtfm_stable(self, interaction: discord.Interaction, query: str):
-        """Giveds you a documentation link for a discord.py entity (stable/1.7.3)"""
+        """Giveds you a documentation link for a discord.py entity (stable/2.0)"""
+
         await self.do_rtfm(interaction, 'discord.py', query)
     
     @rtfm.command(name='python')

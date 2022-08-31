@@ -76,46 +76,48 @@ class Logging(commands.Cog):
             if exists is not None:
                 if message.author is message.author.bot:
                     pass
-                else:
-                    deleted = discord.Embed(
-                     description = f"Message deleted in {message.channel.mention}"
-                    )
-                    deleted.set_author(name=message.author, icon_url=message.author.avatar)
-                    deleted.timestamp = message.created_at
-                    deleted.color = discord.Color.random()
 
-                    if message.content:
-                        deleted.add_field(name="Message:\n", value=message.content, inline=False)
-                        deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```")
 
-                        await channel.send(embed=deleted)
-                    
-                    if message.attachments:
-                        file = message.attachments[0]
-                        file_type = file.proxy_url.split(".")
+                deleted = discord.Embed(
+                description = f"Message deleted in {message.channel.mention}"
+                )
+                deleted.set_author(name=message.author, icon_url=message.author.avatar)
+                deleted.timestamp = message.created_at
+                deleted.color = discord.Color.random()
+                deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```")
 
-                        if len(file_type) != 1 and file_type[-1] in ["png", "jpeg","gif", "webp", "jpg"]:
-                            req = await http.get(file.proxy_url, res_method="read",no_cache=True)
-                            print(file.proxy_url)
-                            bio = BytesIO(req)
-                            bio.seek(0)
-                            deleted.set_image(url=f"attachment://{file.filename}")
-                            send_file = discord.File(bio, filename=file.filename)
+                if message.content and not message.attachments:
+                    deleted.add_field(name="Message:\n", value=message.content, inline=False)
+                    await channel.send(embed=deleted)
 
-                            deleted.add_field(name="Deleted Image:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
-                            deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
+                if message.content:
+                    deleted.add_field(name="Message:\n", value=message.content, inline=False)
 
-                            await channel.send(embed=deleted, file=send_file)
+                
+                if message.attachments:
+                    file = message.attachments[0]
+                    file_type = file.proxy_url.split(".")
 
-                        if len(file_type) != 1 and file_type[-1] in ["mp4", "mov", "webm"]:
-                            req = await http.get(file.proxy_url, res_method="read",no_cache=True)
-                            bio = BytesIO(req)
-                            bio.seek(0)
-                            send_file = discord.File(bio, filename=file.filename)
+                    if len(file_type) != 1 and file_type[-1] in ["png", "jpeg","gif", "webp", "jpg"]:
+                        req = await http.get(file.proxy_url, res_method="read",no_cache=True)
+                        print(file.proxy_url)
+                        bio = BytesIO(req)
+                        bio.seek(0)
+                        deleted.set_image(url=f"attachment://{file.filename}")
+                        send_file = discord.File(bio, filename=file.filename)
 
-                            deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
-                            deleted.add_field(name="ID:", value=f"```User = {message.author.id}\nMessage = {message.id}```",inline=False)
-                            await channel.send(embed=deleted, file=send_file)
+                        deleted.add_field(name="Deleted Image:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
+                        
+
+
+                    if len(file_type) != 1 and file_type[-1] in ["mp4", "mov", "webm"]:
+                        req = await http.get(file.proxy_url, res_method="read",no_cache=True)
+                        bio = BytesIO(req)
+                        bio.seek(0)
+                        send_file = discord.File(bio, filename=file.filename)
+
+                        deleted.add_field(name="Deleted Video:", value=f"[{file.filename}]({file.proxy_url})",inline=False)
+                await channel.send(embed=deleted, file=send_file)
         except:
             pass
 

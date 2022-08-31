@@ -9,6 +9,7 @@ from utils.context import Context
 
 from discord import app_commands
 
+
 class welcomer(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
@@ -16,42 +17,34 @@ class welcomer(commands.Cog):
 
     welcomer = app_commands.Group(name="welcomer", description="All commands for setting up welcoming",default_permissions=discord.Permissions(administrator=True))
     
-
-        
     @welcomer.command()
-    async def enable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel], message: Optional[str]):
+    async def enable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel], message: Optional[str], image: Optional[str]):
         """Enables Welcomer with optional message"""
         message = message or "Welcome $user to $guild!"
         channel = channel or interaction.channel
-        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)
+        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM welcomer_config WHERE guild_id = $1", interaction.guild.id)
+        new_text = string.Template(message).safe_substitute(
+            user=interaction.user.mention,
+            guild=interaction.guild
+        )
 
         if exists is None:
-            await self.bot.pool.execute('INSERT INTO welcome_config(channel_id, message, guild_id) VALUES ($1, $2, $3)',channel.id, message,interaction.guild.id)
-            new_text = string.Template(message).safe_substitute(
-                user=interaction.user.mention,
-                    guild=interaction.guild
-                )
-
+            await self.bot.pool.execute('INSERT INTO welcomer_config(channel_id, message, guild_id, image) VALUES ($1, $2, $3, $4)',channel.id, message, interaction.guild.id, image)
             return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
-        else:
-            await self.bot.pool.execute('UPDATE welcome_config SET channel_id = $1, message = $2 WHERE guild_id = $3',  channel.id, message, interaction.guild.id)
-            new_text = string.Template(message).safe_substitute(
-                user=interaction.user.mention,
-                    guild=interaction.guild
-                )
-
-            return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        
+        await self.bot.pool.execute('UPDATE welcomer_config SET channel_id = $1, message = $2, image = $3 WHERE guild_id = $4',  channel.id, message, image,interaction.guild.id)
+        return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
     @welcomer.command()
     async def disable(self, interaction: discord.Interaction):
         """Disables welcomer for the guilld"""
 
-        try: 
-            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOME_CONFIG WHERE guild_id = $1", interaction.guild.id)  
+        try:
+            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOMER_CONFIG WHERE guild_id = $1", interaction.guild.id)  
             if exists is None:
                 return await interaction.response.send_message("Welcomer was not enabled in the first place!",ephermal=True)
 
-            await self.bot.pool.execute("DELETE FROM welcome_config WHERE guild_id = $1", interaction.guild.id)
+            await self.bot.pool.execute("DELETE FROM welcomer_config WHERE guild_id = $1", interaction.guild.id)
             await interaction.response.send_message("Succesfully disabled welcomer!")
 
         except Exception as e:
@@ -63,28 +56,28 @@ class welcomer(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self,member:discord.Member):
         try: 
-            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id)
-            channel = self.bot.get_channel(exists.get("channel_id"))
+            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOMER_CONFIG WHERE guild_id = $1", member.guild.id)
+            channel = self.bot.get_channel(exists['channel_id'])
 
-            new_text = string.Template(exists.get("message")).safe_substitute(
+            new_text = string.Template(exists['message']).safe_substitute(
                 user=member.mention,
                 guild=member.guild
             )
         
 
             embed = discord.Embed(title=f"Welcome {member} to {member.guild}!", description=f"{new_text}")
-
+            embed.set_image(url=exists['image'])
             embed.timestamp = datetime.datetime.utcnow()
             embed.set_thumbnail(url=f"{member.avatar}")
             
             await channel.send(embed=embed)    
         except Exception as e:
-            print(e)
+            self.bot.logger.info(e)
     
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         try: 
-            exists = await self.bot.pool.fetchrow("SELECT * FROM WELCOME_CONFIG WHERE guild_id = $1", member.guild.id)
+            exists = await self.bot.pool.fetchrow("SELECT * FROM welcomer_config WHERE guild_id = $1", member.guild.id)
             channel = self.bot.get_channel(exists.get("channel_id"))
             show_roles = ", ".join(
                 [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if
@@ -99,4 +92,4 @@ class welcomer(commands.Cog):
             await channel.send(embed=embed)
         except Exception as e:
             print(e)
-    
+

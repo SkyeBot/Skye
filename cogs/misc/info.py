@@ -15,10 +15,11 @@ from utils import default, time, format
 logger = logging.getLogger(__name__)
 
 class Dropdown(discord.ui.Select):
-    def __init__(self, user: int, guild_id: int=None):
+    def __init__(self, user: int, author_id: int,guild_id: int=None):
         self.member =  user
         self.embed: discord.Embed = discord.Embed()
         self.guild_id = guild_id
+        self.author_id = author_id
         # Set the options that will be presented inside the dropdown
         options = [
             discord.SelectOption(label='avatar', description='Avatar of the user'),
@@ -31,15 +32,11 @@ class Dropdown(discord.ui.Select):
         super().__init__(min_values=1, max_values=1, options=options, custom_id="MYVEERYCOOLUSERSELECT")
 
     async def callback(self, interaction: discord.Interaction):
-        original = interaction.user.id
         guild = interaction.client.get_guild(self.guild_id) 
         if guild is None:
             guild = interaction.guild
 
-        if interaction.user.id != original:
-            pass
-        else:
-            await interaction.response.defer()
+        await interaction.response.defer()
    
 
 
@@ -62,12 +59,12 @@ class Dropdown(discord.ui.Select):
                 self.embed.set_image(url=banner.url)
         
             
-            await interaction.message.edit(embed=self.embed, view=DropdownView(member.id, guild.id))
+            await interaction.message.edit(embed=self.embed, view=DropdownView(member.id, self.author_id,guild.id))
 
         if self.values[0] == "avatar":
             member = guild.get_member(self.member)
             if member is None:
-                member = interaction.client.get_userr(self.member) 
+                member = await interaction.client.fetch_user(self.member) 
 
            
             text = f"[PNG]({member.display_avatar.with_static_format('png').url}) | [JPG]({member.display_avatar.with_static_format('jpg').url}) | [JPEG]({member.display_avatar.with_static_format('jpeg').url}) | [WEBP]({member.display_avatar.with_static_format('webp').url})"
@@ -75,14 +72,15 @@ class Dropdown(discord.ui.Select):
             self.embed.description = text
             self.embed.color = 0x3867a8
             self.embed.set_image(url=member.display_avatar.url)
-            await interaction.message.edit(embed=self.embed, view=DropdownView(member.id, guild.id))
+            await interaction.message.edit(embed=self.embed, view=DropdownView(member.id, self.author_id,guild.id))
 
         if self.values[0] == "info":
             member = guild.get_member(self.member)
             logger.info(guild)
             logger.info(member)
             if member is None:
-                member = interaction.client.get_userr(self.member)
+                member = await interaction.client.fetch_user(self.member) 
+
 
             self.embed.description = f"**Info About {member.mention}**"
             self.embed.color = interaction.client.color
@@ -95,8 +93,7 @@ class Dropdown(discord.ui.Select):
             
 
     
-            view = DropdownView(member.id, guild.id)
-
+            view = DropdownView(member.id, self.author_id,guild.id)
             created_date = default.date(member.created_at, ago=True)
 
             self.embed.add_field(name="ID", value=member.id)
@@ -111,33 +108,31 @@ class Dropdown(discord.ui.Select):
         if self.values[0] == "roles":
             member = guild.get_member(self.member)
             if member is None:
-                member = interaction.client.get_userr(self.member) 
+                member = await interaction.client.fetch_user(self.member) 
 
             roles = [role.mention for role in getattr(member, 'roles', [])]
                    
             self.embed.title = f"{member}'s Roles"
             self.embed.description = ', '.join(roles) if roles else "Member has no roles or is a User"
 
-            view = DropdownView(member.id, guild.id)
+            view = DropdownView(member.id, self.author_id,guild.id)
             await interaction.message.edit(embed=self.embed,view=view)
 
 class DropdownView(discord.ui.View):
-    def __init__(self, member: int , guild_id: int=None):
+    def __init__(self, member: int , author_id: int ,guild_id: int=None,):
         super().__init__(timeout=None)
         self.member = member
+        self.author_id = author_id
         # Adds the dropdown to our view object.
-        self.add_item(Dropdown(self.member, guild_id))
+        self.add_item(Dropdown(self.member, author_id,guild_id))
 
 
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        user = interaction.user.id
-
-
-        if interaction.user.id == user:
+        if interaction.user.id == self.author_id:
             return True
         else:
-            await interaction.response.send_message(f"You cant use this as you're not the command invoker, only the author (<@{user}>) Can Do This!", ephemeral=True)
+            await interaction.response.send_message(f"You cant use this as you're not the command invoker, only the author (<@{interaction.client.get_user(self.author_id).id}>) Can Do This!", ephemeral=True)
             return False
 
 class Misc(commands.Cog):
@@ -145,9 +140,9 @@ class Misc(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="userinfo")
-    async def userinfo_slash(self, itr: discord.Interaction, member: Optional[Union[discord.Member, discord.User]]=None):
+    async def userinfo_slash(self, itr: discord.Interaction, member: Optional[Union[discord.Member, discord.User]]):
         """Get's info about a user"""
-        user = itr.user if member is None else member
+        user = member if member is not None else itr.user
         embed = discord.Embed(description=f"**Info About {user.mention}**", color=self.bot.color)
 
         roles = [role.mention for role in getattr(user, 'roles', [])]
@@ -158,9 +153,9 @@ class Misc(commands.Cog):
         embed.add_field(name="Joined At", value=joined_date)
 
 
-        persistent_query = "INSERT INTO persistent_view (user_id, message_id, guild_id) VALUES ($1, $2, $3)"
+        persistent_query = "INSERT INTO persistent_view (user_id, message_id, guild_id, author_id) VALUES ($1, $2, $3, $4)"
  
-        view = DropdownView(user.id, itr.guild.id)
+        view = DropdownView(user.id, itr.user.id,itr.guild.id)
         
 
         created_date = default.date(user.created_at, ago=True)
@@ -173,18 +168,13 @@ class Misc(commands.Cog):
         embed.set_thumbnail(url=user.display_avatar.url)
     
         await itr.response.send_message(embed=embed, view=view)
-        await self.bot.pool.execute(persistent_query, user.id, (await itr.original_response()).id, itr.guild.id)
+
+        await self.bot.pool.execute(persistent_query, user.id, (await itr.original_response()).id, itr.guild.id, itr.user.id)
     
     @app_commands.command(name="serverinfo")
-    async def serverinfo(self, interaction: discord.Interaction, *, guild_id: str  = None):
+    async def serverinfo(self, interaction: discord.Interaction):
         """Shows info about the current server."""
-        
-        if guild_id is not None and await self.bot.is_owner(interaction.user):
-            guild = self.bot.get_guild(int(guild_id))
-            if guild is None:
-                return await interaction.response.send_message(f'Invalid Guild ID given.')
-        else:
-            guild = interaction.guild
+        guild = interaction.guild
 
 
         roles = [role.name.replace('@', '@\u200b') for role in guild.roles]
@@ -215,8 +205,8 @@ class Misc(commands.Cog):
 
         channel_info = []
         key_to_emoji = {
-            discord.TextChannel: '<:text_channel:586339098172850187>',
-            discord.VoiceChannel: '<:voice_channel:586339098524909604>',
+            discord.TextChannel: '<:text_channel:1014007933245337631>',
+            discord.VoiceChannel: '<:voice_channel:1014007956829917205>',
         }
         for key, total in totals.items():
             secrets = secret[key]

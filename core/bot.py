@@ -1,9 +1,9 @@
 import asyncio
 from collections import defaultdict
 import random
+import re
 import sys
 import traceback
-from cachetools import TTLCache
 
 import discord
 from discord.ext import commands, tasks, ipc
@@ -41,6 +41,7 @@ class SkyeBot(commands.AutoShardedBot):
         pool: asyncpg.Pool,
         osu: Osu,
         reddit: asyncpraw.Reddit,
+        top_gg: str,
         **kwargs   
     ):
         self._connected = False
@@ -53,6 +54,8 @@ class SkyeBot(commands.AutoShardedBot):
         self.color = 0x3867a8
         self.error_color = 0xB00020
         self.tick = self.tick
+
+        self.top_gg = top_gg
         self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.roblox = roblox.Client()
@@ -75,11 +78,11 @@ class SkyeBot(commands.AutoShardedBot):
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
         lookup = {
-            True: '<:greenTick:1008953903116722187>',
-            False: '<:redTick:1008954065868296235>>',
+            True: '<:greenTick:1014007189368750081>',
+            False: '<:redTick:1014007248902688828>',
             None: '<:greyTick:1008947195233443881>',
         }
-        emoji = lookup.get(opt, '<:redTick:1008954065868296235>')
+        emoji = lookup.get(opt, '<:redTick:1014007248902688828>')
         if label is not None:
             return f'{emoji}: {label}'
         return emoji
@@ -127,7 +130,7 @@ class SkyeBot(commands.AutoShardedBot):
         persistent_query = "SELECT * FROM persistent_view"
         
         for row in await self.pool.fetch(persistent_query):
-            self.add_view(DropdownView(row['user_id'], row['guild_id']), message_id=row['message_id'])
+            self.add_view(DropdownView(row['user_id'], row['author_id'],row['guild_id']), message_id=row['message_id'])
     
 
     async def on_error(self, event: str, *args, **kwargs):
@@ -210,15 +213,11 @@ class SkyeBot(commands.AutoShardedBot):
             if interaction.namespace:
                 self.logger.info(str(interaction.namespace))
 
-            
-            
-
             choice = random.choices([234, 675, 1274, 3030, 56589, 2232], cum_weights=[0.9, 5, 11, 14, 8, 13], k=1)
             self.logger.info(choice)
 
             if choice[0] == 234:
-                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote> or vote for us on discordbotlist\n<https://discordbotlist.com/bots/skye-7292")
-
+                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote> or vote for us on discordbotlist\n<https://discordbotlist.com/bots/skye-7292>")
 
             try:
                 text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
@@ -228,7 +227,11 @@ class SkyeBot(commands.AutoShardedBot):
                 self.logger.info(text.replace('*', '').replace('`', ''))
 
 
+    async def on_message(self, message: discord.Message):
+        if re.fullmatch(rf"<@!?{self.user.id}>", message.content):
+            await message.channel.send(f"Hi! im skye! im a multipurpose discord bot!\nI primarily use slash commands, so if you want to see my commands, just do ``/`` \N{HEAVY BLACK HEART}")
 
+        await self.process_commands(message)
 
     async def on_guild_join(self, guild: discord.Guild):
         channel = self.get_channel(1013028282159091752)
@@ -276,7 +279,11 @@ class SkyeBot(commands.AutoShardedBot):
         embed.timestamp = guild.me.joined_at
         embed.color = discord.Color.red()
         await channel.send(embed=embed)
-        
+
+
+        await self.pool.execute('DELETE FROM guilds WHERE guild_id = $1', guild.id)
+        self.logger.info(f"! Removed {guild.id} To The Database !")
+
 
     async def close(self):
         try:

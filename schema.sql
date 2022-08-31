@@ -24,10 +24,19 @@ CREATE TABLE IF NOT EXISTS logs (
 
 );
 
-CREATE TABLE IF NOT EXISTS welcome_config(
-    guild_id BIGINT,
+CREATE TABLE persistent_view (
+  user_id BIGINT,
+  message_id BIGINT,
+  guild_id BIGINT,
+  author_id BIGINT
+);
+
+CREATE TABLE welcomer_config (
     message TEXT,
+    guild_id BIGINT PRIMARY KEY,
+    image TEXT,
     channel_id BIGINT
+ 
 );
 
 CREATE TABLE IF NOT EXISTS tags_new(

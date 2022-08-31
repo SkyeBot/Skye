@@ -3,7 +3,7 @@ from discord.ext import commands
 
 
 from .info import Misc
-from .bot_info import bot_info
+from .botinfo import bot_info
 
 
 class Misc(Misc, bot_info):

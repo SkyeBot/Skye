@@ -16,7 +16,7 @@ discord.utils.setup_logging()
 
 
 async def main():
-    async with aiohttp.ClientSession() as session, asyncpraw.Reddit(client_id=os.environ['REDDIT_CLIENT_ID'], client_secret=os.environ['REDDIT_CLIENT_SECRET'], user_agent=os.environ['REDDIT_USER_AGENT']) as reddit ,asyncpg.create_pool(os.environ["POSTGRES_URI"]) as pool,SkyeBot(session=session, thino_session=thino.Client(), pool=pool, osu= Osu(client_id = os.environ['OSU_CLIENT_ID'], client_secret=os.environ['OSU_CLIENT_SECRET'], session=session), reddit=reddit) as bot:
+    async with aiohttp.ClientSession() as session, asyncpraw.Reddit(client_id=os.environ['REDDIT_CLIENT_ID'], client_secret=os.environ['REDDIT_CLIENT_SECRET'], user_agent=os.environ['REDDIT_USER_AGENT']) as reddit ,asyncpg.create_pool(os.environ["POSTGRES_URI"]) as pool,SkyeBot(session=session, thino_session=thino.Client(), pool=pool, osu= Osu(client_id = os.environ['OSU_CLIENT_ID'], client_secret=os.environ['OSU_CLIENT_SECRET'], session=session), reddit=reddit, top_gg=os.environ['TOPGG_AUTH']) as bot:
         async def blacklist_check(interaction: discord.Interaction  ):
             if interaction.user.id in bot.owner_ids:
                 return True
@@ -28,7 +28,7 @@ async def main():
                 return False
             else:
                 return True
-        
+
         exts = ["jishaku"] + [
             f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
             for ext in os.listdir("cogs")

@@ -31,7 +31,6 @@ class Mute(commands.Cog):
                 em = discord.Embed(title="", color=discord.Color(0x32ff00))
                 em.add_field(name="Mute Config Updated", value=f"New Mute Role: {role.mention}")
                 await interaction.response.send_message(embed=em)
-                interaction.user.accent_color
         except (Exception) as e:
             await interaction.response.send_message(e)
 

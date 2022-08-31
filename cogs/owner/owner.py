@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import io
+import logging
 import random
 from typing import Optional, Union
 import discord
@@ -19,13 +20,19 @@ from discord.ext import commands, tasks
 
 import discord
 
-
-
+logger = logging.getLogger(__name__)
 class owner(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
         self.ch_pr.start()
 
+    @commands.command()
+    async def claim(self, ctx: Context):
+        top_gg = await (await ctx.bot.session.get("https://top.gg/api/bots/932462085516968027/votes", headers={"Authorization": ctx.bot.top_gg})).json()
+        logger.info(top_gg[0]['username'])
+        if top_gg[0]['username'] == ctx.author.name:
+            return await ctx.send("Boom baby!!!")
+        await ctx.send("You didn't vote smh")
     
     @tasks.loop(minutes=5)
     async def ch_pr(self):

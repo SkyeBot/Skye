@@ -7,7 +7,6 @@ import sys
 import logging
 
 from typing import (Tuple, Optional, Dict, TYPE_CHECKING, Any)
-from .errors import BotExceptions
 
 
 
