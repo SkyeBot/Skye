@@ -30,17 +30,27 @@ class ChannelModal(discord.ui.Modal):
     def __init__(self):
         super().__init__(title="Set Welcome Channel")
 
-    channel = discord.ui.TextInput(label="Channel", placeholder="Insert channel id")
+    channeltext = discord.ui.TextInput(label="Channel", placeholder="Insert channel id or name",)
 
     async def on_submit(self, itr: discord.Interaction):
-        channel = itr.client.get_channel(int(self.channel.value))
+        
+    
+        
+        if self.channeltext.value.isnumeric():
+            channel = itr.guild.get_channel(int(self.channeltext.value))
+        else:
+            channel = discord.utils.find(lambda c: c.name == self.channeltext.value, itr.guild.text_channels)
+
+        if channel is None:
+            return await itr.response.send_message("There's no channel with that name or ID!", ephemeral=True)
+        
         return await itr.response.send_message(f"Set channel to {channel.mention} ({channel.id})!", ephemeral=True)
 
 class MyView(discord.ui.View):
     def __init__(self, author_id: int, channel: int, itr: discord.Interaction):
         self.author_id = author_id
         super().__init__(timeout=None)
-        self.channel = channel
+        self.channel = itr.client.get_channel(channel)
         self.msg = string.Template("Welcome $user to $guild!").safe_substitute(
             user=itr.user.mention,
             guild=itr.guild
@@ -78,7 +88,14 @@ class MyView(discord.ui.View):
         modal = ChannelModal()
         await itr.response.send_modal(modal)
         await modal.wait()
-        self.channel = int(modal.channel.value) or itr.channel.id
+        
+
+        if modal.channeltext.value.isnumeric():
+            self.channel = itr.guild.get_channel(int(modal.channeltext.value))
+        else:
+            self.channel = discord.utils.find(lambda c: c.name == modal.channeltext.value, itr.guild.text_channels)
+            
+        
 
     @discord.ui.button(label="Apply", style=discord.ButtonStyle.green)
     async def idk(self, itr: discord.Interaction, button: discord.ui.button):
@@ -89,11 +106,11 @@ class MyView(discord.ui.View):
 
         """
 
-        await itr.client.pool.execute(query, self.channel, self.msg, itr.guild.id, self.image)
+        await itr.client.pool.execute(query, self.channel.id, self.msg, itr.guild.id, self.image)
         embed = discord.Embed(description=f"**{self.msg}**")
         embed.set_author(name=itr.user, icon_url=itr.user.display_avatar.url)
         embed.set_image(url=self.image)
         embed.timestamp = discord.utils.utcnow()
-        await itr.response.send_message("Heres the finished product!", embed=embed, ephemeral=True)
+        await itr.response.send_message(f"Heres the finished product that should be sent to {self.channel.mention if self.channel else itr.channel.mention}", embed=embed, ephemeral=True)
 
 

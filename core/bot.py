@@ -6,8 +6,8 @@ import sys
 import traceback
 
 import discord
-from discord.ext import commands, tasks, ipc
-from typing import Dict, Optional, TypeVar, Union
+from discord.ext import commands
+from typing import Optional, TypeVar, Union
 import datetime
 import logging
 import os
@@ -17,7 +17,6 @@ import asyncpg
 import datetime as dt
 from discord import app_commands
 import roblox
-from  utils.constants  import STARTUP_QUERY
 from utils.osu_utils import Osu
 import asyncpraw
 from cogs.misc.info import DropdownView
@@ -132,6 +131,7 @@ class SkyeBot(commands.AutoShardedBot):
         for row in await self.pool.fetch(persistent_query):
             self.add_view(DropdownView(row['user_id'], row['author_id'],row['guild_id']), message_id=row['message_id'])
     
+
 
     async def on_error(self, event: str, *args, **kwargs):
         error = sys.exc_info()[1]

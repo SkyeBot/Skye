@@ -24,7 +24,7 @@ class welcomer(commands.Cog):
         embed = discord.Embed(title="Welcome Config")
         embed.add_field(name="Custom Image", value="Allows for an custom image to be sent along side the main embed")
         embed.add_field(name="Custom message", value="Allows for a custom message to be sent\nVariables: ``$user, $guild``")
-        embed.add_field(name="Custom Channel", value="Allows for a custom channel through an ID")
+        embed.add_field(name="Custom Channel", value="Allows for a custom channel through an ID or name")
 
         await interaction.response.send_message(embed=embed, view=MyView(interaction.user.id, interaction.channel.id, interaction))
 
