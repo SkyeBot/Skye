@@ -276,7 +276,7 @@ class SkyeBot(commands.AutoShardedBot):
             
 
         embed.add_field(name="Members", value=f"\N{PEOPLE HUGGING} {people} / \N{ROBOT FACE} {bots}\nTotal: {total}")
-        embed.timestamp = guild.me.joined_at
+        embed.timestamp = discord.utils.utcnow()
         embed.color = discord.Color.red()
         await channel.send(embed=embed)
 

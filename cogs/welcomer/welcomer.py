@@ -8,6 +8,7 @@ import string
 from utils.context import Context
 
 from discord import app_commands
+from .view import MyView
 
 
 class welcomer(commands.Cog):
@@ -18,22 +19,14 @@ class welcomer(commands.Cog):
     welcomer = app_commands.Group(name="welcomer", description="All commands for setting up welcoming",default_permissions=discord.Permissions(administrator=True))
     
     @welcomer.command()
-    async def enable(self, interaction: discord.Interaction, channel: Optional[discord.TextChannel], message: Optional[str], image: Optional[str]):
+    async def enable(self, interaction: discord.Interaction):
         """Enables Welcomer with optional message"""
-        message = message or "Welcome $user to $guild!"
-        channel = channel or interaction.channel
-        exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM welcomer_config WHERE guild_id = $1", interaction.guild.id)
-        new_text = string.Template(message).safe_substitute(
-            user=interaction.user.mention,
-            guild=interaction.guild
-        )
+        embed = discord.Embed(title="Welcome Config")
+        embed.add_field(name="Custom Image", value="Allows for an custom image to be sent along side the main embed")
+        embed.add_field(name="Custom message", value="Allows for a custom message to be sent\nVariables: ``$user, $guild``")
+        embed.add_field(name="Custom Channel", value="Allows for a custom channel through an ID")
 
-        if exists is None:
-            await self.bot.pool.execute('INSERT INTO welcomer_config(channel_id, message, guild_id, image) VALUES ($1, $2, $3, $4)',channel.id, message, interaction.guild.id, image)
-            return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
-        
-        await self.bot.pool.execute('UPDATE welcomer_config SET channel_id = $1, message = $2, image = $3 WHERE guild_id = $4',  channel.id, message, image,interaction.guild.id)
-        return await interaction.response.send_message(f"Welcome Channel: {channel.mention}\n\nWelcome Message Is Now Set To: **{new_text}**", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        await interaction.response.send_message(embed=embed, view=MyView(interaction.user.id, interaction.channel.id, interaction))
 
     @welcomer.command()
     async def disable(self, interaction: discord.Interaction):
@@ -65,10 +58,10 @@ class welcomer(commands.Cog):
             )
         
 
-            embed = discord.Embed(title=f"Welcome {member} to {member.guild}!", description=f"{new_text}")
+            embed = discord.Embed(description=f"**{new_text}**")
+            embed.set_author(name=member, icon_url=member.display_avatar.url)
             embed.set_image(url=exists['image'])
             embed.timestamp = datetime.datetime.utcnow()
-            embed.set_thumbnail(url=f"{member.avatar}")
             
             await channel.send(embed=embed)    
         except Exception as e:

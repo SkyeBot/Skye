@@ -37,10 +37,12 @@ async def main():
         for ext in exts:
             await bot.load_extension(ext)
 
+        
+        
 
         bot.tree.interaction_check = blacklist_check
         await bot.start(os.environ["TOKEN"])
-
     
+
 if __name__ == "__main__":
     asyncio.run(main())
