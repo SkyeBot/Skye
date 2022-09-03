@@ -60,7 +60,7 @@ class MyView(discord.ui.View):
     async def interaction_check(self, itr: discord.Interaction) -> bool:
         if itr.user.id == self.author_id:
             return True
-        await itr.response.send_message("cock!", ephemeral=True)
+        await itr.response.send_message(f"You cant use this as you're not the command invoker, only the author (<@{itr.client.get_user(self.author_id).id}>) Can Do This!", ephemeral=True)
         return False
 
     @discord.ui.button(label="Welcome Image", style=discord.ButtonStyle.blurple)

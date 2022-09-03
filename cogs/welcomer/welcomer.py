@@ -6,7 +6,7 @@ from utils import default
 from core.bot import SkyeBot
 import string
 from utils.context import Context
-
+import asyncpg
 from discord import app_commands
 from .view import MyView
 
@@ -70,19 +70,15 @@ class welcomer(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         try: 
-            exists = await self.bot.pool.fetchrow("SELECT * FROM welcomer_config WHERE guild_id = $1", member.guild.id)
+            exists: dict = await self.bot.pool.fetchrow("SELECT * FROM welcomer_config WHERE guild_id = $1", member.guild.id)
             channel = self.bot.get_channel(exists.get("channel_id"))
-            show_roles = ", ".join(
-                [f"<@&{x.id}>" for x in sorted(member.roles, key=lambda x: x.position, reverse=True) if
-                    x.id != member.guild.default_role.id]
-            ) if len(member.roles) > 1 else "Default Role"
 
-            embed = discord.Embed(title=f"Member: {member} left the server! this server is now at {len(member.guild.members)} Members")
-            embed.add_field(name="Account created", value=default.date(member.created_at, ago=True), inline=False)
+            embed = discord.Embed(description=f"**{member} left the server! this server is now at {len(member.guild.members)} Members :(**")
+            embed.set_author(name=member, icon_url=member.display_avatar.url)
+            embed.set_image(url=exists['image']) 
             embed.timestamp = datetime.datetime.utcnow()
-            embed.set_thumbnail(url=f"{member.avatar}")
 
             await channel.send(embed=embed)
         except Exception as e:
-            print(e)
-
+            self.bot.logger.error(e)
+    

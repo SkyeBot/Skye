@@ -17,12 +17,7 @@ import asyncio
 
 class Yoink(commands.Cog):
     def __init__(self, bot: SkyeBot):
-        self.bot = bot
-    async def get_banner(self, banner_url):
-        async with self.bot.session.get(banner_url) as resp:
-            bytes = await resp.read()
-            
-        return bytes
+        self.bot = bot  
 
 async def setup(bot):
     await bot.add_cog(Yoink(bot))
