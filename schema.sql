@@ -39,6 +39,11 @@ CREATE TABLE welcomer_config (
  
 );
 
+CREATE TABLE mute_config (
+    role_id BIGINT,
+    guild_id BIGINT
+);
+
 CREATE TABLE IF NOT EXISTS tags_new(
     id SERIAL UNIQUE,
     name TEXT NOT NULL CHECK (char_length(name) <= 32),

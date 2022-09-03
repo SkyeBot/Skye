@@ -64,7 +64,7 @@ class SkyeBot(commands.AutoShardedBot):
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
         self.botintents = discord.Intents.all()
-        self.botintents.presences = False
+        self.botintents.presences = True
         self.botintents.typing = False
 
 
@@ -122,10 +122,6 @@ class SkyeBot(commands.AutoShardedBot):
         self.resumes[shard_id].append(discord.utils.utcnow())
         
     async def setup_hook(self):
-        logging.basicConfig(level=logging.INFO)
-        handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
-        handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-        self.logger.addHandler(handler)
         persistent_query = "SELECT * FROM persistent_view"
         
         for row in await self.pool.fetch(persistent_query):
