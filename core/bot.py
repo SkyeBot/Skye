@@ -213,7 +213,16 @@ class SkyeBot(commands.AutoShardedBot):
             self.logger.info(choice)
 
             if choice[0] == 234:
-                await interaction.channel.send("If you like using skye, please think about voting for skye on our top.gg <https://top.gg/bot/932462085516968027/vote> or vote for us on discordbotlist\n<https://discordbotlist.com/bots/skye-7292>")
+                voteEmbed = discord.Embed(
+                    title = f'{self.user.name}:tm:',
+                    description = f'If you like using `{self.user}`, please consider voting for the bot!',
+                    color = 0xe8718d
+                )
+                voteEmbed.add_field(name='Top.gg', value="Click **[here](https://top.gg/bot/932462085516968027/vote \"Please vote!\")** to vote on [top.gg](https://top.gg)!", inline=False)
+                voteEmbed.add_field(name='Discord Bot List', value="Click **[here](https://discordbotlist.com/bots/skye-7292 \"Please vote!\")** to vote on [discordbotlist.com](https://discordbotlist.com)!", inline=False)
+                voteEmbed.set_thumbnail(url=self.user.avatar.url)
+                voteEmbed.set_footer(text="Thank you for voting, it's very appreciated!!")
+                await interaction.channel.send(embed=voteEmbed)
 
             try:
                 text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
