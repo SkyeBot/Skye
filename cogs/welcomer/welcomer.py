@@ -19,32 +19,15 @@ class welcomer(commands.Cog):
     welcomer = app_commands.Group(name="welcomer", description="All commands for setting up welcoming",default_permissions=discord.Permissions(administrator=True))
     
     @welcomer.command()
-    async def enable(self, interaction: discord.Interaction):
+    async def config(self, interaction: discord.Interaction):
         """Enables Welcomer with optional message"""
         embed = discord.Embed(title="Welcome Config")
         embed.add_field(name="Custom Image", value="Allows for an custom image to be sent along side the main embed")
         embed.add_field(name="Custom message", value="Allows for a custom message to be sent\nVariables: ``$user, $guild``")
         embed.add_field(name="Custom Channel", value="Allows for a custom channel through an ID or name")
 
-        await interaction.response.send_message(embed=embed, view=MyView(interaction.user.id, interaction.channel.id, interaction))
 
-    @welcomer.command()
-    async def disable(self, interaction: discord.Interaction):
-        """Disables welcomer for the guilld"""
-
-        try:
-            exists =  await self.bot.pool.fetchrow("SELECT channel_id FROM WELCOMER_CONFIG WHERE guild_id = $1", interaction.guild.id)  
-            if exists is None:
-                return await interaction.response.send_message("Welcomer was not enabled in the first place!",ephermal=True)
-
-            await self.bot.pool.execute("DELETE FROM welcomer_config WHERE guild_id = $1", interaction.guild.id)
-            await interaction.response.send_message("Succesfully disabled welcomer!")
-
-        except Exception as e:
-            return await interaction.response.send_message(f"Oh No! an error occured!\n\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}If you're a coder and you think this is a fatal error, DM Sawsha#0598!", ephemeral=True)
-
-
-
+        await interaction.response.send_message(content="Warning: The following buttons, modals, etc are not persistent, if they stop working at any time, re-run the command!",embed=embed, view=MyView(interaction.user.id, interaction.channel.id, interaction))
 
     @commands.Cog.listener()
     async def on_member_join(self,member:discord.Member):

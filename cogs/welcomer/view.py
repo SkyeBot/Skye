@@ -82,6 +82,8 @@ class MyView(discord.ui.View):
             user=itr.user.mention,
             guild=itr.guild
         )
+
+    
         
     @discord.ui.button(label="Custom Channel", style=discord.ButtonStyle.blurple)
     async def custom_channel(self, itr: discord.Interaction, button: discord.ui.button):
@@ -95,8 +97,17 @@ class MyView(discord.ui.View):
         else:
             self.channel = discord.utils.find(lambda c: c.name == modal.channeltext.value, itr.guild.text_channels)
             
+    @discord.ui.button(label="Disable", style=discord.ButtonStyle.danger)
+    async def disable(self, itr: discord.Interaction, button: discord.ui.button) -> None:
+        exists = await itr.client.pool.fetchrow("SELECT * FROM welcomer_config WHERE guild_id = $1", itr.guild.id)
+        if exists:
+            await itr.client.pool.execute("DELETE FROM welcomer_config WHERE guild_id = $1", itr.guild.id)
+            for item in self.children:
+                item.disabled = True
+            
+            return await itr.response.send_message("Succesfully disabled welcomer for this guild!", ephemeral=True)
         
-
+        return await itr.response.send_message("Cannot disable welcomer as welcommer is not enabled in the first place!", ephemeral=True)
     @discord.ui.button(label="Apply", style=discord.ButtonStyle.green)
     async def idk(self, itr: discord.Interaction, button: discord.ui.button):
         query = """
