@@ -168,7 +168,7 @@ class SkyeBot(commands.AutoShardedBot):
             ctx.author.id,
             ctx.command.name,
         )
-
+        self.user
         try:
             loc = ctx.guild
         except:
@@ -223,7 +223,6 @@ class SkyeBot(commands.AutoShardedBot):
                 voteEmbed.set_thumbnail(url=self.user.avatar.url)
                 voteEmbed.set_footer(text="Thank you for voting, it's very appreciated!!")
                 await interaction.channel.send(embed=voteEmbed)
-
             try:
                 text = f" `{waktu}` | **{interaction.user}** used `/{interaction.command.name}` command on `#{interaction.channel}`, **{loc}**"
                 self.logger.info(text.replace('*', '').replace('`', ''))

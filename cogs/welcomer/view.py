@@ -104,10 +104,11 @@ class MyView(discord.ui.View):
             await itr.client.pool.execute("DELETE FROM welcomer_config WHERE guild_id = $1", itr.guild.id)
             for item in self.children:
                 item.disabled = True
-            
+            await itr.message.edit(view=self)
             return await itr.response.send_message("Succesfully disabled welcomer for this guild!", ephemeral=True)
         
         return await itr.response.send_message("Cannot disable welcomer as welcommer is not enabled in the first place!", ephemeral=True)
+
     @discord.ui.button(label="Apply", style=discord.ButtonStyle.green)
     async def idk(self, itr: discord.Interaction, button: discord.ui.button):
         query = """

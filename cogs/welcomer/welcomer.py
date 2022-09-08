@@ -56,9 +56,8 @@ class welcomer(commands.Cog):
             exists: dict = await self.bot.pool.fetchrow("SELECT * FROM welcomer_config WHERE guild_id = $1", member.guild.id)
             channel = self.bot.get_channel(exists.get("channel_id"))
 
-            embed = discord.Embed(description=f"**{member} left the server! this server is now at {len(member.guild.members)} Members :(**")
+            embed = discord.Embed(description=f"{member} left the server! this server is now at {len(member.guild.members)} Members")
             embed.set_author(name=member, icon_url=member.display_avatar.url)
-            embed.set_image(url=exists['image']) 
             embed.timestamp = datetime.datetime.utcnow()
 
             await channel.send(embed=embed)
