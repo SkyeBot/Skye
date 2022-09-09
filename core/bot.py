@@ -70,9 +70,9 @@ class SkyeBot(commands.AutoShardedBot):
 
 
         super().__init__(
-            command_prefix="skye ",
+            command_prefix=commands.when_mentioned_or("skye "),
             intents=self.botintents,
-            owner_ids=[506899611332509697, 894794517079793704],
+            owner_ids=[506899611332509697, 894794517079793704, 739219467455823921],
         )
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:

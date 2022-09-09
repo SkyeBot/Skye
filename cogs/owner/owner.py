@@ -4,7 +4,10 @@
 import io
 import logging
 import random
+import textwrap
+import traceback
 from typing import Optional, Union
+import typing
 import discord
 
 from discord.ext import commands
@@ -14,7 +17,7 @@ from discord import Interaction, app_commands
 from core.bot import SkyeBot
 from utils.context import Context
 from utils import default
-
+from contextlib import redirect_stdout
 
 from discord.ext import commands, tasks
 
@@ -25,6 +28,7 @@ class owner(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
         self.ch_pr.start()
+        self._last_result: Optional[typing.Any] = None
 
     @commands.command()
     async def claim(self, ctx: Context):
@@ -42,7 +46,7 @@ class owner(commands.Cog):
 
     async def is_owner(interaction: discord.Interaction) -> bool:
         
-        if interaction.user.id == 894794517079793704:
+        if interaction.user.id in [894794517079793704, ]:
             return True
         
         await interaction.response.send_message("You Cannot Use This Command!", ephemeral=True)
@@ -109,4 +113,62 @@ class owner(commands.Cog):
             await ctx.send(f":repeat: Succesfully reloaded: ``{cog}``!")
         except Exception as e:
             return await ctx.send(f"\N{WARNING SIGN} Oh No! there was an error\nError Class: **{e.__class__.__name__}**\n{default.traceback_maker(err=e)}")
+
+    def cleanup_code(self, content: str) -> str:
+        """Automatically removes code blocks from the code."""
+        # remove ```py\n```
+        if content.startswith('```') and content.endswith('```'):
+            return '\n'.join(content.split('\n')[1:-1])
+
+        # remove `foo`
+        return content.strip('` \n')
+
+    @commands.command()
+    @commands.is_owner()
+    async def eval(self, ctx: Context,*, body: str):
+        env = {
+            'bot': self.bot,
+            'ctx': ctx,
+            'channel': ctx.channel,
+            'author': ctx.author,
+            'guild': ctx.guild,
+            'message': ctx.message,
+            '_': self._last_result,
+        }
+
+        env.update(globals())
+
+        body = self.cleanup_code(body)
+        stdout = io.StringIO()
+
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+
+        func = env['func']
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            value = stdout.getvalue()
+            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+        else:
+            value = stdout.getvalue()
+            try:
+                await ctx.message.add_reaction('\u2705')
+            except:
+                pass
+
+
+            if ret is None:
+                if value:
+                    embed = discord.Embed(title="Outputted Code", description=f'```py\n{value}\n```')
+
+                    await ctx.send(embed=embed)
+            else:
+                self._last_result = ret
+                await ctx.send(f'```py\n{value}{ret}\n```')
 

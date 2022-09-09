@@ -130,7 +130,7 @@ class Mods(commands.Cog):
         """purges messages based off of amount"""
         await interaction.response.defer(thinking=True)
         try:
-            purged = await interaction.channel.purge(limit=amount, after=discord.utils.utcnow() - datetime.timedelta(days=14))
+            purged = await interaction.channel.purge(limit=amount)
             embed = discord.Embed(description=f"**Succesfully purged ``{len(purged)} Messages``**", color=self.bot.error_color)
 
             await interaction.followup.send(embed=embed)

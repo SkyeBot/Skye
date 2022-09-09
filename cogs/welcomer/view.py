@@ -124,5 +124,3 @@ class MyView(discord.ui.View):
         embed.set_image(url=self.image)
         embed.timestamp = discord.utils.utcnow()
         await itr.response.send_message(f"Heres the finished product that should be sent to {self.channel.mention if self.channel else itr.channel.mention}", embed=embed, ephemeral=True)
-
-
