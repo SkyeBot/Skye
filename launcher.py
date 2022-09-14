@@ -37,11 +37,8 @@ async def main():
         for ext in exts:
             await bot.load_extension(ext)
 
-        
-        
-
         bot.tree.interaction_check = blacklist_check
-        await bot.start(os.environ["TOKEN"])
+        await bot.start(os.environ["TOKEN"], reconnect=True)
     
 
 if __name__ == "__main__":

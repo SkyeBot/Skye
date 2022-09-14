@@ -65,6 +65,9 @@ class Mute(commands.Cog):
             role_query = await self.bot.pool.fetchval("SELECT role_id FROM MUTE_CONFIG WHERE guild_id = $1", interaction.guild.id)
             muted_role = await get_mute(role_query, guild=interaction.guild)
 
+            if muted_role not in member.roles:
+                return await interaction.response.send_message("Member isn't even muted!", ephemeral=True)
+
             await member.remove_roles(muted_role)
             embed = discord.Embed(title="✅ Unmuted!", description=f"Unmuted {member.mention}",colour=discord.Colour.light_gray())
             await interaction.response.send_message(embed=embed)

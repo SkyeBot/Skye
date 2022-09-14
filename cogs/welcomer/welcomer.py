@@ -20,12 +20,11 @@ class welcomer(commands.Cog):
     
     @welcomer.command()
     async def config(self, interaction: discord.Interaction):
-        """Enables Welcomer with optional message"""
+        """Sends the config panel for the welcomer"""
         embed = discord.Embed(title="Welcome Config")
         embed.add_field(name="Custom Image", value="Allows for an custom image to be sent along side the main embed")
         embed.add_field(name="Custom message", value="Allows for a custom message to be sent\nVariables: ``$user, $guild``")
         embed.add_field(name="Custom Channel", value="Allows for a custom channel through an ID or name")
-
 
         await interaction.response.send_message(content="Warning: The following buttons, modals, etc are not persistent, if they stop working at any time, re-run the command!",embed=embed, view=MyView(interaction.user.id, interaction.channel.id, interaction))
 

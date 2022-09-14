@@ -51,10 +51,7 @@ class MyView(discord.ui.View):
         self.author_id = author_id
         super().__init__(timeout=None)
         self.channel = itr.client.get_channel(channel)
-        self.msg = string.Template("Welcome $user to $guild!").safe_substitute(
-            user=itr.user.mention,
-            guild=itr.guild
-        )
+        self.msg = None
         self.image = None
     
     async def interaction_check(self, itr: discord.Interaction) -> bool:
@@ -75,14 +72,7 @@ class MyView(discord.ui.View):
         modal = MsgModal()
         await itr.response.send_modal(modal)
         await modal.wait()
-        msg = modal.msg.value or self.msg
-
-
-        self.msg = string.Template(msg).safe_substitute(
-            user=itr.user.mention,
-            guild=itr.guild
-        )
-
+        self.msg = modal.msg.value
     
         
     @discord.ui.button(label="Custom Channel", style=discord.ButtonStyle.blurple)
@@ -117,9 +107,15 @@ class MyView(discord.ui.View):
             UPDATE SET channel_id = excluded.channel_id, message = excluded.message, image = excluded.image
 
         """
+        itr.message.reference.cached_message.attachments[0].read
 
-        await itr.client.pool.execute(query, self.channel.id, self.msg, itr.guild.id, self.image)
-        embed = discord.Embed(description=f"**{self.msg}**")
+        
+        await itr.client.pool.execute(query, self.channel.id, self.msg if self.msg else "Welcome $user to $guild!", itr.guild.id, self.image)
+        msg = string.Template(self.msg if self.msg else "Welcome $user to $guild!").safe_substitute(
+            user=itr.user.mention,
+            guild=itr.guild
+        )
+        embed = discord.Embed(description=f"**{msg}**")
         embed.set_author(name=itr.user, icon_url=itr.user.display_avatar.url)
         embed.set_image(url=self.image)
         embed.timestamp = discord.utils.utcnow()

@@ -11,6 +11,8 @@ services:
     depends_on:
       - db
       - lavalink
+
+    restart: unless-stopped
       
   db:
     container_name: postgres_container

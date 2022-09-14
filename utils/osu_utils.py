@@ -116,6 +116,7 @@ class User:
             self.country_code = data.get("country_code") if data.get("country_code") else "None"
             self._country = data.get("country")
             self.avatar_url = data.get("avatar_url")
+            self.cover_url = data.get("cover_url")
             self.id = data.get("id")
             self.playstyle = data.get("playstyle") 
             self.playmode = data.get("playmode")

@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 class owner(commands.Cog):
     def __init__(self, bot: SkyeBot):
         self.bot = bot
-        self.ch_pr.start()
         self._last_result: Optional[typing.Any] = None
 
     @commands.command()
@@ -38,12 +37,6 @@ class owner(commands.Cog):
             return await ctx.send("Boom baby!!!")
         await ctx.send("You didn't vote smh")
     
-    @tasks.loop(minutes=5)
-    async def ch_pr(self):
-        choices = [f'on {len(self.bot.guilds)} servers', f"Serving over {len(self.bot.users)} Users!", "/botinfo for more info on me!"]
-        prescense  = random.choice(choices)
-        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=prescense))
-
     async def is_owner(interaction: discord.Interaction) -> bool:
         
         if interaction.user.id in [894794517079793704, ]:
@@ -56,7 +49,6 @@ class owner(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def status(self, ctx: Context, *, status: str):
-
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=status))
 
         await ctx.reply(f"Succesfully changed Status to {status}!", mention_author=False)

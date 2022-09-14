@@ -145,8 +145,8 @@ class Logging(commands.Cog):
 
         embed.set_author(name=f'{before.author.name}#{before.author.discriminator}', icon_url=before.author.avatar)
         embed.set_footer(text=f"Author ID:{before.author.id} • Message ID: {before.id}")
-        embed.add_field(name='Before:', value=before.content or "No Content Available", inline=False)
-        embed.add_field(name="After:", value=after.content or "No Content Available", inline=False)
+        embed.add_field(name='Before:', value=before.content or "No Content Available" if len(before.content) < 1024 else "Too big of a message sorry!", inline=False)
+        embed.add_field(name="After:", value=after.content or "No Content Available"  if len(after.content) < 1024 else "Too big of a message sorry!", inline=False)
         embed.add_field(name="ID:", value=f"```User = {before.author.id} \nMessage = {before.id}```", inline=False)
 
         await channel.send(embed=embed)

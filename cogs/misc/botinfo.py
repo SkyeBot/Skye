@@ -30,7 +30,7 @@ class InfoSelect(discord.ui.Select):
         options = [
             discord.SelectOption(label='avatar', description='Avatar of the user'),
             discord.SelectOption(label='Bot info', value=f"info",description="Actual Bot Info"),
-            discord.SelectOption(label="statistics", description="Bot Statistics")
+
         ]
 
         # The placeholder is what will be shown when no option is chosen
@@ -77,12 +77,13 @@ class bot_info(commands.Cog):
     @app_commands.command()
     async def botinfo(self, itr: discord.Interaction):
         """Provides info about the bot"""
+        await itr.response.defer()
         process = psutil.Process(os.getpid())
         ramUsage = process.memory_full_info().rss / 1024**2    
     
         version = pkg_resources.get_distribution("discord.py").version
 
-        embed = discord.Embed(title="Hi! im Skye! I'm a multipurpose open source Discord Bot!",
+        embed = discord.Embed(title="Hey there, im Skye! An multipurpose open-source discord bot!",
             description=f"Source Code: {constants.GITHUB} [source](https://github.com/SkyeBot/Skye/tree/rewrite) | "
             f"Invite Link: {constants.INVITE} [invite me](https://discord.com/api/oauth2/authorize?client_id=932462085516968027&permissions=8&scope=bot%20applications.commands) | "
             f"Top.gg Link: {constants.TOP_GG} [top.gg](https://top.gg/bot/932462085516968027) | ", 
@@ -92,11 +93,10 @@ class bot_info(commands.Cog):
         )
         
 
-        embed.set_author(name="I was made by: Sawsha#0598!", icon_url="https://cdn.discordapp.com/avatars/894794517079793704/02fc9ee15032b33756ba9829f00449d9.png?size=1024")
+        embed.set_author(name="I was made by: Sawsha#0598!", icon_url=(await itr.client.application_info()).owner.display_avatar.url)
 
                 # statistics
         total_members = 0
-        total_unique = len(self.bot.users)
 
         text = 0
         voice = 0
@@ -136,6 +136,6 @@ class bot_info(commands.Cog):
         )
         embed.timestamp = discord.utils.utcnow()
 
-        await itr.response.send_message(embed=embed, view=InfoView(embed))
+        await itr.followup.send(embed=embed, view=InfoView(embed))
 
 

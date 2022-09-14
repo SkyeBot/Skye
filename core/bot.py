@@ -28,6 +28,11 @@ T = TypeVar("T")
 EB = TypeVar("EB", bound="SkyeBot")
 P = ParamSpec("P")
 
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = False
+intents.message_content = True
+intents.members = True
 
 
 class SkyeBot(commands.AutoShardedBot):
@@ -63,16 +68,12 @@ class SkyeBot(commands.AutoShardedBot):
         self.config = os.environ
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
-        self.botintents = discord.Intents.all()
-        self.botintents.presences = True
-        self.botintents.typing = False
-
-
 
         super().__init__(
             command_prefix=commands.when_mentioned_or("skye "),
-            intents=self.botintents,
+            intents=intents,
             owner_ids=[506899611332509697, 894794517079793704, 739219467455823921],
+            activity=discord.Activity(type=discord.ActivityType.playing, name="Ultrakill and Osu!")
         )
 
     def tick(self, opt: Optional[bool], label: Optional[str] = None) -> str:
@@ -160,33 +161,6 @@ class SkyeBot(commands.AutoShardedBot):
             )
 
         raise error from None
-
-    
-    async def on_command_completion(self, ctx):
-        await self.pool.execute(
-            "INSERT INTO commands (user_id, command_name) VALUES ($1, $2)",
-            ctx.author.id,
-            ctx.command.name,
-        )
-        self.user
-        try:
-            loc = ctx.guild
-        except:
-            loc = ctx.author
-        else:
-            loc = ctx.guild
-
-        date = dt.datetime.now()
-        waktu = date.strftime("%d/%m/%y %I:%M %p")
-
-        try:
-            text = f" `{waktu}` | **{ctx.author}** used `{ctx.command.name}` command on `#{ctx.channel}`, **{loc}**"
-            self.logger.info(text.replace('*', '').replace('`', ''))
-        except:
-            text = f" `{waktu}` | **{ctx.author}** used `{ctx.command.name}` command on **{loc}**"
-            self.logger.info(text.replace('*', '').replace('`', ''))
-
-
 
     async def on_app_command_completion(self, interaction: discord.Interaction, command: Union[discord.app_commands.Command, discord.app_commands.ContextMenu]):
         if (interaction.type == discord.InteractionType.application_command):
@@ -297,5 +271,3 @@ class SkyeBot(commands.AutoShardedBot):
             self.logger.info("Closed Session.")
         finally:
             await super().close()
-
-

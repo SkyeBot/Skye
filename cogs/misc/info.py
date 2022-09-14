@@ -285,7 +285,3 @@ class Misc(commands.Cog):
         e.add_field(name='Emoji', value=fmt, inline=False)
         e.set_footer(text='Created').timestamp = guild.created_at
         await interaction.response.send_message(embed=e)
-
-    @commands.command()
-    async def source(self, ctx: Context):
-        embed = discord.Embed(description=f"My source: []")
