@@ -1,3 +1,8 @@
+# Please note
+Due to discord deeming skye against their Developer Policy and Terms Of Service, skye will no longer be worked on and the main repo will be archived.
+
+
+
 # Skye
  <b>An all in one open source Multi-Purpose Discord Bot! </b><br>
 [![DiscordBot](https://top.gg/api/widget/932462085516968027.svg)](https://top.gg/bot/932462085516968027)
