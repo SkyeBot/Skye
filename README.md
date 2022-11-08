@@ -1,5 +1,5 @@
-# Please note
-Due to discord deeming skye against their Developer Policy and Terms Of Service, skye will no longer be worked on and the main repo will be archived.
+# Welcome back!
+Hi all! its been about 2 or so months since i archived Skye. ive decided to bring it back under a new bot application and a well deserved rewrite!
 
 
 
